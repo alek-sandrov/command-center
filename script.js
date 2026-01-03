@@ -115,6 +115,8 @@ function init() {
 
     // Load weather for Sofia, Bulgaria
     updateWeather();
+    // Refresh weather every 10 minutes
+    setInterval(updateWeather, 10 * 60 * 1000);
 
     // Load notes
     loadNotes();
