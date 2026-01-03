@@ -91,18 +91,7 @@ function getWeatherDescription(code) {
     return weatherCodes[code] || '🌡️ Unknown';
 }
 
-// Notes functionality
-function loadNotes() {
-    const savedNotes = localStorage.getItem('dashboardNotes');
-    if (savedNotes) {
-        document.getElementById('notes').value = savedNotes;
-    }
-}
-
-function saveNotes() {
-    const notes = document.getElementById('notes').value;
-    localStorage.setItem('dashboardNotes', notes);
-}
+// Ham radio frequencies are static, no functionality needed
 
 // Camera links are now hardcoded in HTML, no editing needed
 
@@ -117,12 +106,6 @@ function init() {
     updateWeather();
     // Refresh weather every 10 minutes
     setInterval(updateWeather, 10 * 60 * 1000);
-
-    // Load notes
-    loadNotes();
-
-    // Save notes on input
-    document.getElementById('notes').addEventListener('input', saveNotes);
 }
 
 // Start when DOM is ready
