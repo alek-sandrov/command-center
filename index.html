@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Custom Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 My Dashboard</h1>
+            <div id="current-time"></div>
+        </header>
+
+        <div class="grid">
+            <!-- Weather Widget -->
+            <section class="card weather-card">
+                <h2>🌤️ Weather</h2>
+                <div id="weather-content">
+                    <div class="weather-input">
+                        <input type="text" id="city-input" placeholder="Enter your city" value="New York">
+                        <button onclick="updateWeather()">Update</button>
+                    </div>
+                    <div id="weather-info">
+                        <div class="loading">Loading weather data...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Public Cameras -->
+            <section class="card cameras-card">
+                <h2>📹 Public Cameras</h2>
+                <div class="links-grid">
+                    <a href="#" class="link-item camera-link" onclick="editLink(this, event)">
+                        <span>📷</span>
+                        <p>Camera 1</p>
+                    </a>
+                    <a href="#" class="link-item camera-link" onclick="editLink(this, event)">
+                        <span>📷</span>
+                        <p>Camera 2</p>
+                    </a>
+                    <a href="#" class="link-item camera-link" onclick="editLink(this, event)">
+                        <span>📷</span>
+                        <p>Camera 3</p>
+                    </a>
+                    <a href="#" class="link-item camera-link" onclick="editLink(this, event)">
+                        <span>📷</span>
+                        <p>Camera 4</p>
+                    </a>
+                </div>
+                <button class="add-button" onclick="addCameraLink()">+ Add Camera</button>
+            </section>
+
+            <!-- News Outlets -->
+            <section class="card news-card">
+                <h2>📰 News</h2>
+                <div class="links-grid">
+                    <a href="https://news.google.com" target="_blank" class="link-item">
+                        <span>🌐</span>
+                        <p>Google News</p>
+                    </a>
+                    <a href="https://news.ycombinator.com" target="_blank" class="link-item">
+                        <span>🔶</span>
+                        <p>Hacker News</p>
+                    </a>
+                    <a href="https://www.reddit.com/r/news" target="_blank" class="link-item">
+                        <span>🔴</span>
+                        <p>Reddit News</p>
+                    </a>
+                    <a href="https://www.bbc.com/news" target="_blank" class="link-item">
+                        <span>📺</span>
+                        <p>BBC News</p>
+                    </a>
+                    <a href="https://www.reuters.com" target="_blank" class="link-item">
+                        <span>📡</span>
+                        <p>Reuters</p>
+                    </a>
+                    <a href="https://apnews.com" target="_blank" class="link-item">
+                        <span>📰</span>
+                        <p>AP News</p>
+                    </a>
+                </div>
+            </section>
+
+            <!-- Traffic -->
+            <section class="card traffic-card">
+                <h2>🚗 Traffic</h2>
+                <div class="links-grid">
+                    <a href="https://www.google.com/maps/traffic" target="_blank" class="link-item">
+                        <span>🗺️</span>
+                        <p>Google Maps Traffic</p>
+                    </a>
+                    <a href="https://www.waze.com/live-map" target="_blank" class="link-item">
+                        <span>🚦</span>
+                        <p>Waze Live Map</p>
+                    </a>
+                    <a href="#" class="link-item" onclick="editLink(this, event)">
+                        <span>🛣️</span>
+                        <p>Local Traffic Cam</p>
+                    </a>
+                    <a href="#" class="link-item" onclick="editLink(this, event)">
+                        <span>🚧</span>
+                        <p>DOT Traffic Info</p>
+                    </a>
+                </div>
+            </section>
+
+            <!-- Quick Links -->
+            <section class="card quick-links-card">
+                <h2>⚡ Quick Links</h2>
+                <div class="links-grid">
+                    <a href="https://gmail.com" target="_blank" class="link-item">
+                        <span>📧</span>
+                        <p>Gmail</p>
+                    </a>
+                    <a href="https://calendar.google.com" target="_blank" class="link-item">
+                        <span>📅</span>
+                        <p>Calendar</p>
+                    </a>
+                    <a href="https://drive.google.com" target="_blank" class="link-item">
+                        <span>💾</span>
+                        <p>Drive</p>
+                    </a>
+                    <a href="#" class="link-item" onclick="editLink(this, event)">
+                        <span>🔗</span>
+                        <p>Custom Link</p>
+                    </a>
+                </div>
+            </section>
+
+            <!-- Notes -->
+            <section class="card notes-card">
+                <h2>📝 Quick Notes</h2>
+                <textarea id="notes" placeholder="Type your notes here..."></textarea>
+                <div class="notes-info">Notes are saved locally in your browser</div>
+            </section>
+        </div>
+
+        <footer>
+            <p>Last updated: <span id="last-update"></span></p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
