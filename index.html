@@ -16,12 +16,8 @@
         <div class="grid">
             <!-- Weather Widget -->
             <section class="card weather-card">
-                <h2>🌤️ Weather</h2>
+                <h2>🌤️ Weather - Sofia</h2>
                 <div id="weather-content">
-                    <div class="weather-input">
-                        <input type="text" id="city-input" placeholder="Enter your city" value="New York">
-                        <button onclick="updateWeather()">Update</button>
-                    </div>
                     <div id="weather-info">
                         <div class="loading">Loading weather data...</div>
                     </div>
@@ -32,24 +28,15 @@
             <section class="card cameras-card">
                 <h2>📹 Public Cameras</h2>
                 <div class="links-grid">
-                    <a href="#" class="link-item camera-link" onclick="editLink(this, event)">
+                    <a href="https://weather-webcam.eu/sofia-orlov-most-na-jivo/" target="_blank" class="link-item">
                         <span>📷</span>
-                        <p>Camera 1</p>
+                        <p>Орлов Мост</p>
                     </a>
-                    <a href="#" class="link-item camera-link" onclick="editLink(this, event)">
+                    <a href="https://weather-webcam.eu/kamera-na-jivo-sofia-kvartal-lagera-panorama-vitosha/" target="_blank" class="link-item">
                         <span>📷</span>
-                        <p>Camera 2</p>
-                    </a>
-                    <a href="#" class="link-item camera-link" onclick="editLink(this, event)">
-                        <span>📷</span>
-                        <p>Camera 3</p>
-                    </a>
-                    <a href="#" class="link-item camera-link" onclick="editLink(this, event)">
-                        <span>📷</span>
-                        <p>Camera 4</p>
+                        <p>ж.к. Лагера</p>
                     </a>
                 </div>
-                <button class="add-button" onclick="addCameraLink()">+ Add Camera</button>
             </section>
 
             <!-- News Outlets -->
@@ -58,19 +45,19 @@
                 <div class="links-grid">
                     <a href="https://news.google.com" target="_blank" class="link-item">
                         <span>🌐</span>
-                        <p>Google News</p>
+                        <p>Google</p>
                     </a>
-                    <a href="https://news.ycombinator.com" target="_blank" class="link-item">
-                        <span>🔶</span>
-                        <p>Hacker News</p>
+                    <a href="https://nova.bg" target="_blank" class="link-item">
+                        <span>📺</span>
+                        <p>Nova</p>
                     </a>
                     <a href="https://www.reddit.com/r/news" target="_blank" class="link-item">
                         <span>🔴</span>
-                        <p>Reddit News</p>
+                        <p>Reddit</p>
                     </a>
                     <a href="https://www.bbc.com/news" target="_blank" class="link-item">
                         <span>📺</span>
-                        <p>BBC News</p>
+                        <p>BBC</p>
                     </a>
                     <a href="https://www.reuters.com" target="_blank" class="link-item">
                         <span>📡</span>
@@ -78,7 +65,7 @@
                     </a>
                     <a href="https://apnews.com" target="_blank" class="link-item">
                         <span>📰</span>
-                        <p>AP News</p>
+                        <p>AP</p>
                     </a>
                 </div>
             </section>
@@ -87,21 +74,13 @@
             <section class="card traffic-card">
                 <h2>🚗 Traffic</h2>
                 <div class="links-grid">
-                    <a href="https://www.google.com/maps/traffic" target="_blank" class="link-item">
+                    <a href="https://www.google.com/maps/@42.6638311,23.3654504,13.13z/data=!5m1!1e1?entry=ttu&g_ep=EgoyMDI1MTIwOS4wIKXMDSoASAFQAw%3D%3D" target="_blank" class="link-item">
                         <span>🗺️</span>
-                        <p>Google Maps Traffic</p>
+                        <p>Google Maps</p>
                     </a>
                     <a href="https://www.waze.com/live-map" target="_blank" class="link-item">
                         <span>🚦</span>
-                        <p>Waze Live Map</p>
-                    </a>
-                    <a href="#" class="link-item" onclick="editLink(this, event)">
-                        <span>🛣️</span>
-                        <p>Local Traffic Cam</p>
-                    </a>
-                    <a href="#" class="link-item" onclick="editLink(this, event)">
-                        <span>🚧</span>
-                        <p>DOT Traffic Info</p>
+                        <p>Waze</p>
                     </a>
                 </div>
             </section>
@@ -122,9 +101,9 @@
                         <span>💾</span>
                         <p>Drive</p>
                     </a>
-                    <a href="#" class="link-item" onclick="editLink(this, event)">
+                    <a href="https://github.com" target="_blank" class="link-item">
                         <span>🔗</span>
-                        <p>Custom Link</p>
+                        <p>GitHub</p>
                     </a>
                 </div>
             </section>
