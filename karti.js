@@ -24,6 +24,14 @@ function closeModal() {
     document.body.style.overflow = 'auto'; // Restore scrolling
 }
 
+// View in Google Drive
+function viewInDrive() {
+    if (currentFileId) {
+        const driveUrl = `https://drive.google.com/file/d/${currentFileId}/view`;
+        window.open(driveUrl, '_blank');
+    }
+}
+
 // Download image
 function downloadImage() {
     if (currentFileId) {
