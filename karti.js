@@ -11,6 +11,7 @@ function openModal(fileId, caption) {
 
     // Use Google Drive direct image URL
     modalImg.src = `https://drive.google.com/uc?export=view&id=${fileId}`;
+    modalImg.style.display = 'block';
     modalCaption.textContent = caption;
 
     modal.style.display = 'flex';
@@ -20,7 +21,10 @@ function openModal(fileId, caption) {
 // Close modal
 function closeModal() {
     const modal = document.getElementById('imageModal');
+    const modalImg = document.getElementById('modalImage');
     modal.style.display = 'none';
+    modalImg.style.display = 'none';
+    modalImg.src = ''; // Clear the image source
     document.body.style.overflow = 'auto'; // Restore scrolling
 }
 
