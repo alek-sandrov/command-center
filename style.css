@@ -50,27 +50,12 @@ body {
 }
 
 .nav-brand {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 1rem;
-}
-
-.brand-title {
     font-size: 1.2rem;
     font-weight: 700;
     background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-}
-
-.brand-time {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    font-weight: 500;
-    padding-left: 1rem;
-    border-left: 1px solid var(--border);
 }
 
 .nav-links {
@@ -405,6 +390,31 @@ footer p {
 
 /* Responsive Design */
 @media (max-width: 768px) {
+    .nav-container {
+        padding: 0 1rem;
+        flex-wrap: wrap;
+        height: auto;
+        min-height: 60px;
+    }
+
+    .nav-brand {
+        font-size: 1rem;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .nav-links {
+        flex: 1 1 100%;
+        justify-content: center;
+        padding: 0.5rem 0;
+        gap: 0.25rem;
+    }
+
+    .nav-link {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.9rem;
+    }
+
     .container {
         padding: 1rem;
     }
