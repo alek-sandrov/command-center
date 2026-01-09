@@ -9,24 +9,23 @@
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <div class="nav-brand">🚀 Command Center</div>
+            <div class="nav-brand">
+                <div class="brand-title">🚀 Command Center</div>
+                <div class="brand-time" id="nav-time"></div>
+            </div>
             <div class="nav-links">
                 <a href="index.html" class="nav-link active">Начало</a>
                 <a href="karti.html" class="nav-link">Карти</a>
+                <a href="dokumenti.html" class="nav-link">Документи</a>
             </div>
         </div>
     </nav>
 
     <div class="container">
-        <header>
-            <h1>🚀 Command Center</h1>
-            <div id="current-time"></div>
-        </header>
-
         <div class="grid">
             <!-- Weather Widget -->
             <section class="card weather-card">
-                <h2>🌤️ Weather - Sofia</h2>
+                <h2>🌤️ Времето - София</h2>
                 <div id="weather-content">
                     <div id="weather-info">
                         <div class="loading">Loading weather data...</div>
@@ -36,7 +35,7 @@
 
             <!-- Quick Links -->
             <section class="card quick-links-card">
-                <h2>⚡ Quick Links</h2>
+                <h2>⚡ Бързи Линкове</h2>
                 <div class="links-grid">
                     <a href="https://gmail.com" target="_blank" class="link-item">
                         <span>📧</span>
@@ -63,7 +62,7 @@
 
             <!-- News Outlets -->
             <section class="card news-card">
-                <h2>📰 News</h2>
+                <h2>📰 Новини</h2>
                 <div class="links-grid">
                     <a href="https://news.google.com" target="_blank" class="link-item">
                         <span>🌐</span>
@@ -94,7 +93,7 @@
 
             <!-- Traffic -->
             <section class="card traffic-card">
-                <h2>🚗 Traffic</h2>
+                <h2>🚗 Трафик</h2>
                 <div class="links-grid">
                     <a href="https://www.google.com/maps/@42.6638311,23.3654504,13.13z/data=!5m1!1e1?entry=ttu&g_ep=EgoyMDI1MTIwOS4wIKXMDSoASAFQAw%3D%3D" target="_blank" class="link-item">
                         <span>🗺️</span>
@@ -109,7 +108,7 @@
 
             <!-- Public Cameras -->
             <section class="card cameras-card">
-                <h2>📹 Public Cameras</h2>
+                <h2>📹 Публични Камери</h2>
                 <div class="links-grid">
                     <a href="https://weather-webcam.eu/sofia-orlov-most-na-jivo/" target="_blank" class="link-item">
                         <span>📷</span>
@@ -124,7 +123,7 @@
 
             <!-- Ham Radio -->
             <section class="card ham-radio-card">
-                <h2>📻 Ham Radio Frequencies (BG)</h2>
+                <h2>📻 Свободни за ползване радиочестоти</h2>
                 <div class="freq-grid">
                     <div class="freq-item">
                         <div class="freq-band">160m</div>
@@ -163,7 +162,6 @@
                         <div class="freq-range">430.000 - 440.000 MHz</div>
                     </div>
                 </div>
-                <div class="freq-note">Non-license bands for Bulgaria</div>
             </section>
         </div>
 

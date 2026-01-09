@@ -10,7 +10,20 @@ function updateTime() {
         minute: '2-digit',
         second: '2-digit'
     };
-    document.getElementById('current-time').textContent = now.toLocaleDateString('en-US', options);
+
+    // Update nav time if element exists
+    const navTimeEl = document.getElementById('nav-time');
+    if (navTimeEl) {
+        const timeStr = now.toLocaleTimeString('bg-BG', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const dateStr = now.toLocaleDateString('bg-BG', { day: 'numeric', month: 'short', year: 'numeric' });
+        navTimeEl.textContent = `${dateStr} | ${timeStr}`;
+    }
+
+    // Update main time if element exists
+    const currentTimeEl = document.getElementById('current-time');
+    if (currentTimeEl) {
+        currentTimeEl.textContent = now.toLocaleDateString('en-US', options);
+    }
 }
 
 // Update last update time
