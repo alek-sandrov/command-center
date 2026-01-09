@@ -423,6 +423,12 @@ header h1 {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
 }
 
+/* Hide image when no source is set (prevents broken icon) */
+.modal-content:not([src]),
+.modal-content[src=""] {
+    display: none;
+}
+
 .modal-caption {
     color: var(--text-primary);
     padding: 1rem;
