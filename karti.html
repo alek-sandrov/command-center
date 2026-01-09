@@ -21,39 +21,55 @@
     <div class="container">
         <header>
             <h1>🗺️ Карти</h1>
-            <div class="page-subtitle">Важна информация за София</div>
+            <div class="page-subtitle">Кликнете върху район за да видите карта</div>
         </header>
 
         <div class="grid">
-            <!-- Emergency Protection Points -->
-            <section class="card districts-card full-width">
+            <!-- Emergency Protection Points Gallery -->
+            <section class="card full-width">
                 <h2>🛡️ Пунктове за защита на населението при бедствия и аварии</h2>
-                <p class="card-description">Защитни точки по райони на София</p>
-                <div class="districts-grid">
-                    <a href="https://www.sofia.bg/documents/20121/128993/01_Sredec_bedstwia.jpg/4b05991c-a23d-4f0f-8b94-cf51ddec355e?t=1477053868334" target="_blank" class="district-item">
-                        <span class="district-icon">📍</span>
-                        <div class="district-name">Район Средец</div>
-                    </a>
-                    <a href="https://www.sofia.bg/documents/20121/128993/04_Oborishte_bedstwia.jpg/b9551084-1237-409f-b916-6f962fdc42fb?t=1477053872411" target="_blank" class="district-item">
-                        <span class="district-icon">📍</span>
-                        <div class="district-name">Район Оборище</div>
-                    </a>
-                    <a href="https://www.sofia.bg/documents/20121/128993/07_slatina_bedstwia.jpg/267b0c79-a48a-47c9-a80a-38b9b27fb8fd?t=1477053873267" target="_blank" class="district-item">
-                        <span class="district-icon">📍</span>
-                        <div class="district-name">Район Слатина</div>
-                    </a>
-                    <a href="https://www.sofia.bg/documents/20121/128993/10_triaditsa_bedstwia.jpg/1816f361-d25c-4e4f-a8db-6a1e06c00073?t=1477053873876" target="_blank" class="district-item">
-                        <span class="district-icon">📍</span>
-                        <div class="district-name">Район Триадица</div>
-                    </a>
-                    <a href="https://www.sofia.bg/documents/20121/128993/13_nadejda_bedstwia.jpg/01427bb3-5506-4f54-95aa-240f1aa60b61?t=1477053874477" target="_blank" class="district-item">
-                        <span class="district-icon">📍</span>
-                        <div class="district-name">Район Надежда</div>
-                    </a>
-                    <a href="https://www.sofia.bg/documents/20121/128993/16_studentski_bedstwia.jpg/04a16e41-10c8-4954-81fd-6bde110eb987?t=1477053875057" target="_blank" class="district-item">
-                        <span class="district-icon">📍</span>
-                        <div class="district-name">Район Студентски</div>
-                    </a>
+                <p class="card-description">Защитни точки по райони на София - кликнете за увеличение</p>
+
+                <div class="map-gallery">
+                    <!-- Sofia Districts - Replace FILE_ID with actual Google Drive file IDs -->
+                    <div class="map-item" onclick="openModal('SREDEC_FILE_ID', 'Район Средец')">
+                        <img src="https://drive.google.com/thumbnail?id=SREDEC_FILE_ID&sz=w400" alt="Район Средец" onerror="this.src='https://via.placeholder.com/400x300?text=Район+Средец'">
+                        <div class="map-label">Район Средец</div>
+                    </div>
+
+                    <div class="map-item" onclick="openModal('OBORISHTE_FILE_ID', 'Район Оборище')">
+                        <img src="https://drive.google.com/thumbnail?id=OBORISHTE_FILE_ID&sz=w400" alt="Район Оборище" onerror="this.src='https://via.placeholder.com/400x300?text=Район+Оборище'">
+                        <div class="map-label">Район Оборище</div>
+                    </div>
+
+                    <div class="map-item" onclick="openModal('SLATINA_FILE_ID', 'Район Слатина')">
+                        <img src="https://drive.google.com/thumbnail?id=SLATINA_FILE_ID&sz=w400" alt="Район Слатина" onerror="this.src='https://via.placeholder.com/400x300?text=Район+Слатина'">
+                        <div class="map-label">Район Слатина</div>
+                    </div>
+
+                    <div class="map-item" onclick="openModal('TRIADITSA_FILE_ID', 'Район Триадица')">
+                        <img src="https://drive.google.com/thumbnail?id=TRIADITSA_FILE_ID&sz=w400" alt="Район Триадица" onerror="this.src='https://via.placeholder.com/400x300?text=Район+Триадица'">
+                        <div class="map-label">Район Триадица</div>
+                    </div>
+
+                    <div class="map-item" onclick="openModal('NADEJDA_FILE_ID', 'Район Надежда')">
+                        <img src="https://drive.google.com/thumbnail?id=NADEJDA_FILE_ID&sz=w400" alt="Район Надежда" onerror="this.src='https://via.placeholder.com/400x300?text=Район+Надежда'">
+                        <div class="map-label">Район Надежда</div>
+                    </div>
+
+                    <div class="map-item" onclick="openModal('STUDENTSKI_FILE_ID', 'Район Студентски')">
+                        <img src="https://drive.google.com/thumbnail?id=STUDENTSKI_FILE_ID&sz=w400" alt="Район Студентски" onerror="this.src='https://via.placeholder.com/400x300?text=Район+Студентски'">
+                        <div class="map-label">Район Студентски</div>
+                    </div>
+
+                    <!-- Add more districts here - total 23 -->
+                    <div class="map-item" onclick="openModal('PLACEHOLDER_FILE_ID', 'Район 7')">
+                        <img src="https://via.placeholder.com/400x300?text=Район+7" alt="Район 7">
+                        <div class="map-label">Район 7</div>
+                    </div>
+
+                    <!-- Placeholder for remaining districts -->
+                    <!-- Copy the structure above and replace with actual district names and file IDs -->
                 </div>
             </section>
         </div>
@@ -63,6 +79,18 @@
         </footer>
     </div>
 
-    <script src="script.js"></script>
+    <!-- Modal for full-size image viewing -->
+    <div id="imageModal" class="modal" onclick="closeModal()">
+        <span class="modal-close">&times;</span>
+        <div class="modal-content-wrapper">
+            <img class="modal-content" id="modalImage">
+            <div class="modal-caption" id="modalCaption"></div>
+        </div>
+        <div class="modal-nav">
+            <button class="modal-nav-btn" onclick="event.stopPropagation(); downloadImage()">⬇️ Изтегли</button>
+        </div>
+    </div>
+
+    <script src="karti.js"></script>
 </body>
 </html>
