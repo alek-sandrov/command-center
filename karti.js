@@ -8,11 +8,18 @@ function openModal(fileId, caption) {
     const modalCaption = document.getElementById('modalCaption');
 
     currentFileId = fileId;
-
-    // Use Google Drive direct image URL
-    modalImg.src = `https://drive.google.com/uc?export=view&id=${fileId}`;
-    modalImg.style.display = 'block';
     modalCaption.textContent = caption;
+
+    // Hide image initially to prevent broken icon
+    modalImg.style.display = 'none';
+
+    // Only show image after it loads successfully
+    modalImg.onload = function() {
+        modalImg.style.display = 'block';
+    };
+
+    // Set the image source (this starts loading)
+    modalImg.src = `https://drive.google.com/uc?export=view&id=${fileId}`;
 
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden'; // Prevent scrolling
