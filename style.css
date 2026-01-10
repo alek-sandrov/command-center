@@ -363,8 +363,10 @@ header h1 {
 .map-item img {
     width: 100%;
     height: 200px;
-    object-fit: cover;
+    object-fit: contain;
+    object-position: center;
     display: block;
+    background: #ffffff;
 }
 
 .map-label {
