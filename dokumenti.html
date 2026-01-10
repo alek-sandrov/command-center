@@ -21,28 +21,32 @@
     <div class="container">
         <header>
             <h1>📄 Документи</h1>
-            <div class="page-subtitle">Планове и информация</div>
+            <div class="page-subtitle">Кликнете върху документ за да видите</div>
         </header>
 
         <div class="grid">
-            <!-- Capital Municipality Plans -->
-            <a href="https://www.sofia.bg/documents/20121/128993/%D0%9F%D0%BB%D0%B0%D0%BD+%D0%97%D0%95%D0%9C%D0%95%D0%A2%D0%A0%D0%95%D0%A1%D0%95%D0%9D%D0%98%D0%95+%D1%87%D0%B0%D1%81%D1%82+II+12032019.pdf/eef7664b-5a92-4cf3-8437-40e8418f50d2" target="_blank" class="card quick-link">
-                <div class="link-icon">🏗️</div>
-                <div class="link-name">Защита при земетресение</div>
-                <div class="card-description">План за защита на населението</div>
-            </a>
+            <!-- Emergency Protection Plans -->
+            <section class="card full-width">
+                <h2>📋 Планове за защита на населението</h2>
+                <p class="card-description">Планове на Столична Община - кликнете за увеличение</p>
 
-            <a href="https://www.sofia.bg/documents/20121/128993/%D0%9F%D0%BB%D0%B0%D0%BD+%D0%9D%D0%90%D0%92%D0%9E%D0%94%D0%9D%D0%95%D0%9D%D0%98%D0%95+%D1%87%D0%B0%D1%81%D1%82+I+13032019.pdf/cc846e32-64a5-48e7-90cb-1cd98bf54bf4" target="_blank" class="card quick-link">
-                <div class="link-icon">💧</div>
-                <div class="link-name">Защита при наводнения</div>
-                <div class="card-description">План за защита на населението</div>
-            </a>
+                <div class="map-gallery">
+                    <div class="map-item" onclick="openModal('18iNPnkJFkCLJWy5S8BcyA_5l3zJt6Wmw', 'СО - План за защита при земетресения')">
+                        <img src="https://drive.google.com/thumbnail?id=18iNPnkJFkCLJWy5S8BcyA_5l3zJt6Wmw&sz=w400" alt="СО - План за защита при земетресения" onerror="this.src='https://via.placeholder.com/400x300?text=План+земетресения'">
+                        <div class="map-label">СО - План за защита при земетресения</div>
+                    </div>
 
-            <a href="https://www.sofia.bg/documents/20121/128993/%D0%9F%D0%BB%D0%B0%D0%BD+%D0%A0%D0%B0%D0%B4%D0%B8%D0%B0%D1%86%D0%B8%D1%8F+%D1%87%D0%B0%D1%81%D1%82+III+13032019.pdf/fc395710-18a7-4b82-b6ae-0285dbd0b5e4" target="_blank" class="card quick-link">
-                <div class="link-icon">☢️</div>
-                <div class="link-name">Защита при ядрена опасност</div>
-                <div class="card-description">План за защита на населението</div>
-            </a>
+                    <div class="map-item" onclick="openModal('18iNPnkJFkCLJWy5S8BcyA_5l3zJt6Wmw', 'СО - План за защита при наводнения')">
+                        <img src="https://drive.google.com/thumbnail?id=18iNPnkJFkCLJWy5S8BcyA_5l3zJt6Wmw&sz=w400" alt="СО - План за защита при наводнения" onerror="this.src='https://via.placeholder.com/400x300?text=План+наводнения'">
+                        <div class="map-label">СО - План за защита при наводнения</div>
+                    </div>
+
+                    <div class="map-item" onclick="openModal('1FnqDX6fUQX0YI2O7hl9hC6x2FzA-RrI3', 'СО - План за защита при радиация')">
+                        <img src="https://drive.google.com/thumbnail?id=1FnqDX6fUQX0YI2O7hl9hC6x2FzA-RrI3&sz=w400" alt="СО - План за защита при радиация" onerror="this.src='https://via.placeholder.com/400x300?text=План+радиация'">
+                        <div class="map-label">СО - План за защита при радиация</div>
+                    </div>
+                </div>
+            </section>
         </div>
 
         <footer>
@@ -50,6 +54,19 @@
         </footer>
     </div>
 
-    <script src="script.js"></script>
+    <!-- Modal for full-size image viewing -->
+    <div id="imageModal" class="modal" onclick="closeModal()">
+        <span class="modal-close">&times;</span>
+        <div class="modal-content-wrapper">
+            <img class="modal-content" id="modalImage" style="display: none;">
+            <div class="modal-caption" id="modalCaption"></div>
+        </div>
+        <div class="modal-nav">
+            <button class="modal-nav-btn" onclick="event.stopPropagation(); viewInDrive()">👁️ Виж в Drive</button>
+            <button class="modal-nav-btn" onclick="event.stopPropagation(); downloadImage()">⬇️ Изтегли</button>
+        </div>
+    </div>
+
+    <script src="dokumenti.js"></script>
 </body>
 </html>
