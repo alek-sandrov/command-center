@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Евакуация и йод - sofia-prepping.com</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">sofia-prepping.com</div>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">Начало</a>
+                <a href="karti.html" class="nav-link active">Карти</a>
+                <a href="dokumenti.html" class="nav-link">Документи</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <header>
+            <h1>Евакуация и йодни таблетки</h1>
+        </header>
+
+        <div class="grid">
+            <section class="card full-width">
+                <h2>📍 Центрове при бедствия и аварии</h2>
+
+                <div class="map-controls">
+                    <button id="locate-btn" class="modal-nav-btn">📍 Намери най-близкия</button>
+                    <select id="rayon-select" class="map-select" aria-label="Район">
+                        <option value="">Всички райони</option>
+                    </select>
+                </div>
+
+                <div class="type-filters" id="type-filters"></div>
+
+                <div id="nearest" class="nearest"></div>
+
+                <div id="map" class="leaflet-map"></div>
+
+                <p class="map-source">
+                    Източник: <a href="https://urbandata.sofia.bg" target="_blank" rel="noopener">Столична община – отворени данни</a> („Центрове при бедствия и аварии“). Местоположението ви се използва само в браузъра и не се изпраща никъде.
+                </p>
+            </section>
+        </div>
+
+        <footer>
+            <p>sofia-prepping.com - София</p>
+        </footer>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script src="centrove.js"></script>
+</body>
+</html>

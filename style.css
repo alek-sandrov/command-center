@@ -502,6 +502,223 @@ header h1 {
     background: var(--secondary-color);
 }
 
+/* Icon thumbnail for map categories without an image */
+.map-thumb-icon {
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+    background: linear-gradient(135deg, var(--background), var(--surface-hover));
+}
+
+/* Interactive map page */
+.map-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.map-select {
+    padding: 0.75rem 1rem;
+    background: var(--background);
+    color: var(--text-primary);
+    border: 2px solid var(--border);
+    border-radius: 0.5rem;
+    font-size: 1rem;
+}
+
+.type-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.type-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.75rem;
+    background: var(--background);
+    color: var(--text-secondary);
+    border: 2px solid var(--border);
+    border-radius: 999px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: all 0.2s;
+}
+
+.type-chip.active {
+    opacity: 1;
+    color: var(--text-primary);
+}
+
+.type-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.leaflet-map {
+    height: 65vh;
+    min-height: 380px;
+    border-radius: 0.75rem;
+    border: 2px solid var(--border);
+}
+
+.leaflet-popup-content a {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.nearest h3 {
+    text-align: center;
+    margin-bottom: 0.75rem;
+}
+
+.nearest-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.nearest-item {
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-left: 4px solid;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    cursor: pointer;
+}
+
+.nearest-type {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.nearest-name {
+    font-weight: 600;
+    margin: 0.25rem 0;
+}
+
+.nearest-meta {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.nearest-meta a,
+.map-source a,
+.shelter-warning a,
+.freq-note a {
+    color: var(--primary-color);
+}
+
+.map-source {
+    margin-top: 1rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+/* Shelters page */
+.shelter-warning {
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid var(--warning);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.shelter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.shelter-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    background: var(--background);
+    border: 2px solid var(--border);
+    border-radius: 0.75rem;
+    padding: 1rem;
+}
+
+.shelter-kind {
+    align-self: flex-start;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    background: rgba(99, 102, 241, 0.2);
+    color: var(--primary-color);
+}
+
+.shelter-kind.pru {
+    background: rgba(245, 158, 11, 0.2);
+    color: var(--warning);
+}
+
+.shelter-name {
+    font-weight: 600;
+}
+
+.shelter-address,
+.shelter-meta {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.shelter-map {
+    margin-top: auto;
+    align-self: flex-start;
+    padding: 0.4rem 0.9rem;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* Siren signals */
+.siren-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 0.75rem;
+}
+
+.siren-item {
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    padding: 0.75rem;
+}
+
+.siren-name {
+    font-weight: 600;
+}
+
+.siren-desc {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin: 0.25rem 0 0.5rem;
+}
+
+.siren-item audio {
+    width: 100%;
+    height: 36px;
+}
+
 /* Footer */
 footer {
     text-align: center;
@@ -566,8 +783,13 @@ footer p {
         gap: 1rem;
     }
 
-    .map-item img {
+    .map-item img,
+    .map-thumb-icon {
         height: 150px;
+    }
+
+    .leaflet-map {
+        height: 60vh;
     }
 
     .modal-close {

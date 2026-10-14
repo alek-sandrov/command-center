@@ -95,6 +95,29 @@
                 </div>
             </section>
 
+            <!-- Outages & Monitoring -->
+            <section class="card outages-card">
+                <h2>⚠️ Аварии и мониторинг</h2>
+                <div class="links-grid">
+                    <a href="https://remap.jrc.ec.europa.eu/Advanced.aspx" target="_blank" class="link-item">
+                        <span>☢️</span>
+                        <p>Радиация (EURDEP)</p>
+                    </a>
+                    <a href="https://www.sofiyskavoda.bg/water-stops" target="_blank" class="link-item">
+                        <span>🚰</span>
+                        <p>Софийска вода</p>
+                    </a>
+                    <a href="https://ermzapad.bg/bg/za-klienta/prekusvania/" target="_blank" class="link-item">
+                        <span>⚡</span>
+                        <p>ЕРМ Запад</p>
+                    </a>
+                    <a href="https://www.toplo.bg/accidents-and-maintenance" target="_blank" class="link-item">
+                        <span>🔥</span>
+                        <p>Топлофикация</p>
+                    </a>
+                </div>
+            </section>
+
             <!-- Public Cameras -->
             <section class="card cameras-card">
                 <h2>📹 Публични Камери</h2>
@@ -108,6 +131,33 @@
                         <p>ж.к. Лагера</p>
                     </a>
                 </div>
+            </section>
+            <!-- Siren Signals -->
+            <section class="card sirens-card full-width">
+                <h2>🚨 Сигнали за тревога</h2>
+                <div class="siren-list">
+                    <div class="siren-item">
+                        <div class="siren-name">Национален сигнал за тревога</div>
+                        <div class="siren-desc">Вой, който скача между 700 и 1000 Hz на всеки 8 секунди, 3 минути. При бедствие.</div>
+                        <audio controls preload="none" src="audio/trevoga.wav"></audio>
+                    </div>
+                    <div class="siren-item">
+                        <div class="siren-name">Край на тревогата</div>
+                        <div class="siren-desc">Равен тон (450 Hz), 2 минути.</div>
+                        <audio controls preload="none" src="audio/krai-trevoga.wav"></audio>
+                    </div>
+                    <div class="siren-item">
+                        <div class="siren-name">Въздушна опасност</div>
+                        <div class="siren-desc">Плавно вълнообразен вой през 15 секунди, 3 минути.</div>
+                        <audio controls preload="none" src="audio/vazdushna-opasnost.wav"></audio>
+                    </div>
+                    <div class="siren-item">
+                        <div class="siren-name">Отбой от въздушна опасност</div>
+                        <div class="siren-desc">Равен тон (450 Hz), 2 минути.</div>
+                        <audio controls preload="none" src="audio/otboi-vazdushna.wav"></audio>
+                    </div>
+                </div>
+                <p class="freq-note">Тестове: първия работен ден на април и октомври. Сигнал „Въздушна опасност“ звучи и всяка година на 2 юни в 12:00 ч. Източник: <a href="https://www.mvr.bg/gdpbzn/footer/info-center/pravila-signali/signali" target="_blank" rel="noopener">ГДПБЗН</a></p>
             </section>
         </div>
 
