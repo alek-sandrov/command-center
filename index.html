@@ -21,6 +21,16 @@
 
     <div class="container">
         <div class="grid">
+            <!-- Live City Status -->
+            <section class="card full-width status-card">
+                <h2>📡 Състояние на града</h2>
+                <div id="status-tiles" class="status-tiles">
+                    <div class="loading">Зареждане...</div>
+                </div>
+                <div id="status-detail" class="status-detail" hidden></div>
+                <p id="status-updated" class="status-updated"></p>
+            </section>
+
             <!-- Weather Widget -->
             <section class="card weather-card">
                 <h2>🌤️ Времето - София</h2>
@@ -134,5 +144,6 @@
     </div>
 
     <script src="script.js"></script>
+    <script src="status.js"></script>
 </body>
 </html>
