@@ -34,7 +34,7 @@
     line-height: 1.28;
     display: flex;
     flex-direction: column;
-    gap: 3.2mm;
+    gap: 2.8mm;
     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
 }
 
@@ -54,7 +54,7 @@
     justify-content: space-between;
     align-items: flex-start;
     gap: 6mm;
-    padding-bottom: 3mm;
+    padding-bottom: 2mm;
     border-bottom: 1.2mm solid #4f46e5;
 }
 
@@ -66,7 +66,7 @@
 }
 
 .sheet-head h1 {
-    font-size: 24pt;
+    font-size: 22pt;
     line-height: 1.1;
 }
 
@@ -80,27 +80,42 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 28mm;
+    width: 26mm;
     text-align: center;
     font-size: 6.8pt;
     color: var(--muted);
     gap: 1mm;
 }
 
-.sheet-qr #qr img,
-.sheet-qr #qr canvas {
-    width: 24mm !important;
-    height: 24mm !important;
+/* Fixed box so the header height doesn't change when the QR code is drawn */
+.sheet-qr #qr {
+    width: 22mm;
+    height: 22mm;
 }
 
-.sheet-top {
-    display: grid;
-    grid-template-columns: 1.45fr 1fr;
-    gap: 5mm;
+.sheet-qr #qr img,
+.sheet-qr #qr canvas {
+    width: 22mm !important;
+    height: 22mm !important;
+}
+
+.sheet {
+    position: relative;
+}
+
+/* Invisible 297mm-tall element: the script compares the sheet against it to detect overflow */
+.sheet-ruler {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 297mm;
+    visibility: hidden;
+    pointer-events: none;
 }
 
 .sheet-map {
-    height: 84mm;
+    height: 82mm;
     border: 0.3mm solid var(--line);
     border-radius: 2mm;
     background: #e5e7eb;
@@ -113,8 +128,20 @@
 .sheet-signals {
     border: 0.3mm solid var(--line);
     border-radius: 2mm;
-    padding: 3mm 3.5mm;
+    padding: 2.5mm 3.5mm;
     background: #f9fafb;
+}
+
+.sheet-signals dl {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4mm;
+    margin: 0;
+}
+
+.sheet-112 {
+    margin-left: 3mm;
+    white-space: nowrap;
 }
 
 .sheet-signals h2,
@@ -128,22 +155,22 @@
 
 .sheet-signals dt {
     font-weight: 700;
-    margin-top: 1.5mm;
 }
 
 .sheet-signals dd {
     margin: 0;
     color: var(--muted);
+    font-size: 7.8pt;
 }
 
 .sheet-alert {
-    margin-top: 2mm;
+    margin-top: 1.5mm;
 }
 
 .sheet-lists {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 3.5mm 6mm;
+    gap: 2.5mm 6mm;
     flex: 1;
     align-content: start;
 }
@@ -154,9 +181,17 @@
     padding: 0;
 }
 
-.sheet-list ol.two-col {
-    column-count: 2;
+.sheet-list.wide {
+    grid-column: 1 / -1;
+}
+
+.sheet-list ol.cols {
+    column-count: 3;
     column-gap: 4mm;
+}
+
+.sheet-list ol.cols-2 {
+    column-count: 2;
 }
 
 .sheet-list li {
@@ -202,10 +237,10 @@
 .hospitals { background: #dc2626; }
 
 .sheet-note {
-    font-size: 7.6pt;
+    margin-left: 2mm;
+    font-size: 7.4pt;
     color: #b45309;
     font-weight: 600;
-    margin-bottom: 1mm;
 }
 
 .sheet-summary {

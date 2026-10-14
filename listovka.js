@@ -7,12 +7,16 @@
     // Layer → colour and how many items fit on the page (the rest are on the live map)
     const LISTS = {
         shelters: { colour: '#4f46e5', max: 13 },
-        iodine: { colour: '#d97706', max: 14 },
-        evac: { colour: '#2563eb', max: 10 },
-        hospitals: { colour: '#dc2626', max: 6 }
+        iodine: { colour: '#d97706', max: 21 },
+        evac: { colour: '#2563eb', max: 18 },
+        hospitals: { colour: '#dc2626', max: 8 }
     };
     // Shelters and hospitals: when a district has fewer than 2 of its own, add the nearest from neighbouring districts
     const NEIGHBOURS = { shelters: 3, hospitals: 3 };
+    // When the page overflows, lists are trimmed in this priority order (shelters last);
+    // each keeps at least MIN_SHOWN items
+    const TRIM_GROUPS = [['evac', 'iodine'], ['hospitals'], ['shelters']];
+    const MIN_SHOWN = 3;
 
     let map = null;
     let dataPromise = null;
@@ -99,31 +103,7 @@
         }).addTo(map);
         const bounds = outline.getBounds();
 
-        for (const [key, { colour, max }] of Object.entries(LISTS)) {
-            const ol = document.querySelector(`.sheet-list[data-layer="${key}"] ol`);
-            ol.replaceChildren();
-            let rows = inDistrict(key).map(p => ({ p }));
-            if (NEIGHBOURS[key] && rows.length < 2) {
-                const outside = (layers[key] || []).filter(p => p[5] !== d.index)
-                    .map(p => ({ p, km: distanceKm(centre[0], centre[1], p[0], p[1]) }))
-                    .sort((a, b) => a.km - b.km)
-                    .slice(0, NEIGHBOURS[key]);
-                rows = rows.concat(outside);
-            }
-            if (!rows.length) {
-                ol.append(note('none', t('Няма в района – вижте актуалната карта.')));
-                continue;
-            }
-            rows.slice(0, max).forEach(({ p, km }, i) => {
-                const extra = km !== undefined ? t('(съседен район, {km} км)', { km: km.toFixed(1) }) : '';
-                ol.append(item(colour, i + 1, I18N.text(p[2]), extra));
-                L.marker([p[0], p[1]], { icon: marker(colour, i + 1), interactive: false }).addTo(map);
-                if (km !== undefined) bounds.extend([p[0], p[1]]);
-            });
-            if (rows.length > max) ol.append(note('more', t('+ още {n} – на актуалната карта (QR кода)', { n: rows.length - max })));
-        }
-        map.fitBounds(bounds, { padding: [14, 14] });
-
+        // Fixed text first, so the fitting below measures the complete page
         const count = key => inDistrict(key).length;
         document.getElementById('sheet-summary').textContent = t(
             'Също в района: ⛺ палатъчни лагери: {tents} · 💧 чешми: {fountains} · ♨️ минерални извори: {springs} · 🚇 метро (станции и входове): {metro}',
@@ -134,6 +114,69 @@
         document.getElementById('sheet-sources').textContent = t(
             'Данни: Столична община (отворени данни), ГДПБЗН, OpenStreetMap · към {date} · Проверявайте актуалната информация на sofia-prepping.com',
             { date: dates[0] ? `${day}.${m}.${y}` : '' });
+
+        // Rows per list (with neighbouring shelters/hospitals where a district has fewer than 2)
+        const rowsBy = {};
+        const shown = {};
+        for (const [key, { max }] of Object.entries(LISTS)) {
+            let rows = inDistrict(key).map(p => ({ p }));
+            if (NEIGHBOURS[key] && rows.length < 2) {
+                const outside = (layers[key] || []).filter(p => p[5] !== d.index)
+                    .map(p => ({ p, km: distanceKm(centre[0], centre[1], p[0], p[1]) }))
+                    .sort((a, b) => a.km - b.km)
+                    .slice(0, NEIGHBOURS[key]);
+                rows = rows.concat(outside);
+            }
+            rowsBy[key] = rows;
+            shown[key] = Math.min(rows.length, max);
+        }
+
+        const renderLists = () => {
+            for (const [key, { colour }] of Object.entries(LISTS)) {
+                const ol = document.querySelector(`.sheet-list[data-layer="${key}"] ol`);
+                const rows = rowsBy[key];
+                ol.replaceChildren();
+                if (!rows.length) {
+                    ol.append(note('none', t('Няма в района – вижте актуалната карта.')));
+                    continue;
+                }
+                rows.slice(0, shown[key]).forEach(({ p, km }, i) => {
+                    const extra = km !== undefined ? t('(съседен район, {km} км)', { km: km.toFixed(1) }) : '';
+                    ol.append(item(colour, i + 1, I18N.text(p[2]), extra));
+                });
+                if (rows.length > shown[key]) ol.append(note('more', t('+ още {n} – на актуалната карта (QR кода)', { n: rows.length - shown[key] })));
+            }
+        };
+
+        // Fit everything on one A4 page: trim the longest list until the sheet no longer overflows
+        const ruler = document.getElementById('sheet-ruler');
+        const overflows = () => sheet.scrollHeight > ruler.offsetHeight + 1;
+        renderLists();
+        // Each step removes one item from the list where that shortens the page most
+        // (in multi-column lists one item often doesn't change the height); ties go to the longer list
+        for (let guard = 0; guard < 120 && overflows(); guard++) {
+            let best = null;
+            const group = TRIM_GROUPS.map(g => g.filter(k => shown[k] > MIN_SHOWN)).find(g => g.length) || [];
+            for (const key of group) {
+                shown[key]--;
+                renderLists();
+                const height = sheet.scrollHeight;
+                shown[key]++;
+                if (!best || height < best.height || (height === best.height && shown[key] > shown[best.key])) best = { key, height };
+            }
+            if (!best) break;
+            shown[best.key]--;
+            renderLists();
+        }
+
+        // Numbered markers for exactly the items that made it onto the page
+        for (const [key, { colour }] of Object.entries(LISTS)) {
+            rowsBy[key].slice(0, shown[key]).forEach(({ p, km }, i) => {
+                L.marker([p[0], p[1]], { icon: marker(colour, i + 1), interactive: false }).addTo(map);
+                if (km !== undefined) bounds.extend([p[0], p[1]]);
+            });
+        }
+        map.fitBounds(bounds, { padding: [14, 14] });
 
         const qr = document.getElementById('qr');
         qr.replaceChildren();
