@@ -1,4 +1,5 @@
-// Map layers in display order. Keys match data/karta.json; rows are [lat, lng, name, info, extra]
+// Map layers in display order. Keys match data/karta.json; rows are
+// [lat, lng, name, info, extra, districtIndex] (districtIndex matches district.js, -1 = outside)
 const LAYERS = [
     { key: 'shelters', icon: '🛡️', label: 'Бомбоубежища', colour: '#6366f1', radius: 8 },
     { key: 'evac', icon: '🏫', label: 'Сгради за настаняване', colour: '#3b82f6' },
@@ -16,7 +17,9 @@ const layerByKey = Object.fromEntries(LAYERS.map(l => [l.key, l]));
 const groups = {};
 const visible = new Set();
 const chips = {};
+const chipCounts = {};
 let data = {};
+let outline = null;
 let userPos = null;
 let userMarker = null;
 
@@ -53,9 +56,16 @@ function popupFor(layer, [lat, lng, name, info, extra]) {
     return div;
 }
 
+// Rows of a layer limited to the district picked in the navbar (all of Sofia if none)
+function rowsFor(key) {
+    const d = SofiaDistrict.get();
+    return (data[key] || []).filter(p => !d || p[5] === d.index);
+}
+
 function buildLayer(layer) {
+    if (groups[layer.key]) map.removeLayer(groups[layer.key]);
     const group = L.layerGroup();
-    (data[layer.key] || []).forEach(p => {
+    rowsFor(layer.key).forEach(p => {
         const small = p[4] === 'вход';
         L.circleMarker([p[0], p[1]], {
             radius: small ? 4 : (layer.radius || 6),
@@ -66,6 +76,27 @@ function buildLayer(layer) {
         }).bindPopup(() => popupFor(layer, p)).addTo(group);
     });
     groups[layer.key] = group;
+    if (visible.has(layer.key)) group.addTo(map);
+    if (chipCounts[layer.key]) chipCounts[layer.key].textContent = `${layer.icon} ${layer.label} (${rowsFor(layer.key).length})`;
+}
+
+async function applyDistrict(d, fit = true) {
+    LAYERS.forEach(buildLayer);
+    if (outline) map.removeLayer(outline);
+    outline = null;
+    document.getElementById('district-note').textContent = d
+        ? `Показани са обектите в Район ${d.name}. „Намери най-близкия“ търси в цяла София.`
+        : '';
+    if (!d) {
+        if (fit) map.setView(SOFIA, 12);
+        return;
+    }
+    const shape = (await SofiaDistrict.shapes())[d.index];
+    if (SofiaDistrict.get() !== d) return;  // changed again while loading
+    outline = L.polygon(shape.polygons.map(poly => poly.map(ring => ring.map(([lng, lat]) => [lat, lng]))), {
+        color: '#6366f1', weight: 3, fill: true, fillOpacity: 0.04, interactive: false
+    }).addTo(map);
+    if (fit) map.fitBounds(outline.getBounds(), { padding: [20, 20] });
 }
 
 function setVisible(key, on) {
@@ -89,7 +120,8 @@ function buildFilters() {
         const dot = document.createElement('span');
         dot.className = 'type-dot';
         dot.style.background = layer.colour;
-        btn.append(dot, document.createTextNode(`${layer.icon} ${layer.label} (${(data[layer.key] || []).length})`));
+        chipCounts[layer.key] = document.createTextNode(`${layer.icon} ${layer.label} (${rowsFor(layer.key).length})`);
+        btn.append(dot, chipCounts[layer.key]);
         btn.addEventListener('click', () => setVisible(layer.key, !visible.has(layer.key)));
         chips[layer.key] = btn;
         box.appendChild(btn);
@@ -191,6 +223,8 @@ fetch('data/karta.json')
         LAYERS.forEach(buildLayer);
         buildFilters();
         initialLayers().forEach(k => setVisible(k, true));
+        if (SofiaDistrict.get()) applyDistrict(SofiaDistrict.get());
+        SofiaDistrict.onChange(d => applyDistrict(d));
         const dates = Object.values(json.updated || {}).sort();
         if (dates.length) {
             const [y, m, d] = dates[0].split('-');

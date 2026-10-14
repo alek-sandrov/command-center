@@ -10,6 +10,9 @@ Pulls every layer from its public source and writes one compact file:
 If a source can't be reached, that layer keeps its points from the previous
 data/karta.json so a flaky server never empties the map.
 
+Every point is tagged with the index of its district (data/rayoni.json, built
+from the municipality's official district boundaries), or -1 if outside all.
+
 Usage: python3 scripts/build_karta.py
 """
 import json
@@ -23,6 +26,7 @@ from html import unescape
 from pathlib import Path
 
 OUT = Path(__file__).resolve().parent.parent / 'data' / 'karta.json'
+DISTRICTS_OUT = OUT.parent / 'rayoni.json'
 UA = 'sofia-prepping.com map builder (https://sofia-prepping.com)'
 
 # Rough bounding box of Stolichna municipality: south, west, north, east
@@ -34,6 +38,20 @@ SHELTERS_MAP = '1HWcRRnvgI71wfiiQ5P4QNZ45XdR4tx8T'
 FOUNTAINS_MAP = '1s1SiRpB38OK8MYMPQGTm1WQ3dK2XPfg'
 OVERPASS = ['https://overpass-api.de/api/interpreter',
             'https://overpass.kumi.systems/api/interpreter']
+
+
+# Official district boundaries; order here is the index used in data files and the URL slug
+DISTRICTS = [
+    ('Банкя', 'bankya', 'БАНКЯ'), ('Витоша', 'vitosha', 'ВИТОША'), ('Връбница', 'vrabnitsa', 'ВРЪБНИЦА'),
+    ('Възраждане', 'vazrazhdane', 'ВЪЗРАЖДАНЕ'), ('Изгрев', 'izgrev', 'ИЗГРЕВ'), ('Илинден', 'ilinden', 'ИЛИНДЕН'),
+    ('Искър', 'iskar', 'ИСКЪР'), ('Красна поляна', 'krasna-polyana', 'КРАСНА ПОЛЯНА'),
+    ('Красно село', 'krasno-selo', 'КРАСНО СЕЛО'), ('Кремиковци', 'kremikovtsi', 'КРЕМИКОВЦИ'),
+    ('Лозенец', 'lozenets', 'ЛОЗЕНЕЦ'), ('Люлин', 'lyulin', 'ЛЮЛИН'), ('Младост', 'mladost', 'МЛАДОСТ'),
+    ('Надежда', 'nadezhda', 'НАДЕЖДА'), ('Нови Искър', 'novi-iskar', 'НОВИ ИСКЪР'), ('Оборище', 'oborishte', 'ОБОРИЩЕ'),
+    ('Овча купел', 'ovcha-kupel', 'ОВЧА КУПЕЛ'), ('Панчарево', 'pancharevo', 'ПАНЧАРЕВО'), ('Подуяне', 'poduyane', 'ПОДУЯНЕ'),
+    ('Сердика', 'serdika', 'СЕРДИКА'), ('Слатина', 'slatina', 'СЛАТИНА'), ('Средец', 'sredets', 'СРЕДЕЦ'),
+    ('Студентски', 'studentski', 'СТУДЕНТСКИ'), ('Триадица', 'triaditsa', 'ТРИАДИЦА'),
+]
 
 
 def fetch(url, data=None, timeout=90, tries=3):
@@ -191,6 +209,91 @@ def osm():
     return {'hospitals': hospitals, 'pharmacies': pharmacies}
 
 
+def simplify(ring, tol):
+    """Douglas-Peucker simplification of a closed ring of [lng, lat] points.
+
+    A closed ring starts and ends on the same point, so it is split at the vertex
+    farthest from the start and each half is simplified separately.
+    """
+    if len(ring) < 5:
+        return ring
+    x0, y0 = ring[0]
+    mid = max(range(len(ring)), key=lambda i: (ring[i][0] - x0) ** 2 + (ring[i][1] - y0) ** 2)
+    first, second = simplify_line(ring[:mid + 1], tol), simplify_line(ring[mid:], tol)
+    out = first + second[1:]
+    return out if len(out) >= 4 else ring
+
+
+def simplify_line(ring, tol):
+    if len(ring) < 3:
+        return ring
+    keep = [False] * len(ring)
+    keep[0] = keep[-1] = True
+    stack = [(0, len(ring) - 1)]
+    while stack:
+        a, b = stack.pop()
+        (x1, y1), (x2, y2) = ring[a], ring[b]
+        dx, dy = x2 - x1, y2 - y1
+        norm = (dx * dx + dy * dy) ** 0.5 or 1e-12
+        best, idx = 0, None
+        for i in range(a + 1, b):
+            x, y = ring[i]
+            d = abs(dy * (x - x1) - dx * (y - y1)) / norm
+            if d > best:
+                best, idx = d, i
+        if idx is not None and best > tol:
+            keep[idx] = True
+            stack += [(a, idx), (idx, b)]
+    return [p for p, k in zip(ring, keep) if k]
+
+
+def in_ring(lng, lat, ring):
+    inside = False
+    j = len(ring) - 1
+    for i in range(len(ring)):
+        xi, yi = ring[i]
+        xj, yj = ring[j]
+        if (yi > lat) != (yj > lat) and lng < (xj - xi) * (lat - yi) / (yj - yi) + xi:
+            inside = not inside
+        j = i
+    return inside
+
+
+def in_polygons(lng, lat, polygons):
+    # polygons: list of [outer, *holes]
+    return any(in_ring(lng, lat, poly[0]) and not any(in_ring(lng, lat, h) for h in poly[1:]) for poly in polygons)
+
+
+def districts():
+    """Full-resolution polygons for tagging, plus a simplified copy for the browser."""
+    by_name = {f['properties']['obns_cyr']: f['geometry'] for f in sofiaplan(350)}
+    full, light = [], []
+    for name, slug, official in DISTRICTS:
+        g = by_name[official]
+        polys = g['coordinates'] if g['type'] == 'MultiPolygon' else [g['coordinates']]
+        full.append(polys)
+        simple = [[[[round(x, 5), round(y, 5)] for x, y in simplify(r, 0.0002)] for r in poly] for poly in polys]
+        xs = [x for poly in polys for x, _ in poly[0]]
+        ys = [y for poly in polys for _, y in poly[0]]
+        light.append({'name': name, 'slug': slug,
+                      'bbox': [round(min(ys), 5), round(min(xs), 5), round(max(ys), 5), round(max(xs), 5)],
+                      'polygons': simple})
+    return full, light
+
+
+def tag(rows, full):
+    """Append the district index to every row (-1 when outside all districts).
+
+    Disaster-centre points carry the district they serve ("Район X"); that wins over
+    location, since e.g. a district's iodine supply point can sit in a neighbouring one.
+    """
+    index = {name: i for i, (name, _, _) in enumerate(DISTRICTS)}
+    for r in rows:
+        served = r[4][6:] if r[4].startswith('Район ') else None
+        r[5:] = [index[served] if served in index else
+                 next((i for i, polys in enumerate(full) if in_polygons(r[1], r[0], polys)), -1)]
+
+
 def main():
     old = json.loads(OUT.read_text(encoding='utf-8')) if OUT.exists() else {'layers': {}, 'updated': {}}
     layers, updated = dict(old.get('layers', {})), dict(old.get('updated', {}))
@@ -204,6 +307,13 @@ def main():
         (('hospitals', 'pharmacies'), osm),
     ]
     failed = []
+    try:
+        full, light = districts()
+        DISTRICTS_OUT.write_text(json.dumps(light, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
+        print(f'ok   districts={len(light)} ({DISTRICTS_OUT.stat().st_size // 1024} KB)')
+    except Exception as err:
+        full = None
+        print(f'FAIL districts: {err} (points keep their previous district tags)', file=sys.stderr)
     for keys, build in builders:
         try:
             result = build()
@@ -218,6 +328,10 @@ def main():
             failed.append(keys)
             kept = ', '.join(f'{k}={len(layers.get(k, []))}' for k in keys)
             print(f'FAIL {", ".join(keys)}: {err} (keeping previous: {kept})', file=sys.stderr)
+
+    if full:
+        for rows in layers.values():
+            tag(rows, full)
 
     OUT.parent.mkdir(exist_ok=True)
     OUT.write_text(json.dumps({'updated': updated, 'layers': layers}, ensure_ascii=False,

@@ -17,6 +17,7 @@ async function get(url, { headers = {}, timeout = 12000, type = 'json' } = {}) {
         signal: AbortSignal.timeout(timeout)
     });
     if (!res.ok) throw new Error(`${res.status} from ${new URL(url).host}`);
+    if (res.status === 204) return type === 'json' ? null : '';  // e.g. EMSC when nothing matched
     return type === 'json' ? res.json() : res.text();
 }
 
@@ -34,13 +35,16 @@ function sofiaTime(ms, withDate = true) {
     }).format(new Date(ms));
 }
 
-// Earthquakes within ~350 km of Sofia in the last 7 days (EMSC)
+// Earthquakes within 50 km of Sofia (close enough to be felt or cause damage)
+// in the last 30 days, from EMSC
+const QUAKE_KM = 50;
+
 async function earthquakes() {
-    const since = new Date(Date.now() - 7 * 86400e3).toISOString().slice(0, 19);
+    const since = new Date(Date.now() - 30 * 86400e3).toISOString().slice(0, 19);
     const url = `https://www.seismicportal.eu/fdsnws/event/1/query?format=json&lat=${SOFIA.lat}&lon=${SOFIA.lng}` +
-        `&maxradius=3.2&minmag=2.5&starttime=${since}&limit=50&orderby=time`;
+        `&maxradius=${(QUAKE_KM / 111.2).toFixed(3)}&minmag=1.5&starttime=${since}&limit=50&orderby=time`;
     const data = await get(url);
-    const items = data.features.map(f => {
+    const items = (data?.features || []).map(f => {
         const p = f.properties;
         return {
             mag: Math.round(p.mag * 10) / 10,
@@ -51,7 +55,7 @@ async function earthquakes() {
             url: `https://www.seismicportal.eu/eventdetails.html?unid=${p.unid}`
         };
     });
-    return { items: items.slice(0, 8), count: items.length };
+    return { items: items.slice(0, 10), count: items.length, radiusKm: QUAKE_KM, days: 30 };
 }
 
 // Yellow/orange/red weather warnings for Sofia-city (NUTS3 BG411) from Meteoalarm.
@@ -83,27 +87,31 @@ async function warnings() {
     return { items };
 }
 
-// Median PM2.5 / PM10 from outdoor sensor.community sensors within 8 km of the centre
+// Latest PM2.5 / PM10 from outdoor sensor.community sensors across Sofia.
+// Returns one row per sensor [lat, lng, pm25, pm10] so the page can take the
+// median for the whole city or for one district.
 async function air() {
-    const data = await get(`https://data.sensor.community/airrohr/v1/filter/area=${SOFIA.lat},${SOFIA.lng},8`, { timeout: 15000 });
-    const pm25 = [], pm10 = [];
+    // Only particulate sensors: halves the response (no temperature/humidity-only devices)
+    const types = 'SDS011,SPS30,PMS5003,PMS7003,HPM,NextPM';
+    const data = await get(`https://data.sensor.community/airrohr/v1/filter/type=${types}&area=${SOFIA.lat},${SOFIA.lng},18`, { timeout: 15000 });
+    const sensors = new Map();
     for (const s of data) {
-        if (s.location?.indoor) continue;
+        if (Number(s.location?.indoor)) continue;
+        const lat = parseFloat(s.location?.latitude), lng = parseFloat(s.location?.longitude);
+        if (!(lat && lng)) continue;
+        const values = {};
         for (const v of s.sensordatavalues || []) {
             const n = parseFloat(v.value);
-            if (!(n >= 0 && n < 500)) continue;
-            if (v.value_type === 'P2') pm25.push(n);
-            if (v.value_type === 'P1') pm10.push(n);
+            if (n >= 0 && n < 500) values[v.value_type] = n;
+        }
+        // The feed can hold several readings per sensor; keep the newest (last)
+        if (values.P2 !== undefined) {
+            sensors.set(s.sensor?.id ?? `${lat},${lng}`,
+                [Math.round(lat * 1e4) / 1e4, Math.round(lng * 1e4) / 1e4, values.P2, values.P1 ?? null]);
         }
     }
-    const median = a => {
-        if (!a.length) return null;
-        a.sort((x, y) => x - y);
-        const m = a.length >> 1;
-        return Math.round((a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2) * 10) / 10;
-    };
-    if (!pm25.length) throw new Error('no PM2.5 readings');
-    return { pm25: median(pm25), pm10: median(pm10), sensors: pm25.length };
+    if (!sensors.size) throw new Error('no PM2.5 readings');
+    return { sensors: [...sensors.values()] };
 }
 
 // Current and planned water outages from Sofiyska Voda's public GIS
@@ -148,21 +156,40 @@ function objectAt(html, start) {
     throw new Error('unterminated object');
 }
 
+// Average of all coordinates in a GeoJSON feature list, used to place an outage in a district
+function centre(geojson) {
+    let sx = 0, sy = 0, n = 0;
+    for (const [, x, y] of (geojson || '').matchAll(/\[(2[23]\.\d+),(4[23]\.\d+)/g)) {
+        sx += +x; sy += +y; n++;
+    }
+    return n ? { lat: Math.round(sy / n * 1e5) / 1e5, lng: Math.round(sx / n * 1e5) / 1e5 } : {};
+}
+
 // Active district-heating accidents and repairs from toplo.bg (embedded JSON on the page)
 async function heating() {
     const html = await get('https://www.toplo.bg/accidents-and-maintenance', { type: 'text', timeout: 15000 });
     const now = Date.now();
     const items = [];
+    // Cheap pre-filter: only the "var info" blocks are needed, skip the rest of the page
     for (const m of html.matchAll(/var info = \{/g)) {
+        const start = m.index + m[0].length - 1;
+        // ContentItemId is the last field, so the object ends at the next "}" after it;
+        // fall back to a full brace scan if the page layout ever changes
+        const last = html.indexOf('"ContentItemId"', start);
+        const end = last > 0 ? html.indexOf('}', last) : -1;
         let info;
-        try { info = JSON.parse(objectAt(html, m.index + m[0].length - 1)); } catch { continue; }
+        try {
+            info = JSON.parse(end > 0 && end - start < 200000 ? html.slice(start, end + 1) : objectAt(html, start));
+        } catch {
+            try { info = JSON.parse(objectAt(html, start)); } catch { continue; }
+        }
         const from = Date.parse(info.FromDate);
         const until = info.UntilDate ? Date.parse(info.UntilDate) : null;
         if (from > now || (until && until < now)) continue;
-        items.push({ region: info.Region, name: info.Name, addresses: info.Addresses || '', from, until });
+        items.push({ region: info.Region, name: info.Name, addresses: info.Addresses || '', from, until, ...centre(info.GeolocationSerialized) });
     }
     items.sort((a, b) => b.from - a.from);
-    return { count: items.length, items: items.slice(0, 10) };
+    return { count: items.length, items };
 }
 
 async function settle(fn) {

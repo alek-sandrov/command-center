@@ -4,6 +4,11 @@
     box-sizing: border-box;
 }
 
+/* Elements with display rules (flex cards etc.) must still disappear when hidden */
+[hidden] {
+    display: none !important;
+}
+
 :root {
     --primary-color: #6366f1;
     --secondary-color: #8b5cf6;
@@ -63,6 +68,48 @@ body {
 .nav-links {
     display: flex;
     gap: 0.5rem;
+}
+
+/* District picker (district.js) */
+.district-select {
+    margin-left: auto;
+    margin-right: 1rem;
+    max-width: 210px;
+    padding: 0.45rem 0.6rem;
+    background: var(--background);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    font: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.district-select:hover,
+.district-select:focus {
+    border-color: var(--primary-color);
+    outline: none;
+}
+
+.district-note {
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.75rem;
+}
+
+.district-note:empty {
+    display: none;
+}
+
+.link-button {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    font: inherit;
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
 }
 
 .nav-link {
@@ -844,9 +891,15 @@ footer p {
 
     .nav-brand {
         font-size: 1rem;
-        flex: 1 1 100%;
-        text-align: center;
+        flex: 1;
         padding-top: 0.5rem;
+    }
+
+    .district-select {
+        margin: 0.5rem 0 0;
+        max-width: 55%;
+        padding: 0.3rem 0.4rem;
+        font-size: 0.85rem;
     }
 
     .nav-links {
