@@ -1474,3 +1474,56 @@ footer p {
         white-space: nowrap;
     }
 }
+
+/* Printable materials list (materiali.html) */
+.print-intro {
+    max-width: 760px;
+    margin: 0 auto 1.25rem;
+    text-align: center;
+}
+
+.sheet-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 0.75rem;
+}
+
+.sheet-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 0.9rem 1rem;
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+}
+
+.sheet-card.mine {
+    border-color: var(--primary-color);
+    grid-column: 1 / -1;
+}
+
+.sheet-card-name {
+    font-weight: 700;
+}
+
+.sheet-card-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.sheet-card-actions a {
+    padding: 0.35rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    color: var(--text-primary);
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.sheet-card-actions a:hover {
+    border-color: var(--primary-color);
+    background: var(--surface-hover);
+}

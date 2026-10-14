@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Листовка за печат - sofia-prepping.com</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="listovka.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-brand">sofia-prepping.com</a>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">Начало</a>
+                <a href="karti.html" class="nav-link">Карти</a>
+                <a href="signali.html" class="nav-link">Сигнали</a>
+                <a href="dokumenti.html" class="nav-link active">Документи</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="sheet-toolbar">
+        <div class="breadcrumb"><a href="materiali.html">← Материали за печат</a></div>
+        <button type="button" id="print-btn" class="modal-nav-btn">🖨️ Печат / PDF</button>
+    </div>
+
+    <p id="sheet-empty" class="sheet-empty" hidden>Изберете район от менюто горе, за да видите листовката за него.</p>
+
+    <!-- One A4 page -->
+    <article id="sheet" class="sheet" hidden>
+        <header class="sheet-head">
+            <div>
+                <div class="sheet-kicker">sofia-prepping.com</div>
+                <h1 id="sheet-title"></h1>
+                <p class="sheet-sub">Какво да правите при бедствие, авария или въздушна опасност</p>
+            </div>
+            <div class="sheet-qr">
+                <div id="qr"></div>
+                <span>Актуална карта и най-близкият пункт до вас</span>
+            </div>
+        </header>
+
+        <section class="sheet-top">
+            <div id="sheet-map" class="sheet-map"></div>
+            <div class="sheet-signals">
+                <h2>🔊 Ако чуете сирена</h2>
+                <dl>
+                    <dt>Национален сигнал за тревога</dt>
+                    <dd>Вой, скачащ между два тона, 3 минути. Включете радио или телевизия (БНТ, БНР) и следвайте указанията на властите.</dd>
+                    <dt>Въздушна опасност</dt>
+                    <dd>Плавно вълнообразен вой, 3 минути. Укрийте се незабавно – скривалище, подземен етаж или метро.</dd>
+                    <dt>Край на тревогата / Отбой</dt>
+                    <dd>Равен тон, 2 минути. Опасността е преминала – продължете да следите указанията.</dd>
+                </dl>
+                <p class="sheet-alert">📱 <strong>BG-ALERT</strong> изпраща предупреждения на телефона. Включете аварийните известия в настройките.</p>
+                <p class="sheet-alert">📞 Спешен номер: <strong>112</strong></p>
+            </div>
+        </section>
+
+        <section class="sheet-lists">
+            <div class="sheet-list" data-layer="shelters">
+                <h2><span class="dot shelters"></span>Скривалища и укрития</h2>
+                <ol></ol>
+            </div>
+            <div class="sheet-list" data-layer="iodine">
+                <h2><span class="dot iodine"></span>Йодни таблетки</h2>
+                <p class="sheet-note">Таблетките се приемат само по указание на властите.</p>
+                <ol class="two-col"></ol>
+            </div>
+            <div class="sheet-list" data-layer="evac">
+                <h2><span class="dot evac"></span>Сгради за временно настаняване</h2>
+                <ol class="two-col"></ol>
+            </div>
+            <div class="sheet-list" data-layer="hospitals">
+                <h2><span class="dot hospitals"></span>Болници</h2>
+                <ol></ol>
+            </div>
+        </section>
+
+        <p id="sheet-summary" class="sheet-summary"></p>
+
+        <footer class="sheet-foot">
+            <span id="sheet-sources"></span>
+            <span>Карта: © OpenStreetMap</span>
+        </footer>
+    </article>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="i18n.js"></script>
+    <script src="district.js"></script>
+    <script src="listovka.js"></script>
+</body>
+</html>
