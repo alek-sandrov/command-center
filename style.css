@@ -1348,3 +1348,129 @@ footer p {
     border-radius: 999px;
     border: 1px solid var(--border);
 }
+
+/* Homepage: status → news + quick access → external links */
+.home > section,
+.home > .home-row {
+    margin-bottom: 1.5rem;
+}
+
+.home-row {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.home .card.full-width:hover,
+.home .card:hover {
+    transform: none;
+}
+
+.action-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.action-item {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.75rem 0.9rem;
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.action-item::after {
+    content: '›';
+    margin-left: auto;
+    font-size: 1.4rem;
+    color: var(--text-secondary);
+}
+
+.action-item:hover {
+    border-color: var(--primary-color);
+    background: var(--surface-hover);
+}
+
+.action-icon {
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+.action-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.action-text strong {
+    font-size: 0.95rem;
+}
+
+.action-text small {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.link-groups {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.25rem;
+}
+
+.link-group h3 {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    margin-bottom: 0.6rem;
+}
+
+.chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.chip {
+    padding: 0.4rem 0.8rem;
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    text-decoration: none;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.chip:hover {
+    border-color: var(--primary-color);
+    background: var(--surface-hover);
+}
+
+@media (max-width: 900px) {
+    .home-row {
+        grid-template-columns: 1fr;
+    }
+
+    /* On phones the site's own tools come before the news */
+    .actions-card {
+        order: -1;
+    }
+
+    .news-tabs {
+        width: 100%;
+    }
+
+    .news-tab {
+        flex: 1;
+        padding: 0.45rem 0.4rem;
+        font-size: 0.85rem;
+        white-space: nowrap;
+    }
+}

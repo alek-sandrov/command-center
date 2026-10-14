@@ -19,20 +19,20 @@
         </div>
     </nav>
 
-    <div class="container">
-        <div class="grid">
-            <!-- Live City Status -->
-            <section class="card full-width status-card">
-                <h2 id="status-title">📡 Състояние – цяла София</h2>
-                <div id="status-tiles" class="status-tiles">
-                    <div class="loading">Зареждане...</div>
-                </div>
-                <div id="status-detail" class="status-detail" hidden></div>
-                <p id="status-updated" class="status-updated"></p>
-            </section>
+    <div class="container home">
+        <!-- 1. What's happening now -->
+        <section class="card status-card">
+            <h2 id="status-title">📡 Състояние – цяла София</h2>
+            <div id="status-tiles" class="status-tiles">
+                <div class="loading">Зареждане...</div>
+            </div>
+            <div id="status-detail" class="status-detail" hidden></div>
+            <p id="status-updated" class="status-updated"></p>
+        </section>
 
-            <!-- News: BTA latest + official announcements -->
-            <section class="card full-width news-feed-card">
+        <div class="home-row">
+            <!-- 2a. News: BTA latest + official announcements -->
+            <section class="card news-feed-card">
                 <h2>📢 Новини и съобщения</h2>
                 <div class="news-tabs" role="tablist">
                     <button type="button" class="news-tab active" data-tab="latest">Последни новини</button>
@@ -45,122 +45,78 @@
                 <p id="news-source" class="status-source"></p>
             </section>
 
-            <!-- Weather Widget -->
-            <section class="card weather-card">
-                <h2>🌤️ Времето - София</h2>
-                <div id="weather-content">
-                    <div id="weather-info">
-                        <div class="loading">Зареждане...</div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Quick Links -->
-            <section class="card quick-links-card">
-                <h2>⚡ Бързи Линкове</h2>
-                <div class="links-grid">
-                    <a href="https://www.flightradar24.com/43.02,24.38/6" target="_blank" class="link-item">
-                        <span>✈️</span>
-                        <p>FlightRadar</p>
+            <!-- 2b. The site's own tools -->
+            <section class="card actions-card">
+                <h2>🧭 Бърз достъп</h2>
+                <nav class="action-list">
+                    <a href="karta.html" class="action-item">
+                        <span class="action-icon">🗺️</span>
+                        <span class="action-text"><strong>Интерактивна карта</strong><small>Убежища, вода, евакуация, йод, болници</small></span>
                     </a>
-                    <a href="karta.html" class="link-item">
-                        <span>🗺️</span>
-                        <p>Интерактивна карта</p>
+                    <a href="ubezhishta.html" class="action-item">
+                        <span class="action-icon">🛡️</span>
+                        <span class="action-text"><strong>Бомбоубежища</strong><small>Скривалища и противорадиационни укрития</small></span>
                     </a>
-                    <a href="ubezhishta.html" class="link-item">
-                        <span>🛡️</span>
-                        <p>Бомбоубежища</p>
+                    <a href="cheshmi.html" class="action-item">
+                        <span class="action-icon">💧</span>
+                        <span class="action-text"><strong>Чешмите</strong><small>Питейна вода в града</small></span>
                     </a>
-                    <a href="https://drive.google.com/drive/u/1/folders/1hSqaeqcsC-OYU15GVzz0Ut5DP9XdDMdu" target="_blank" class="link-item">
-                        <span>💾</span>
-                        <p>Drive</p>
+                    <a href="signali.html" class="action-item">
+                        <span class="action-icon">🔊</span>
+                        <span class="action-text"><strong>Сигнали за тревога</strong><small>Как звучат сирените, BG-ALERT</small></span>
                     </a>
-                    <a href="cheshmi.html" class="link-item">
-                        <span>💧</span>
-                        <p>Чешмите</p>
+                    <a href="dokumenti.html" class="action-item">
+                        <span class="action-icon">📄</span>
+                        <span class="action-text"><strong>Планове за защита</strong><small>Земетресение, наводнение, радиация</small></span>
                     </a>
-                </div>
-            </section>
-
-            <!-- News Outlets -->
-            <section class="card news-card">
-                <h2>📰 Новини</h2>
-                <div class="links-grid">
-                    <a href="https://news.google.com" target="_blank" class="link-item">
-                        <span>🌐</span>
-                        <p>Google</p>
-                    </a>
-                    <a href="https://nova.bg/news" target="_blank" class="link-item">
-                        <span>📺</span>
-                        <p>Nova</p>
-                    </a>
-                    <a href="https://www.reddit.com/r/news" target="_blank" class="link-item">
-                        <span>🔴</span>
-                        <p>Reddit</p>
-                    </a>
-                    <a href="https://www.bbc.com/news" target="_blank" class="link-item">
-                        <span>🌍</span>
-                        <p>BBC</p>
-                    </a>
-                    <a href="https://www.reuters.com" target="_blank" class="link-item">
-                        <span>📡</span>
-                        <p>Reuters</p>
-                    </a>
-                    <a href="https://apnews.com" target="_blank" class="link-item">
-                        <span>📰</span>
-                        <p>AP</p>
-                    </a>
-                </div>
-            </section>
-
-            <!-- Outages & Monitoring -->
-            <section class="card outages-card">
-                <h2>⚠️ Аварии и мониторинг</h2>
-                <div class="links-grid">
-                    <a href="https://remap.jrc.ec.europa.eu/Advanced.aspx" target="_blank" class="link-item">
-                        <span>☢️</span>
-                        <p>Радиация (EURDEP)</p>
-                    </a>
-                    <a href="https://www.sofiyskavoda.bg/water-stops" target="_blank" class="link-item">
-                        <span>🚰</span>
-                        <p>Софийска вода</p>
-                    </a>
-                    <a href="https://ermzapad.bg/bg/za-klienta/prekusvania/" target="_blank" class="link-item">
-                        <span>⚡</span>
-                        <p>ЕРМ Запад</p>
-                    </a>
-                    <a href="https://www.toplo.bg/accidents-and-maintenance" target="_blank" class="link-item">
-                        <span>🔥</span>
-                        <p>Топлофикация</p>
-                    </a>
-                </div>
-            </section>
-
-            <!-- Public Cameras -->
-            <section class="card cameras-card">
-                <h2>📹 Публични Камери</h2>
-                <div class="links-grid">
-                    <a href="https://weather-webcam.eu/sofia-orlov-most-na-jivo/" target="_blank" class="link-item">
-                        <span>📷</span>
-                        <p>Орлов Мост</p>
-                    </a>
-                    <a href="https://weather-webcam.eu/kamera-na-jivo-sofia-kvartal-lagera-panorama-vitosha/" target="_blank" class="link-item">
-                        <span>📷</span>
-                        <p>ж.к. Лагера</p>
-                    </a>
-                </div>
+                </nav>
             </section>
         </div>
 
+        <!-- 3. Everything else: external links -->
+        <section class="card links-card">
+            <h2>🔗 Полезни връзки</h2>
+            <div class="link-groups">
+                <div class="link-group">
+                    <h3>📰 Медии</h3>
+                    <div class="chips">
+                        <a class="chip" href="https://www.bta.bg/bg" target="_blank" rel="noopener">БТА</a>
+                        <a class="chip" href="https://nova.bg/news" target="_blank" rel="noopener">Nova</a>
+                        <a class="chip" href="https://news.google.com" target="_blank" rel="noopener">Google News</a>
+                        <a class="chip" href="https://www.bbc.com/news" target="_blank" rel="noopener">BBC</a>
+                        <a class="chip" href="https://www.reuters.com" target="_blank" rel="noopener">Reuters</a>
+                        <a class="chip" href="https://apnews.com" target="_blank" rel="noopener">AP</a>
+                        <a class="chip" href="https://www.reddit.com/r/news" target="_blank" rel="noopener">Reddit</a>
+                    </div>
+                </div>
+                <div class="link-group">
+                    <h3>⚠️ Аварии и мониторинг</h3>
+                    <div class="chips">
+                        <a class="chip" href="https://www.sofiyskavoda.bg/water-stops" target="_blank" rel="noopener">🚰 Софийска вода</a>
+                        <a class="chip" href="https://ermzapad.bg/bg/za-klienta/prekusvania/" target="_blank" rel="noopener">⚡ ЕРМ Запад</a>
+                        <a class="chip" href="https://www.toplo.bg/accidents-and-maintenance" target="_blank" rel="noopener">🔥 Топлофикация</a>
+                        <a class="chip" href="https://remap.jrc.ec.europa.eu/Advanced.aspx" target="_blank" rel="noopener">☢️ Радиация (EURDEP)</a>
+                        <a class="chip" href="https://www.flightradar24.com/43.02,24.38/6" target="_blank" rel="noopener">✈️ FlightRadar</a>
+                    </div>
+                </div>
+                <div class="link-group">
+                    <h3>📹 Камери и други</h3>
+                    <div class="chips">
+                        <a class="chip" href="https://weather-webcam.eu/sofia-orlov-most-na-jivo/" target="_blank" rel="noopener">📷 Орлов Мост</a>
+                        <a class="chip" href="https://weather-webcam.eu/kamera-na-jivo-sofia-kvartal-lagera-panorama-vitosha/" target="_blank" rel="noopener">📷 ж.к. Лагера</a>
+                        <a class="chip" href="https://drive.google.com/drive/u/1/folders/1hSqaeqcsC-OYU15GVzz0Ut5DP9XdDMdu" target="_blank" rel="noopener">💾 Drive</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <footer>
-            <p>sofia-prepping.com - София · обновено: <span id="last-update"></span></p>
+            <p>sofia-prepping.com - София</p>
         </footer>
     </div>
 
     <script src="i18n.js"></script>
     <script src="district.js"></script>
-
-    <script src="script.js"></script>
     <script src="status.js"></script>
     <script src="news.js"></script>
 </body>

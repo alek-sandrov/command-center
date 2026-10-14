@@ -1,7 +1,7 @@
 // News card on the homepage (from /api/status?part=news), with two tabs:
 // latest news from BTA (default) and official announcements (ГДПБЗН + Sofia municipality)
 (function () {
-    const SHOW = 5;
+    const SHOW = 4;
     const NEW_DAYS = 3;
     const { t } = I18N;
     const locale = I18N.lang === 'en' ? 'en-GB' : 'bg-BG';

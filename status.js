@@ -1,6 +1,7 @@
-// Live city status panel on the homepage. Data comes from /api/status (functions/api/status.js).
+// Live city status panel on the homepage. Weather comes straight from Open-Meteo; everything
+// else from /api/status (functions/api/status.js).
 // Water, heating and air follow the district chosen in the navbar (district.js);
-// earthquakes and weather warnings are city-wide.
+// weather, earthquakes and weather warnings are city-wide.
 
 const REFRESH_MS = 10 * 60 * 1000;
 const PARTS = ['warnings', 'earthquakes', 'air', 'water', 'heating'];
@@ -11,6 +12,18 @@ const AIR_BANDS = [
     [50, 'orange', 'Лошо'], [75, 'red', 'Много лошо'], [Infinity, 'red', 'Изключително лошо']
 ];
 const MIN_DISTRICT_SENSORS = 3;
+const WEATHER_URL = 'https://api.open-meteo.com/v1/forecast?latitude=42.6977&longitude=23.3219' +
+    '&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m' +
+    '&wind_speed_unit=kmh&timezone=auto';
+// WMO weather codes
+const WEATHER_CODES = {
+    0: '☀️ Ясно', 1: '🌤️ Предимно ясно', 2: '⛅ Разкъсана облачност', 3: '☁️ Облачно',
+    45: '🌫️ Мъгла', 48: '🌫️ Мъгла', 51: '🌦️ Слаб ръмеж', 53: '🌦️ Ръмеж', 55: '🌦️ Силен ръмеж',
+    61: '🌧️ Слаб дъжд', 63: '🌧️ Дъжд', 65: '🌧️ Силен дъжд', 71: '🌨️ Слаб сняг', 73: '🌨️ Сняг',
+    75: '🌨️ Силен снеговалеж', 77: '❄️ Снежни зърна', 80: '🌦️ Слаби превалявания', 81: '🌧️ Превалявания',
+    82: '🌧️ Пороен дъжд', 85: '🌨️ Слаби снежни превалявания', 86: '🌨️ Силни снежни превалявания',
+    95: '⛈️ Гръмотевична буря', 96: '⛈️ Буря с градушка', 99: '⛈️ Буря с градушка'
+};
 const { t } = I18N;
 const LOCALE = I18N.lang === 'en' ? 'en-GB' : 'bg-BG';
 
@@ -110,6 +123,19 @@ function inDistrict(lat, lng) {
 function districtLabel() {
     const d = SofiaDistrict.get();
     return d ? I18N.district(d.name) : t('София');
+}
+
+function weather(w) {
+    if (!w.ok) return failed();
+    const sky = t(WEATHER_CODES[w.code] || '🌡️ Няма данни');
+    details.weather = [
+        el('h3', null, t('Времето в София')),
+        detailRow(`${w.temp}°C · ${sky}`, t('🌡️ Усеща се: {v}°C', { v: w.feels })),
+        detailRow(t('💧 Влажност: {v}%', { v: w.humidity }), t('💨 Вятър: {v} км/ч', { v: w.wind })),
+        detailRow(t('🌧️ Валежи: {v} мм', { v: w.precip })),
+        source(t('Източник: Open-Meteo'))
+    ];
+    return { tone: 'neutral', value: `${w.temp}°C`, note: sky.replace(/^\S+\s/, '') };  // icon is already on the tile
 }
 
 function earthquakes(q) {
@@ -224,12 +250,12 @@ function render() {
     document.getElementById('status-title').textContent = t('📡 Състояние – {place}', { place: SofiaDistrict.get() ? districtLabel() : t('цяла София') });
     const tiles = document.getElementById('status-tiles');
     tiles.replaceChildren(
+        tile('weather', '🌤️', 'Времето', weather(data.weather)),
         tile('warnings', '⚠️', 'Опасно време', warnings(data.warnings)),
         tile('quakes', '🌍', 'Земетресения', earthquakes(data.earthquakes)),
         tile('air', '🌫️', 'Въздух', air(data.air)),
         tile('water', '🚰', 'Вода', water(data.water)),
-        tile('heating', '🔥', 'Топлофикация', heating(data.heating)),
-        tile('power', '⚡', 'Ток', { value: t('ЕРМ Запад'), note: t('прекъсвания ↗'), href: 'https://ermzapad.bg/bg/za-klienta/prekusvania/' })
+        tile('heating', '🔥', 'Топлофикация', heating(data.heating))
     );
     if (openTile && details[openTile]) {
         const t = tiles.querySelector(`[data-key="${openTile}"]`);
@@ -249,13 +275,26 @@ async function loadPart(part) {
     }
 }
 
+async function loadWeather() {
+    try {
+        const c = (await (await fetch(WEATHER_URL)).json()).current;
+        return {
+            ok: true, temp: Math.round(c.temperature_2m), feels: Math.round(c.apparent_temperature),
+            humidity: c.relative_humidity_2m, wind: Math.round(c.wind_speed_10m), precip: c.precipitation, code: c.weather_code
+        };
+    } catch {
+        return { ok: false };
+    }
+}
+
 async function loadStatus() {
-    const results = await Promise.all(PARTS.map(loadPart));
+    const [results, weatherData] = await Promise.all([Promise.all(PARTS.map(loadPart)), loadWeather()]);
     if (results.every(r => !r.ok)) {
         document.getElementById('status-updated').textContent = t('Неуспешно зареждане на данните. Ще опитаме отново.');
         if (!lastData) return;
     } else {
         lastData = Object.fromEntries(PARTS.map((p, i) => [p, results[i]]));
+        lastData.weather = weatherData;
         lastData.generated = Math.min(...results.map(r => r.generated));
     }
     render();
