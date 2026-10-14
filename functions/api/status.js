@@ -1,4 +1,4 @@
-// Cloudflare Pages Function: GET /api/status?part=<earthquakes|warnings|air|water|heating>
+// Cloudflare Pages Function: GET /api/status?part=<earthquakes|warnings|air|water|heating|news>
 // Live city status for the homepage from sources a browser can't read directly
 // (no CORS). Each part is cached at the edge for 10 minutes.
 
@@ -192,6 +192,54 @@ async function heating() {
     return { count: items.length, items };
 }
 
+const MONTHS = ['януари', 'февруари', 'март', 'април', 'май', 'юни', 'юли', 'август',
+    'септември', 'октомври', 'ноември', 'декември'];
+
+function plain(html) {
+    return html.replace(/<[^>]+>/g, ' ')
+        .replace(/&quot;/g, '"').replace(/&#0?39;|&apos;/g, "'").replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&nbsp;/g, ' ')
+        .replace(/\s+/g, ' ').trim();
+}
+
+// ГДПБЗН (national fire safety and civil protection) news: cards with "30 Септември 2026" dates
+async function gdpbznNews() {
+    const base = 'https://www.mvr.bg';
+    const html = await get(`${base}/gdpbzn/info-center/пресцентър/новини`, { type: 'text' });
+    const items = [];
+    const re = /<div class="card__meta">\s*(\d{1,2}) (\S+) (\d{4})\s*<\/div>\s*<a href="([^"]+)"\s+class="card__title">([\s\S]*?)<\/a>/g;
+    for (const [, day, month, year, href, title] of html.matchAll(re)) {
+        const m = MONTHS.indexOf(month.toLowerCase());
+        if (m < 0 || /^Брой \d/.test(plain(title))) continue;  // skip magazine issue notices
+        items.push({ source: 'ГДПБЗН', title: plain(title), url: base + href, date: Date.UTC(+year, m, +day) });
+    }
+    return items;
+}
+
+// Столична община, section "Сигурност": items with "14.10.2026" dates
+async function sofiaSecurityNews() {
+    const html = await get('https://www.sofia.bg/security-news', { type: 'text' });
+    const items = [];
+    const re = /<a href="(https:\/\/www\.sofia\.bg\/[^"]+)"[^>]*>\s*<div class="read-more">[\s\S]*?<span class="date">(\d{2})\.(\d{2})\.(\d{4})<\/span>[\s\S]*?<div class="news-title">([\s\S]*?)<\/div>/g;
+    for (const [, url, day, month, year, title] of html.matchAll(re)) {
+        items.push({ source: 'Столична община', title: plain(title), url, date: Date.UTC(+year, month - 1, +day) });
+    }
+    return items;
+}
+
+// Latest official announcements, newest first. One failing source doesn't hide the other.
+async function news() {
+    const sources = [['ГДПБЗН', gdpbznNews], ['Столична община', sofiaSecurityNews]];
+    const results = await Promise.allSettled(sources.map(([, fn]) => fn()));
+    const failed = sources.filter((_, i) => results[i].status === 'rejected' || !results[i].value.length).map(([name]) => name);
+    const items = results.flatMap(r => r.status === 'fulfilled' ? r.value : []);
+    if (!items.length) throw new Error('no announcements from any source');
+    const seen = new Set();
+    const unique = items.filter(i => !seen.has(i.url) && seen.add(i.url));
+    unique.sort((a, b) => b.date - a.date);
+    return { items: unique.slice(0, 15), failed };
+}
+
 async function settle(fn) {
     try {
         return { ok: true, ...(await fn()) };
@@ -202,7 +250,7 @@ async function settle(fn) {
 
 // Each source is its own request (/api/status?part=air) so one call stays within
 // the Workers CPU limit and a slow source doesn't hold up the others.
-const PARTS = { earthquakes, warnings, air, water, heating };
+const PARTS = { earthquakes, warnings, air, water, heating, news };
 
 export async function onRequestGet(context) {
     const url = new URL(context.request.url);

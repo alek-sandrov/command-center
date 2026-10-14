@@ -217,7 +217,7 @@ function render() {
     document.getElementById('status-title').textContent = `📡 Състояние – ${SofiaDistrict.get() ? districtLabel() : 'цяла София'}`;
     const tiles = document.getElementById('status-tiles');
     tiles.replaceChildren(
-        tile('warnings', '⚠️', 'Метео предупреждения', warnings(data.warnings)),
+        tile('warnings', '⚠️', 'Опасно време', warnings(data.warnings)),
         tile('quakes', '🌍', 'Земетресения', earthquakes(data.earthquakes)),
         tile('air', '🌫️', 'Въздух', air(data.air)),
         tile('water', '🚰', 'Вода', water(data.water)),
