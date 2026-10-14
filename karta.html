@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Евакуация и йод - sofia-prepping.com</title>
+    <title>Интерактивна карта - sofia-prepping.com</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -21,31 +21,34 @@
     </nav>
 
     <div class="container">
-        <div class="breadcrumb"><a href="karti.html">← Карти</a><span>›</span>Евакуация и йод</div>
+        <div class="breadcrumb"><a href="karti.html">← Карти</a><span>›</span>Интерактивна карта</div>
 
         <header>
-            <h1><span class="h1-icon">☢️</span> Евакуация и йодни таблетки</h1>
+            <h1><span class="h1-icon">🗺️</span> Интерактивна карта</h1>
         </header>
 
         <div class="grid">
             <section class="card full-width">
-                <h2>📍 Центрове при бедствия и аварии</h2>
-
                 <div class="map-controls">
                     <button id="locate-btn" class="modal-nav-btn">📍 Намери най-близкия</button>
-                    <select id="rayon-select" class="map-select" aria-label="Район">
-                        <option value="">Всички райони</option>
-                    </select>
                 </div>
 
                 <div class="type-filters" id="type-filters"></div>
-
-                <div id="nearest" class="nearest"></div>
+                <div class="layer-actions">
+                    <button type="button" id="all-on">Покажи всички</button>
+                    <button type="button" id="all-off">Скрий всички</button>
+                </div>
 
                 <div id="map" class="leaflet-map"></div>
 
+                <div id="nearest" class="nearest"></div>
+
                 <p class="map-source">
-                    Източник: <a href="https://urbandata.sofia.bg" target="_blank" rel="noopener">Столична община – отворени данни</a> („Центрове при бедствия и аварии“). Местоположението ви се използва само в браузъра и не се изпраща никъде.
+                    Източници: <a href="https://urbandata.sofia.bg" target="_blank" rel="noopener">Столична община – отворени данни</a> (центрове при бедствия, минерални извори, метро),
+                    Google My Maps („Скривалища и ПРУ“, „Чешмите в България 2024“),
+                    <a href="https://www.openstreetmap.org" target="_blank" rel="noopener">OpenStreetMap</a> (болници, аптеки).
+                    Данните се обновяват ежеседмично<span id="updated"></span>.
+                    Местоположението ви се използва само в браузъра и не се изпраща никъде.
                 </p>
             </section>
         </div>
@@ -56,6 +59,6 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-    <script src="centrove.js"></script>
+    <script src="karta.js"></script>
 </body>
 </html>

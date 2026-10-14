@@ -673,6 +673,7 @@ header h1 {
 }
 
 .nearest h3 {
+    margin-top: 1rem;
     text-align: center;
     margin-bottom: 0.75rem;
 }
@@ -909,6 +910,19 @@ footer p {
         height: 60vh;
     }
 
+    .nearest-list {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+    }
+
+    .nearest-item {
+        padding: 0.5rem;
+    }
+
+    .nearest-name {
+        font-size: 0.85rem;
+    }
+
     .modal-close {
         top: 10px;
         right: 20px;
@@ -959,4 +973,28 @@ footer p {
 
 .link-btn {
     text-decoration: none;
+}
+
+/* Combined map */
+.layer-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.layer-actions button {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.popup-kind {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-bottom: 0.15rem;
 }
