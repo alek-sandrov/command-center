@@ -1306,3 +1306,45 @@ footer p {
     text-align: center;
     margin-top: 0.5rem;
 }
+
+.news-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 0.25rem;
+    width: fit-content;
+    max-width: 100%;
+    margin: 0 auto 1rem;
+    padding: 4px;
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+}
+
+.news-tab {
+    padding: 0.45rem 1rem;
+    background: none;
+    border: none;
+    border-radius: 0.5rem;
+    color: var(--text-secondary);
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.news-tab:hover {
+    color: var(--text-primary);
+    background: var(--surface-hover);
+}
+
+.news-tab.active {
+    background: var(--primary-color);
+    color: white;
+}
+
+.news-section {
+    padding: 0.05rem 0.5rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+}

@@ -198,7 +198,13 @@
         // Announcements
         'Ново': 'New', 'Покажи по-малко': 'Show less', 'Покажи още ({n})': 'Show more ({n})',
         'Неуспешно зареждане на съобщенията. Ще опитаме отново.': 'Could not load the announcements. We will try again.',
-        'Столична община': 'Sofia Municipality'
+        'Столична община': 'Sofia Municipality',
+        '📢 Новини и съобщения': '📢 News and announcements',
+        'Последни новини': 'Latest news', 'Официални съобщения': 'Official announcements',
+        'БТА': 'BTA', 'Свят': 'World', 'Балкани': 'Balkans',
+        'Няма съобщения в момента.': 'No items right now.',
+        'Последни новини от БТА (Българска телеграфна агенция) – разделите България, Свят и Балкани. Заглавията се показват дословно с връзка към оригинала.':
+            'Latest news from BTA (Bulgarian News Agency) – Bulgaria, World and Balkans sections. Headlines are shown in Bulgarian exactly as published, with a link to the original.'
     };
 
     // Fixed labels with a variable part (map popups, district map captions)

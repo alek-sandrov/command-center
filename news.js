@@ -1,14 +1,49 @@
-// Official announcements feed on the homepage (from /api/status?part=news)
+// News card on the homepage (from /api/status?part=news), with two tabs:
+// latest news from BTA (default) and official announcements (ГДПБЗН + Sofia municipality)
 (function () {
     const SHOW = 5;
     const NEW_DAYS = 3;
+    const { t } = I18N;
+    const locale = I18N.lang === 'en' ? 'en-GB' : 'bg-BG';
     const list = document.getElementById('news-list');
     const more = document.getElementById('news-more');
+    const note = document.getElementById('news-source');
+    const tabs = document.querySelectorAll('.news-tab');
+    const NOTES = {
+        latest: 'Последни новини от БТА (Българска телеграфна агенция) – разделите България, Свят и Балкани. Заглавията се показват дословно с връзка към оригинала.',
+        official: 'От ГДПБЗН (пожарна безопасност и защита на населението) и Столична община (раздел „Сигурност“). Съобщенията се показват дословно с връзка към оригинала.'
+    };
+    let tab = 'latest';
     let expanded = false;
-    let items = [];
+    let data = null;
+
+    function stamp(item) {
+        const d = new Date(item.date);
+        if (!item.timed) {
+            return d.toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' });
+        }
+        const today = new Date().toDateString() === d.toDateString();
+        return today
+            ? d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
+            : d.toLocaleString(locale, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    }
+
+    function badge(cls, text) {
+        const span = document.createElement('span');
+        span.className = cls;
+        span.textContent = text;
+        return span;
+    }
 
     function render() {
+        const items = data ? data[tab] || [] : [];
         list.replaceChildren();
+        note.textContent = t(NOTES[tab]);
+        if (!items.length) {
+            list.textContent = data ? t('Няма съобщения в момента.') : t('Зареждане...');
+            more.hidden = true;
+            return;
+        }
         const now = Date.now();
         (expanded ? items : items.slice(0, SHOW)).forEach(item => {
             const a = document.createElement('a');
@@ -18,18 +53,10 @@
             a.rel = 'noopener';
             const meta = document.createElement('div');
             meta.className = 'news-meta';
-            const source = document.createElement('span');
-            source.className = 'news-source';
-            source.textContent = I18N.text(item.source);
-            const date = document.createElement('span');
-            date.textContent = new Date(item.date).toLocaleDateString(I18N.lang === 'en' ? 'en-GB' : 'bg-BG', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' });
-            meta.append(source, date);
-            if (now - item.date < NEW_DAYS * 86400e3) {
-                const badge = document.createElement('span');
-                badge.className = 'news-new';
-                badge.textContent = I18N.t('Ново');
-                meta.append(badge);
-            }
+            meta.append(badge('news-source', I18N.text(item.source)));
+            if (item.section) meta.append(badge('news-section', t(item.section)));
+            meta.append(badge('news-date', stamp(item)));
+            if (!item.timed && now - item.date < NEW_DAYS * 86400e3) meta.append(badge('news-new', t('Ново')));
             const title = document.createElement('div');
             title.className = 'news-title-text';
             title.textContent = item.title;
@@ -37,8 +64,15 @@
             list.append(a);
         });
         more.hidden = items.length <= SHOW;
-        more.textContent = expanded ? I18N.t('Покажи по-малко') : I18N.t('Покажи още ({n})', { n: items.length - SHOW });
+        more.textContent = expanded ? t('Покажи по-малко') : t('Покажи още ({n})', { n: items.length - SHOW });
     }
+
+    tabs.forEach(btn => btn.addEventListener('click', () => {
+        tab = btn.dataset.tab;
+        expanded = false;
+        tabs.forEach(b => b.classList.toggle('active', b === btn));
+        render();
+    }));
 
     more.addEventListener('click', () => {
         expanded = !expanded;
@@ -48,15 +82,16 @@
     async function load() {
         try {
             const res = await fetch('/api/status?part=news');
-            const data = await res.json();
-            if (!data.ok) throw new Error(data.error);
-            items = data.items;
+            const json = await res.json();
+            if (!json.ok) throw new Error(json.error);
+            data = json;
             render();
         } catch {
-            if (!items.length) list.textContent = I18N.t('Неуспешно зареждане на съобщенията. Ще опитаме отново.');
+            if (!data) list.textContent = t('Неуспешно зареждане на съобщенията. Ще опитаме отново.');
         }
     }
 
+    render();
     load();
-    setInterval(load, 15 * 60 * 1000);
+    setInterval(load, 10 * 60 * 1000);
 })();

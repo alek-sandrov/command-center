@@ -227,17 +227,40 @@ async function sofiaSecurityNews() {
     return items;
 }
 
-// Latest official announcements, newest first. One failing source doesn't hide the other.
+// BTA (Bulgarian News Agency) latest news from its free RSS feed, limited to the
+// Bulgaria / World / Balkans sections so breaking news isn't buried under sport and culture
+const BTA_SECTIONS = { bulgaria: 'България', world: 'Свят', balkans: 'Балкани' };
+
+async function btaNews() {
+    const xml = await get('https://www.bta.bg/bg/rss/free', { type: 'text' });
+    const tag = (item, name) => plain((item.match(new RegExp(`<${name}>([\\s\\S]*?)</${name}>`)) || [])[1]?.replace(/<!\[CDATA\[|\]\]>/g, '') || '');
+    const items = [];
+    for (const [, item] of xml.matchAll(/<item>([\s\S]*?)<\/item>/g)) {
+        const url = tag(item, 'link');
+        const section = (url.match(/\/bg\/news\/([a-z-]+)\//) || [])[1];
+        if (!BTA_SECTIONS[section] || url.includes('/oficial-messages/')) continue;
+        const date = Date.parse(tag(item, 'pubDate'));
+        if (!date) continue;
+        items.push({ source: 'БТА', section: BTA_SECTIONS[section], title: tag(item, 'title'), url, date, timed: true });
+    }
+    return items.sort((a, b) => b.date - a.date);
+}
+
+// Two lists: latest news (BTA) and official announcements (ГДПБЗН + municipal security news).
+// One failing source doesn't hide the others.
 async function news() {
-    const sources = [['ГДПБЗН', gdpbznNews], ['Столична община', sofiaSecurityNews]];
+    const sources = [['БТА', btaNews], ['ГДПБЗН', gdpbznNews], ['Столична община', sofiaSecurityNews]];
     const results = await Promise.allSettled(sources.map(([, fn]) => fn()));
-    const failed = sources.filter((_, i) => results[i].status === 'rejected' || !results[i].value.length).map(([name]) => name);
-    const items = results.flatMap(r => r.status === 'fulfilled' ? r.value : []);
-    if (!items.length) throw new Error('no announcements from any source');
+    const ok = i => (results[i].status === 'fulfilled' ? results[i].value : []);
+    const failed = sources.filter((_, i) => !ok(i).length).map(([name]) => name);
+    const latest = ok(0).slice(0, 15);
     const seen = new Set();
-    const unique = items.filter(i => !seen.has(i.url) && seen.add(i.url));
-    unique.sort((a, b) => b.date - a.date);
-    return { items: unique.slice(0, 15), failed };
+    const official = [...ok(1), ...ok(2)]
+        .filter(i => !seen.has(i.url) && seen.add(i.url))
+        .sort((a, b) => b.date - a.date)
+        .slice(0, 15);
+    if (!latest.length && !official.length) throw new Error('no news from any source');
+    return { latest, official, failed };
 }
 
 async function settle(fn) {
