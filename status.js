@@ -241,7 +241,7 @@ function render() {
 
 async function loadPart(part) {
     try {
-        const res = await fetch(`/api/status?part=${part}`);
+        const res = await fetch(`/api/status?part=${part}&v=3`);
         if (!res.ok) throw new Error(res.status);
         return await res.json();
     } catch {

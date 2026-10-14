@@ -203,6 +203,7 @@
         'Последни новини': 'Latest news', 'Официални съобщения': 'Official announcements',
         'БТА': 'BTA', 'Свят': 'World', 'Балкани': 'Balkans',
         'Няма съобщения в момента.': 'No items right now.',
+        'В момента не отговаря: {sources}.': 'Currently not responding: {sources}.',
         'Последни новини от БТА (Българска телеграфна агенция) – разделите България, Свят и Балкани. Заглавията се показват дословно с връзка към оригинала.':
             'Latest news from BTA (Bulgarian News Agency) – Bulgaria, World and Balkans sections. Headlines are shown in Bulgarian exactly as published, with a link to the original.'
     };

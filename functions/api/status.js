@@ -3,6 +3,13 @@
 // (no CORS). Each part is cached at the edge for 10 minutes.
 
 const CACHE_SECONDS = 600;
+// Bump when a part's response format changes, so edge caches never serve the old shape
+const API_VERSION = '3';
+const BROWSER_HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36',
+    'Accept': 'application/rss+xml, application/xml;q=0.9, text/html;q=0.8, */*;q=0.5',
+    'Accept-Language': 'bg-BG,bg;q=0.9,en;q=0.8'
+};
 const SOFIA = { lat: 42.6977, lng: 23.3219 };
 const TZ = 'Europe/Sofia';
 const UA = 'Mozilla/5.0 (compatible; sofia-prepping.com status)';
@@ -205,7 +212,7 @@ function plain(html) {
 // ГДПБЗН (national fire safety and civil protection) news: cards with "30 Септември 2026" dates
 async function gdpbznNews() {
     const base = 'https://www.mvr.bg';
-    const html = await get(`${base}/gdpbzn/info-center/пресцентър/новини`, { type: 'text' });
+    const html = await get(`${base}/gdpbzn/info-center/пресцентър/новини`, { type: 'text', headers: BROWSER_HEADERS });
     const items = [];
     const re = /<div class="card__meta">\s*(\d{1,2}) (\S+) (\d{4})\s*<\/div>\s*<a href="([^"]+)"\s+class="card__title">([\s\S]*?)<\/a>/g;
     for (const [, day, month, year, href, title] of html.matchAll(re)) {
@@ -218,7 +225,7 @@ async function gdpbznNews() {
 
 // Столична община, section "Сигурност": items with "14.10.2026" dates
 async function sofiaSecurityNews() {
-    const html = await get('https://www.sofia.bg/security-news', { type: 'text' });
+    const html = await get('https://www.sofia.bg/security-news', { type: 'text', headers: BROWSER_HEADERS });
     const items = [];
     const re = /<a href="(https:\/\/www\.sofia\.bg\/[^"]+)"[^>]*>\s*<div class="read-more">[\s\S]*?<span class="date">(\d{2})\.(\d{2})\.(\d{4})<\/span>[\s\S]*?<div class="news-title">([\s\S]*?)<\/div>/g;
     for (const [, url, day, month, year, title] of html.matchAll(re)) {
@@ -232,7 +239,7 @@ async function sofiaSecurityNews() {
 const BTA_SECTIONS = { bulgaria: 'България', world: 'Свят', balkans: 'Балкани' };
 
 async function btaNews() {
-    const xml = await get('https://www.bta.bg/bg/rss/free', { type: 'text' });
+    const xml = await get('https://www.bta.bg/bg/rss/free', { type: 'text', headers: BROWSER_HEADERS });
     const tag = (item, name) => plain((item.match(new RegExp(`<${name}>([\\s\\S]*?)</${name}>`)) || [])[1]?.replace(/<!\[CDATA\[|\]\]>/g, '') || '');
     const items = [];
     for (const [, item] of xml.matchAll(/<item>([\s\S]*?)<\/item>/g)) {
@@ -243,6 +250,7 @@ async function btaNews() {
         if (!date) continue;
         items.push({ source: 'БТА', section: BTA_SECTIONS[section], title: tag(item, 'title'), url, date, timed: true });
     }
+    if (!items.length) throw new Error(xml.includes('<rss') ? 'no Bulgaria/World/Balkans items in feed' : 'response is not an RSS feed');
     return items.sort((a, b) => b.date - a.date);
 }
 
@@ -252,7 +260,10 @@ async function news() {
     const sources = [['БТА', btaNews], ['ГДПБЗН', gdpbznNews], ['Столична община', sofiaSecurityNews]];
     const results = await Promise.allSettled(sources.map(([, fn]) => fn()));
     const ok = i => (results[i].status === 'fulfilled' ? results[i].value : []);
-    const failed = sources.filter((_, i) => !ok(i).length).map(([name]) => name);
+    // Name and reason of each source that returned nothing, for the page note and debugging
+    const failed = sources.map(([name], i) => ok(i).length ? null
+        : { source: name, error: results[i].status === 'rejected' ? String(results[i].reason?.message || results[i].reason) : 'no items' })
+        .filter(Boolean);
     const latest = ok(0).slice(0, 15);
     const seen = new Set();
     const official = [...ok(1), ...ok(2)]
@@ -284,7 +295,7 @@ export async function onRequestGet(context) {
         });
     }
     const cache = globalThis.caches?.default;
-    const key = new Request(`${url.origin}/api/status?part=${part}`);
+    const key = new Request(`${url.origin}/api/status?part=${part}&v=${API_VERSION}`);
     if (cache) {
         const hit = await cache.match(key);
         if (hit) return hit;

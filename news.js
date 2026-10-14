@@ -14,6 +14,7 @@
         official: 'От ГДПБЗН (пожарна безопасност и защита на населението) и Столична община (раздел „Сигурност“). Съобщенията се показват дословно с връзка към оригинала.'
     };
     let tab = 'latest';
+    let chosen = false;  // the visitor picked a tab themselves
     let expanded = false;
     let data = null;
 
@@ -39,6 +40,8 @@
         const items = data ? data[tab] || [] : [];
         list.replaceChildren();
         note.textContent = t(NOTES[tab]);
+        const down = (data?.failed || []).map(f => I18N.text(f.source));
+        if (down.length) note.textContent += ' ' + t('В момента не отговаря: {sources}.', { sources: down.join(', ') });
         if (!items.length) {
             list.textContent = data ? t('Няма съобщения в момента.') : t('Зареждане...');
             more.hidden = true;
@@ -67,11 +70,16 @@
         more.textContent = expanded ? t('Покажи по-малко') : t('Покажи още ({n})', { n: items.length - SHOW });
     }
 
-    tabs.forEach(btn => btn.addEventListener('click', () => {
-        tab = btn.dataset.tab;
+    function select(name) {
+        tab = name;
         expanded = false;
-        tabs.forEach(b => b.classList.toggle('active', b === btn));
+        tabs.forEach(b => b.classList.toggle('active', b.dataset.tab === name));
         render();
+    }
+
+    tabs.forEach(btn => btn.addEventListener('click', () => {
+        chosen = true;
+        select(btn.dataset.tab);
     }));
 
     more.addEventListener('click', () => {
@@ -81,11 +89,14 @@
 
     async function load() {
         try {
-            const res = await fetch('/api/status?part=news');
+            const res = await fetch('/api/status?part=news&v=3');
             const json = await res.json();
             if (!json.ok) throw new Error(json.error);
-            data = json;
-            render();
+            // Older response format had a single "items" list of official announcements
+            data = { latest: json.latest || [], official: json.official || json.items || [], failed: json.failed || [] };
+            // If BTA is unavailable, open on the official announcements rather than an empty list
+            if (!chosen && !data.latest.length && data.official.length) select('official');
+            else render();
         } catch {
             if (!data) list.textContent = t('Неуспешно зареждане на съобщенията. Ще опитаме отново.');
         }
