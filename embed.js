@@ -25,7 +25,7 @@
         const zoom = Math.max(n - s, e - w) > 0.08 ? 13 : 14;
         frame.src = centred(defaults.frame, lat, lng, zoom);
         open.href = centred(defaults.open, lat, lng, zoom);
-        note.textContent = `Картата е центрирана върху Район ${d.name}.`;
+        note.textContent = I18N.t('Картата е центрирана върху {district}.', { district: I18N.district(d.name) });
     }
 
     SofiaDistrict.onChange(apply);

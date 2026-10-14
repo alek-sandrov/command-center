@@ -11,6 +11,8 @@ const AIR_BANDS = [
     [50, 'orange', 'Лошо'], [75, 'red', 'Много лошо'], [Infinity, 'red', 'Изключително лошо']
 ];
 const MIN_DISTRICT_SENSORS = 3;
+const { t } = I18N;
+const LOCALE = I18N.lang === 'en' ? 'en-GB' : 'bg-BG';
 
 let openTile = null;
 let details = {};
@@ -34,16 +36,16 @@ function link(href, text) {
 
 function ago(ms) {
     const min = Math.round((Date.now() - ms) / 60000);
-    if (min < 1) return 'току-що';
-    if (min < 60) return `преди ${min} мин`;
+    if (min < 1) return t('току-що');
+    if (min < 60) return t('преди {n} мин', { n: min });
     const h = Math.round(min / 60);
-    if (h < 24) return `преди ${h} ч`;
+    if (h < 24) return t('преди {n} ч', { n: h });
     const d = Math.round(h / 24);
-    return `преди ${d} ${d === 1 ? 'ден' : 'дни'}`;
+    return d === 1 ? t('преди 1 ден') : t('преди {n} дни', { n: d });
 }
 
 function when(ms) {
-    return new Date(ms).toLocaleString('bg-BG', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    return new Date(ms).toLocaleString(LOCALE, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 }
 
 function median(values) {
@@ -78,7 +80,7 @@ function tile(key, icon, label, { tone = 'neutral', value, note, href }) {
         t.dataset.key = key;
         t.addEventListener('click', () => toggle(key, t));
     }
-    t.append(el('div', 'status-label', `${icon} ${label}`), el('div', 'status-value', value));
+    t.append(el('div', 'status-label', `${icon} ${I18N.t(label)}`), el('div', 'status-value', value));
     if (note) t.append(el('div', 'status-note', note));
     return t;
 }
@@ -98,7 +100,7 @@ function toggle(key, tileEl) {
 }
 
 function failed() {
-    return { tone: 'neutral', value: 'Няма данни', note: 'източникът не отговаря' };
+    return { tone: 'neutral', value: t('Няма данни'), note: t('източникът не отговаря') };
 }
 
 function inDistrict(lat, lng) {
@@ -107,7 +109,7 @@ function inDistrict(lat, lng) {
 
 function districtLabel() {
     const d = SofiaDistrict.get();
-    return d ? `Район ${d.name}` : 'София';
+    return d ? I18N.district(d.name) : t('София');
 }
 
 function earthquakes(q) {
@@ -117,37 +119,38 @@ function earthquakes(q) {
     const recent = q.items.filter(e => e.time > dayAgo);
     const last = q.items[0];
     details.quakes = [
-        el('h3', null, `Земетресения до ${radius} км от София, последните ${days} дни`),
+        el('h3', null, t('Земетресения до {radius} км от София, последните {days} дни', { radius, days })),
         ...(q.items.length ? q.items.map(e => detailRow(
             `M${e.mag.toFixed(1)} · ${e.region}`,
-            `${when(e.time)} · ${e.km} км от центъра · дълбочина ${e.depth} км`,
-            link(e.url, 'Детайли'))) : [el('p', 'status-empty', `Няма регистрирани земетресения в радиус ${radius} км.`)]),
-        source('Източник: EMSC (Европейско-средиземноморски сеизмологичен център). Показват се трусове, достатъчно близо до София, за да бъдат усетени.')
+            t('{when} · {km} км от центъра · дълбочина {depth} км', { when: when(e.time), km: e.km, depth: e.depth }),
+            link(e.url, t('Детайли')))) : [el('p', 'status-empty', t('Няма регистрирани земетресения в радиус {radius} км.', { radius }))]),
+        source(t('Източник: EMSC (Европейско-средиземноморски сеизмологичен център). Показват се трусове, достатъчно близо до София, за да бъдат усетени.'))
     ];
-    if (!last) return { tone: 'green', value: 'Няма', note: `до ${radius} км, ${days} дни` };
+    if (!last) return { tone: 'green', value: t('Няма'), note: t('до {radius} км, {days} дни', { radius, days }) };
     return {
         tone: recent.some(e => e.mag >= 4.5) ? 'red' : recent.some(e => e.mag >= 3.5) ? 'yellow' : 'green',
         value: `M${last.mag.toFixed(1)}`,
-        note: `${ago(last.time)} · ${last.km} км`
+        note: t('{ago} · {km} км', { ago: ago(last.time), km: last.km })
     };
 }
 
 function warnings(w) {
     if (!w.ok) return failed();
     details.warnings = [
-        el('h3', null, 'Метео предупреждения за София-град'),
+        el('h3', null, t('Метео предупреждения за София-град')),
         ...(w.items.length ? w.items.map(x => {
-            const row = detailRow(`${LEVELS[x.level][1]}: ${x.event}`,
-                `${x.active ? 'В сила' : 'От ' + when(x.onset)} до ${when(x.expires)}`);
+            const row = detailRow(`${t(LEVELS[x.level][1])}: ${x.event}`, x.active
+                ? t('В сила до {until}', { until: when(x.expires) })
+                : t('От {from} до {until}', { from: when(x.onset), until: when(x.expires) }));
             row.classList.add(`level-${LEVELS[x.level][0]}`);
             if (x.description) row.append(el('div', 'status-row-sub', x.description));
             return row;
-        }) : [el('p', 'status-empty', 'Няма активни предупреждения (зелен код).')]),
-        source('Източник: НИМХ чрез MeteoAlarm. Предупрежденията се издават за цялата област София-град.')
+        }) : [el('p', 'status-empty', t('Няма активни предупреждения (зелен код).'))]),
+        source(t('Източник: НИМХ чрез MeteoAlarm. Предупрежденията се издават за цялата област София-град.'))
     ];
-    if (!w.items.length) return { tone: 'green', value: 'Няма', note: 'зелен код' };
+    if (!w.items.length) return { tone: 'green', value: t('Няма'), note: t('зелен код') };
     const top = w.items[0];
-    return { tone: LEVELS[top.level][0], value: LEVELS[top.level][1], note: top.event };
+    return { tone: LEVELS[top.level][0], value: t(LEVELS[top.level][1]), note: top.event };
 }
 
 function air(a) {
@@ -155,19 +158,22 @@ function air(a) {
     let sensors = a.sensors.filter(([lat, lng]) => inDistrict(lat, lng));
     let note = '';
     if (shape && sensors.length < MIN_DISTRICT_SENSORS) {
-        note = `В ${districtLabel()} има ${sensors.length ? 'само ' + sensors.length : 'няма'} активни сензора – показваме стойността за цяла София.`;
+        note = sensors.length
+            ? t('В {district} има само {n} активни сензора – показваме стойността за цяла София.', { district: districtLabel(), n: sensors.length })
+            : t('В {district} няма активни сензора – показваме стойността за цяла София.', { district: districtLabel() });
         sensors = a.sensors;
     }
     const pm25 = median(sensors.map(s => s[2]));
     const pm10 = median(sensors.map(s => s[3]).filter(v => v !== null));
-    const [, tone, label] = AIR_BANDS.find(([max]) => pm25 < max);
+    const [, tone, band] = AIR_BANDS.find(([max]) => pm25 < max);
+    const label = t(band);
     details.air = [
-        el('h3', null, `Качество на въздуха – ${note ? 'София' : districtLabel()}`),
+        el('h3', null, t('Качество на въздуха – {place}', { place: note ? t('София') : districtLabel() })),
         ...(note ? [el('p', 'status-empty', note)] : []),
-        detailRow(`PM2.5: ${pm25} µg/m³ – ${label}`, 'Фини прахови частици, най-вредни за здравето'),
-        detailRow(`PM10: ${pm10 ?? '–'} µg/m³`, 'Прахови частици'),
-        source(`Медиана от ${sensors.length} граждански сензора на sensor.community. `,
-            'https://maps.sensor.community/#12/42.6977/23.3219', 'Карта на сензорите')
+        detailRow(`PM2.5: ${pm25} µg/m³ – ${label}`, t('Фини прахови частици, най-вредни за здравето')),
+        detailRow(`PM10: ${pm10 ?? '–'} µg/m³`, t('Прахови частици')),
+        source(t('Медиана от {n} граждански сензора на sensor.community. ', { n: sensors.length }),
+            'https://maps.sensor.community/#12/42.6977/23.3219', t('Карта на сензорите'))
     ];
     return { tone, value: label, note: `PM2.5 ${pm25} µg/m³` };
 }
@@ -177,19 +183,20 @@ function water(w) {
     const d = SofiaDistrict.get();
     const mine = list => d ? list.filter(x => x.district === d.name) : list;
     const current = mine(w.current), planned = mine(w.planned);
-    const row = x => detailRow(`${x.type}${!d && x.district ? ' · Район ' + x.district : ''}`,
-        `${x.location}${x.until ? ' · до ' + x.until : ''}`);
+    const row = x => detailRow(`${I18N.text(x.type)}${!d && x.district ? ' · ' + I18N.district(x.district) : ''}`,
+        `${x.location}${x.until ? t(' · до {until}', { until: x.until }) : ''}`);
     details.water = [
-        el('h3', null, `Текущи спирания на водата – ${districtLabel()} (${current.length})`),
-        ...(current.length ? current.map(row) : [el('p', 'status-empty', 'Няма текущи спирания.')]),
-        el('h3', null, `Планирани спирания (${planned.length})`),
-        ...(planned.length ? planned.map(row) : [el('p', 'status-empty', 'Няма планирани спирания.')]),
-        source('Източник: Софийска вода · ', 'https://www.sofiyskavoda.bg/water-stops', 'Пълна информация и карта')
+        el('h3', null, t('Текущи спирания на водата – {place} ({n})', { place: districtLabel(), n: current.length })),
+        ...(current.length ? current.map(row) : [el('p', 'status-empty', t('Няма текущи спирания.'))]),
+        el('h3', null, t('Планирани спирания ({n})', { n: planned.length })),
+        ...(planned.length ? planned.map(row) : [el('p', 'status-empty', t('Няма планирани спирания.'))]),
+        ...(I18N.lang === 'en' ? [el('p', 'status-empty', t('Местата и адресите са на български, както ги публикуват източниците.'))] : []),
+        source(t('Източник: Софийска вода · '), 'https://www.sofiyskavoda.bg/water-stops', t('Пълна информация и карта'))
     ];
     return {
         tone: current.length ? 'neutral' : 'green',
-        value: current.length ? `${current.length} ${current.length === 1 ? 'спиране' : 'спирания'}` : 'Няма спирания',
-        note: planned.length ? `+ ${planned.length} планирани` : 'в момента'
+        value: current.length ? t(current.length === 1 ? '{n} спиране' : '{n} спирания', { n: current.length }) : t('Няма спирания'),
+        note: planned.length ? t('+ {n} планирани', { n: planned.length }) : t('в момента')
     };
 }
 
@@ -197,16 +204,16 @@ function heating(h) {
     if (!h.ok) return failed();
     const items = h.items.filter(x => inDistrict(x.lat, x.lng));
     details.heating = [
-        el('h3', null, `Активни аварии и ремонти – ${districtLabel()} (${items.length})`),
-        ...(items.length ? items.slice(0, 15).map(x => detailRow(x.name, `${x.addresses}${x.until ? ' · до ' + when(x.until) : ''}`))
-            : [el('p', 'status-empty', 'Няма активни аварии и ремонти.')]),
-        ...(items.length > 15 ? [el('p', 'status-empty', `… и още ${items.length - 15}`)] : []),
-        source('Източник: Топлофикация София · ', 'https://www.toplo.bg/accidents-and-maintenance', 'Карта и пълен списък')
+        el('h3', null, t('Активни аварии и ремонти – {place} ({n})', { place: districtLabel(), n: items.length })),
+        ...(items.length ? items.slice(0, 15).map(x => detailRow(x.name, `${x.addresses}${x.until ? t(' · до {until}', { until: when(x.until) }) : ''}`))
+            : [el('p', 'status-empty', t('Няма активни аварии и ремонти.'))]),
+        ...(items.length > 15 ? [el('p', 'status-empty', t('… и още {n}', { n: items.length - 15 }))] : []),
+        source(t('Източник: Топлофикация София · '), 'https://www.toplo.bg/accidents-and-maintenance', t('Карта и пълен списък'))
     ];
     return {
         tone: items.length ? 'neutral' : 'green',
-        value: items.length ? `${items.length} активни` : 'Няма',
-        note: 'аварии и ремонти'
+        value: items.length ? t('{n} активни', { n: items.length }) : t('Няма'),
+        note: t('аварии и ремонти')
     };
 }
 
@@ -214,7 +221,7 @@ function render() {
     if (!lastData) return;
     const data = lastData;
     details = {};
-    document.getElementById('status-title').textContent = `📡 Състояние – ${SofiaDistrict.get() ? districtLabel() : 'цяла София'}`;
+    document.getElementById('status-title').textContent = t('📡 Състояние – {place}', { place: SofiaDistrict.get() ? districtLabel() : t('цяла София') });
     const tiles = document.getElementById('status-tiles');
     tiles.replaceChildren(
         tile('warnings', '⚠️', 'Опасно време', warnings(data.warnings)),
@@ -222,14 +229,14 @@ function render() {
         tile('air', '🌫️', 'Въздух', air(data.air)),
         tile('water', '🚰', 'Вода', water(data.water)),
         tile('heating', '🔥', 'Топлофикация', heating(data.heating)),
-        tile('power', '⚡', 'Ток', { value: 'ЕРМ Запад', note: 'прекъсвания ↗', href: 'https://ermzapad.bg/bg/za-klienta/prekusvania/' })
+        tile('power', '⚡', 'Ток', { value: t('ЕРМ Запад'), note: t('прекъсвания ↗'), href: 'https://ermzapad.bg/bg/za-klienta/prekusvania/' })
     );
     if (openTile && details[openTile]) {
         const t = tiles.querySelector(`[data-key="${openTile}"]`);
         openTile = null;
         toggle(t.dataset.key, t);
     }
-    document.getElementById('status-updated').textContent = `Обновено ${ago(data.generated)}`;
+    document.getElementById('status-updated').textContent = t('Обновено {ago}', { ago: ago(data.generated) });
 }
 
 async function loadPart(part) {
@@ -245,7 +252,7 @@ async function loadPart(part) {
 async function loadStatus() {
     const results = await Promise.all(PARTS.map(loadPart));
     if (results.every(r => !r.ok)) {
-        document.getElementById('status-updated').textContent = 'Неуспешно зареждане на данните. Ще опитаме отново.';
+        document.getElementById('status-updated').textContent = t('Неуспешно зареждане на данните. Ще опитаме отново.');
         if (!lastData) return;
     } else {
         lastData = Object.fromEntries(PARTS.map((p, i) => [p, results[i]]));

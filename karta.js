@@ -34,7 +34,7 @@ function directionsLink(lat, lng) {
     a.href = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
     a.target = '_blank';
     a.rel = 'noopener';
-    a.textContent = '🧭 Маршрут';
+    a.textContent = I18N.t('🧭 Маршрут');
     return a;
 }
 
@@ -43,13 +43,13 @@ function popupFor(layer, [lat, lng, name, info, extra]) {
     const div = document.createElement('div');
     const kind = document.createElement('div');
     kind.className = 'popup-kind';
-    kind.textContent = `${layer.icon} ${layer.label}`;
+    kind.textContent = `${layer.icon} ${I18N.t(layer.label)}`;
     const title = document.createElement('strong');
-    title.textContent = name || layer.label;
+    title.textContent = I18N.text(name) || I18N.t(layer.label);
     div.append(kind, title);
     [info !== name ? info : '', extra === 'вход' ? '' : extra].filter(Boolean).forEach(text => {
         div.appendChild(document.createElement('br'));
-        div.appendChild(document.createTextNode(text));
+        div.appendChild(document.createTextNode(I18N.text(text)));
     });
     div.appendChild(document.createElement('br'));
     div.appendChild(directionsLink(lat, lng));
@@ -77,7 +77,7 @@ function buildLayer(layer) {
     });
     groups[layer.key] = group;
     if (visible.has(layer.key)) group.addTo(map);
-    if (chipCounts[layer.key]) chipCounts[layer.key].textContent = `${layer.icon} ${layer.label} (${rowsFor(layer.key).length})`;
+    if (chipCounts[layer.key]) chipCounts[layer.key].textContent = `${layer.icon} ${I18N.t(layer.label)} (${rowsFor(layer.key).length})`;
 }
 
 async function applyDistrict(d, fit = true) {
@@ -85,7 +85,7 @@ async function applyDistrict(d, fit = true) {
     if (outline) map.removeLayer(outline);
     outline = null;
     document.getElementById('district-note').textContent = d
-        ? `Показани са обектите в Район ${d.name}. „Намери най-близкия“ търси в цяла София.`
+        ? I18N.t('Показани са обектите в {district}. „Намери най-близкия“ търси в цяла София.', { district: I18N.district(d.name) })
         : '';
     if (!d) {
         if (fit) map.setView(SOFIA, 12);
@@ -120,7 +120,7 @@ function buildFilters() {
         const dot = document.createElement('span');
         dot.className = 'type-dot';
         dot.style.background = layer.colour;
-        chipCounts[layer.key] = document.createTextNode(`${layer.icon} ${layer.label} (${rowsFor(layer.key).length})`);
+        chipCounts[layer.key] = document.createTextNode(`${layer.icon} ${I18N.t(layer.label)} (${rowsFor(layer.key).length})`);
         btn.append(dot, chipCounts[layer.key]);
         btn.addEventListener('click', () => setVisible(layer.key, !visible.has(layer.key)));
         chips[layer.key] = btn;
@@ -139,7 +139,7 @@ function distanceKm(lat1, lng1, lat2, lng2) {
 }
 
 function formatDistance(km) {
-    return km < 1 ? `${Math.round(km * 1000)} м` : `${km.toFixed(1)} км`;
+    return km < 1 ? I18N.t('{n} м', { n: Math.round(km * 1000) }) : I18N.t('{n} км', { n: km.toFixed(1) });
 }
 
 function showNearest() {
@@ -150,7 +150,7 @@ function showNearest() {
     if (!shown.length) return;
 
     const heading = document.createElement('h3');
-    heading.textContent = 'Най-близо до вас';
+    heading.textContent = I18N.t('Най-близо до вас');
     const list = document.createElement('div');
     list.className = 'nearest-list';
 
@@ -168,10 +168,10 @@ function showNearest() {
         item.style.borderLeftColor = layer.colour;
         const type = document.createElement('div');
         type.className = 'nearest-type';
-        type.textContent = `${layer.icon} ${layer.label}`;
+        type.textContent = `${layer.icon} ${I18N.t(layer.label)}`;
         const title = document.createElement('div');
         title.className = 'nearest-name';
-        title.textContent = name || layer.label;
+        title.textContent = I18N.text(name) || I18N.t(layer.label);
         const meta = document.createElement('div');
         meta.className = 'nearest-meta';
         meta.textContent = `${formatDistance(best.d)} · `;
@@ -190,22 +190,22 @@ function showNearest() {
 document.getElementById('locate-btn').addEventListener('click', () => {
     const btn = document.getElementById('locate-btn');
     if (!navigator.geolocation) {
-        alert('Браузърът ви не поддържа определяне на местоположение.');
+        alert(I18N.t('Браузърът ви не поддържа определяне на местоположение.'));
         return;
     }
-    btn.textContent = '⏳ Търсене...';
+    btn.textContent = I18N.t('⏳ Търсене...');
     navigator.geolocation.getCurrentPosition(pos => {
         userPos = [pos.coords.latitude, pos.coords.longitude];
         if (userMarker) map.removeLayer(userMarker);
         userMarker = L.circleMarker(userPos, {
             radius: 9, color: '#fff', weight: 3, fillColor: '#0ea5e9', fillOpacity: 1
-        }).bindPopup('Вие сте тук').addTo(map);
+        }).bindPopup(I18N.t('Вие сте тук')).addTo(map);
         map.setView(userPos, 15);
         showNearest();
-        btn.textContent = '📍 Намери най-близкия';
+        btn.textContent = I18N.t('📍 Намери най-близкия');
     }, () => {
-        alert('Не успяхме да определим местоположението ви. Проверете дали сте разрешили достъп до локацията.');
-        btn.textContent = '📍 Намери най-близкия';
+        alert(I18N.t('Не успяхме да определим местоположението ви. Проверете дали сте разрешили достъп до локацията.'));
+        btn.textContent = I18N.t('📍 Намери най-близкия');
     }, { enableHighAccuracy: true, timeout: 15000 });
 });
 
@@ -228,9 +228,9 @@ fetch('data/karta.json')
         const dates = Object.values(json.updated || {}).sort();
         if (dates.length) {
             const [y, m, d] = dates[0].split('-');
-            document.getElementById('updated').textContent = ` (последно: ${d}.${m}.${y})`;
+            document.getElementById('updated').textContent = I18N.t(' (последно: {date})', { date: `${d}.${m}.${y}` });
         }
     })
     .catch(() => {
-        document.getElementById('nearest').textContent = 'Неуспешно зареждане на данните.';
+        document.getElementById('nearest').textContent = I18N.t('Неуспешно зареждане на данните.');
     });

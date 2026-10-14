@@ -20,14 +20,14 @@
             meta.className = 'news-meta';
             const source = document.createElement('span');
             source.className = 'news-source';
-            source.textContent = item.source;
+            source.textContent = I18N.text(item.source);
             const date = document.createElement('span');
-            date.textContent = new Date(item.date).toLocaleDateString('bg-BG', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' });
+            date.textContent = new Date(item.date).toLocaleDateString(I18N.lang === 'en' ? 'en-GB' : 'bg-BG', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' });
             meta.append(source, date);
             if (now - item.date < NEW_DAYS * 86400e3) {
                 const badge = document.createElement('span');
                 badge.className = 'news-new';
-                badge.textContent = 'Ново';
+                badge.textContent = I18N.t('Ново');
                 meta.append(badge);
             }
             const title = document.createElement('div');
@@ -37,7 +37,7 @@
             list.append(a);
         });
         more.hidden = items.length <= SHOW;
-        more.textContent = expanded ? 'Покажи по-малко' : `Покажи още (${items.length - SHOW})`;
+        more.textContent = expanded ? I18N.t('Покажи по-малко') : I18N.t('Покажи още ({n})', { n: items.length - SHOW });
     }
 
     more.addEventListener('click', () => {
@@ -53,7 +53,7 @@
             items = data.items;
             render();
         } catch {
-            if (!items.length) list.textContent = 'Неуспешно зареждане на съобщенията. Ще опитаме отново.';
+            if (!items.length) list.textContent = I18N.t('Неуспешно зареждане на съобщенията. Ще опитаме отново.');
         }
     }
 

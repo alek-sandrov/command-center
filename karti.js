@@ -8,7 +8,7 @@ function openModal(fileId, caption) {
     const modalCaption = document.getElementById('modalCaption');
 
     currentFileId = fileId;
-    modalCaption.textContent = caption;
+    modalCaption.textContent = I18N.text(caption);
 
     // Hide image initially to prevent broken icon
     modalImg.style.display = 'none';

@@ -5,8 +5,11 @@
     const note = document.getElementById('district-note');
     let showAll = false;
 
+    // Original (Bulgarian) labels, read before any translation of the page text
+    const labels = new Map(items.map(item => [item, (item.getAttribute('onclick').match(/'(Район [^']+)'\)/) || [])[1] || '']));
+
     function belongsTo(item, name) {
-        const label = item.querySelector('.map-label').textContent.trim();
+        const label = labels.get(item);
         return label === `Район ${name}` || label.startsWith(`Район ${name} `);
     }
 
@@ -22,13 +25,14 @@
         groupBits.forEach(el => { el.hidden = filter; });
         note.replaceChildren();
         if (!d) return;
+        const district = I18N.district(d.name);
         note.append(filter
-            ? (shown ? `Показани са картите за Район ${d.name}. ` : `Няма отделна карта за Район ${d.name}. `)
-            : `Показани са всички райони. `);
+            ? I18N.t(shown ? 'Показани са картите за {district}. ' : 'Няма отделна карта за {district}. ', { district })
+            : I18N.t('Показани са всички райони. '));
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'link-button';
-        btn.textContent = filter ? 'Покажи всички райони' : `Само Район ${d.name}`;
+        btn.textContent = filter ? I18N.t('Покажи всички райони') : I18N.t('Само {district}', { district });
         btn.addEventListener('click', () => { showAll = !showAll; apply(); });
         note.append(btn);
     }

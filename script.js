@@ -21,21 +21,21 @@ function updateTime() {
 // Update last update time
 function updateLastUpdate() {
     const now = new Date();
-    document.getElementById('last-update').textContent = now.toLocaleString('bg-BG');
+    document.getElementById('last-update').textContent = now.toLocaleString(I18N.lang === 'en' ? 'en-GB' : 'bg-BG');
 }
 
 // Weather functionality
 async function updateWeather() {
     const weatherInfo = document.getElementById('weather-info');
 
-    weatherInfo.innerHTML = '<div class="loading">Зареждане...</div>';
+    weatherInfo.innerHTML = `<div class="loading">${I18N.t('Зареждане...')}</div>`;
 
     try {
         // Hardcoded for Sofia, Bulgaria
         const latitude = 42.6977;
         const longitude = 23.3219;
-        const name = 'София';
-        const country = 'България';
+        const name = I18N.t('София');
+        const country = I18N.t('България');
 
         // Get weather data with metric units
         const weatherResponse = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m&temperature_unit=celsius&wind_speed_unit=kmh&timezone=auto`);
@@ -50,10 +50,10 @@ async function updateWeather() {
                 <div class="weather-description">${weatherDescription}</div>
                 <div style="color: var(--text-secondary); margin-top: 0.5rem;">${name}, ${country}</div>
                 <div class="weather-details">
-                    <div class="weather-detail">💧 Влажност: ${current.relative_humidity_2m}%</div>
-                    <div class="weather-detail">🌡️ Усеща се: ${Math.round(current.apparent_temperature)}°C</div>
-                    <div class="weather-detail">💨 Вятър: ${Math.round(current.wind_speed_10m)} км/ч</div>
-                    <div class="weather-detail">🌧️ Валежи: ${current.precipitation} мм</div>
+                    <div class="weather-detail">${I18N.t('💧 Влажност: {v}%', { v: current.relative_humidity_2m })}</div>
+                    <div class="weather-detail">${I18N.t('🌡️ Усеща се: {v}°C', { v: Math.round(current.apparent_temperature) })}</div>
+                    <div class="weather-detail">${I18N.t('💨 Вятър: {v} км/ч', { v: Math.round(current.wind_speed_10m) })}</div>
+                    <div class="weather-detail">${I18N.t('🌧️ Валежи: {v} мм', { v: current.precipitation })}</div>
                 </div>
             </div>
         `;
@@ -61,7 +61,7 @@ async function updateWeather() {
         updateLastUpdate();
     } catch (error) {
         console.error('Weather error:', error);
-        weatherInfo.innerHTML = '<div class="error">Неуспешно зареждане на времето. Опитайте по-късно.</div>';
+        weatherInfo.innerHTML = `<div class="error">${I18N.t('Неуспешно зареждане на времето. Опитайте по-късно.')}</div>`;
     }
 }
 
@@ -93,7 +93,7 @@ function getWeatherDescription(code) {
         96: '⛈️ Буря с градушка',
         99: '⛈️ Буря с градушка'
     };
-    return weatherCodes[code] || '🌡️ Няма данни';
+    return I18N.t(weatherCodes[code] || '🌡️ Няма данни');
 }
 
 // Ham radio frequencies are static, no functionality needed

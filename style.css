@@ -100,6 +100,30 @@ body {
     outline: none;
 }
 
+/* Language switch (i18n.js), same height and look as the district picker */
+.lang-toggle {
+    flex: 0 0 auto;
+    height: 46px;
+    min-width: 46px;
+    padding: 0 0.75rem;
+    background: var(--background);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.lang-toggle:hover,
+.lang-toggle:focus-visible {
+    border-color: var(--primary-color);
+    outline: none;
+}
+
 .district-select option {
     background: var(--surface);
     color: var(--text-primary);
@@ -916,18 +940,28 @@ footer p {
         text-overflow: ellipsis;
     }
 
+    /* Row 1: logo + district; row 2: page links + language switch */
+    .lang-toggle {
+        order: 4;
+        height: 42px;
+        min-width: 42px;
+        padding: 0 0.5rem;
+        font-size: 0.8rem;
+    }
+
     .district-select {
         height: 38px;
         flex: 0 1 auto;
         min-width: 0;
-        max-width: 52%;
+        max-width: 46%;
         padding: 0 2rem 0 0.7rem;
         font-size: 0.85rem;
         background-position: right 0.65rem center;
     }
 
     .nav-links {
-        flex: 1 1 100%;
+        order: 3;
+        flex: 1 1 calc(100% - 42px - 0.75rem);
         padding: 3px;
     }
 
