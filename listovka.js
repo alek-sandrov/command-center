@@ -7,9 +7,9 @@
     // Layer → colour and how many items fit on the page (the rest are on the live map)
     const LISTS = {
         shelters: { colour: '#4f46e5', max: 13 },
-        iodine: { colour: '#d97706', max: 21 },
-        evac: { colour: '#2563eb', max: 18 },
-        hospitals: { colour: '#dc2626', max: 8 }
+        iodine: { colour: '#d97706', max: 40 },
+        evac: { colour: '#2563eb', max: 40 },
+        hospitals: { colour: '#dc2626', max: 12 }
     };
     // Shelters and hospitals: when a district has fewer than 2 of its own, add the nearest from neighbouring districts
     const NEIGHBOURS = { shelters: 3, hospitals: 3 };

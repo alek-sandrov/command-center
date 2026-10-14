@@ -125,46 +125,12 @@
     display: none;
 }
 
-.sheet-signals {
-    border: 0.3mm solid var(--line);
-    border-radius: 2mm;
-    padding: 2.5mm 3.5mm;
-    background: #f9fafb;
-}
-
-.sheet-signals dl {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 4mm;
-    margin: 0;
-}
-
-.sheet-112 {
-    margin-left: 3mm;
-    white-space: nowrap;
-}
-
-.sheet-signals h2,
 .sheet-list h2 {
     font-size: 10.5pt;
     margin-bottom: 1.5mm;
     display: flex;
     align-items: center;
     gap: 1.5mm;
-}
-
-.sheet-signals dt {
-    font-weight: 700;
-}
-
-.sheet-signals dd {
-    margin: 0;
-    color: var(--muted);
-    font-size: 7.8pt;
-}
-
-.sheet-alert {
-    margin-top: 1.5mm;
 }
 
 .sheet-lists {

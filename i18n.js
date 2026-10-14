@@ -205,6 +205,7 @@
         'Няма съобщения в момента.': 'No items right now.',
         'В момента не отговаря: {sources}.': 'Currently not responding: {sources}.',
         // Printable district sheets
+        'Къде да отидете при бедствие, авария или въздушна опасност': 'Where to go in a disaster, accident or air raid',
         'Листовка за печат - sofia-prepping.com': 'Printable sheet - sofia-prepping.com',
         'Материали за печат - sofia-prepping.com': 'Printable materials - sofia-prepping.com',
         '← Материали за печат': '← Printable materials', 'Материали за печат': 'Printable materials',
@@ -214,18 +215,6 @@
         'Листовка на една страница A4 за всеки район: карта с номерирани скривалища, пунктове за йодни таблетки, сгради за настаняване и болници, какво означават сирените и QR код към актуалната карта. Подходяща за входове на блокове, училища и читалища.':
             'A one-page A4 sheet for every district: a map with numbered shelters, iodine tablet points, shelter buildings and hospitals, what the sirens mean, and a QR code to the live map. Made for building entrances, schools and community centres. The ready PDFs are in Bulgarian; open a sheet for printing to get it in English.',
         'Актуална карта и най-близкият пункт до вас': 'Live map and the nearest point to you',
-        'Какво да правите при бедствие, авария или въздушна опасност': 'What to do in a disaster, accident or air raid',
-        '🔊 Ако чуете сирена': '🔊 If you hear a siren',
-        'Вой, скачащ между два тона, 3 минути. Включете радио или телевизия (БНТ, БНР) и следвайте указанията на властите.':
-            'A wail jumping between two tones, 3 minutes. Turn on the radio or TV (BNT, BNR) and follow the authorities’ instructions.',
-        'Плавно вълнообразен вой, 3 минути. Укрийте се незабавно – скривалище, подземен етаж или метро.':
-            'A smooth rising and falling wail, 3 minutes. Take cover immediately – a shelter, basement or metro.',
-        'Край на тревогата / Отбой': 'End of alarm / All-clear',
-        'Равен тон, 2 минути. Опасността е преминала – продължете да следите указанията.':
-            'A steady tone, 2 minutes. The danger has passed – keep following the instructions.',
-        'изпраща предупреждения на телефона. Включете аварийните известия в настройките.':
-            'sends warnings to your phone. Turn on emergency alerts in your settings.',
-        '📞 Спешен номер:': '📞 Emergency number:',
         'Скривалища и укрития': 'Shelters', 'Таблетките се приемат само по указание на властите.': 'Only take the tablets when the authorities say so.',
         'Сгради за временно настаняване': 'Temporary shelter buildings',
         'Карта: © OpenStreetMap': 'Map: © OpenStreetMap', 'листовка': 'printable sheet',
