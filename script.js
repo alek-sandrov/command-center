@@ -21,21 +21,21 @@ function updateTime() {
 // Update last update time
 function updateLastUpdate() {
     const now = new Date();
-    document.getElementById('last-update').textContent = now.toLocaleString();
+    document.getElementById('last-update').textContent = now.toLocaleString('bg-BG');
 }
 
 // Weather functionality
 async function updateWeather() {
     const weatherInfo = document.getElementById('weather-info');
 
-    weatherInfo.innerHTML = '<div class="loading">Loading weather data...</div>';
+    weatherInfo.innerHTML = '<div class="loading">Зареждане...</div>';
 
     try {
         // Hardcoded for Sofia, Bulgaria
         const latitude = 42.6977;
         const longitude = 23.3219;
-        const name = 'Sofia';
-        const country = 'Bulgaria';
+        const name = 'София';
+        const country = 'България';
 
         // Get weather data with metric units
         const weatherResponse = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m&temperature_unit=celsius&wind_speed_unit=kmh&timezone=auto`);
@@ -50,10 +50,10 @@ async function updateWeather() {
                 <div class="weather-description">${weatherDescription}</div>
                 <div style="color: var(--text-secondary); margin-top: 0.5rem;">${name}, ${country}</div>
                 <div class="weather-details">
-                    <div class="weather-detail">💧 Humidity: ${current.relative_humidity_2m}%</div>
-                    <div class="weather-detail">🌡️ Feels like: ${Math.round(current.apparent_temperature)}°C</div>
-                    <div class="weather-detail">💨 Wind: ${Math.round(current.wind_speed_10m)} km/h</div>
-                    <div class="weather-detail">🌧️ Precip: ${current.precipitation} mm</div>
+                    <div class="weather-detail">💧 Влажност: ${current.relative_humidity_2m}%</div>
+                    <div class="weather-detail">🌡️ Усеща се: ${Math.round(current.apparent_temperature)}°C</div>
+                    <div class="weather-detail">💨 Вятър: ${Math.round(current.wind_speed_10m)} км/ч</div>
+                    <div class="weather-detail">🌧️ Валежи: ${current.precipitation} мм</div>
                 </div>
             </div>
         `;
@@ -61,39 +61,39 @@ async function updateWeather() {
         updateLastUpdate();
     } catch (error) {
         console.error('Weather error:', error);
-        weatherInfo.innerHTML = '<div class="error">Failed to load weather data. Please try again.</div>';
+        weatherInfo.innerHTML = '<div class="error">Неуспешно зареждане на времето. Опитайте по-късно.</div>';
     }
 }
 
 // Convert WMO weather codes to descriptions
 function getWeatherDescription(code) {
     const weatherCodes = {
-        0: '☀️ Clear sky',
-        1: '🌤️ Mainly clear',
-        2: '⛅ Partly cloudy',
-        3: '☁️ Overcast',
-        45: '🌫️ Foggy',
-        48: '🌫️ Foggy',
-        51: '🌦️ Light drizzle',
-        53: '🌦️ Moderate drizzle',
-        55: '🌦️ Dense drizzle',
-        61: '🌧️ Slight rain',
-        63: '🌧️ Moderate rain',
-        65: '🌧️ Heavy rain',
-        71: '🌨️ Slight snow',
-        73: '🌨️ Moderate snow',
-        75: '🌨️ Heavy snow',
-        77: '❄️ Snow grains',
-        80: '🌦️ Slight rain showers',
-        81: '🌧️ Moderate rain showers',
-        82: '🌧️ Violent rain showers',
-        85: '🌨️ Slight snow showers',
-        86: '🌨️ Heavy snow showers',
-        95: '⛈️ Thunderstorm',
-        96: '⛈️ Thunderstorm with hail',
-        99: '⛈️ Thunderstorm with hail'
+        0: '☀️ Ясно',
+        1: '🌤️ Предимно ясно',
+        2: '⛅ Разкъсана облачност',
+        3: '☁️ Облачно',
+        45: '🌫️ Мъгла',
+        48: '🌫️ Мъгла',
+        51: '🌦️ Слаб ръмеж',
+        53: '🌦️ Ръмеж',
+        55: '🌦️ Силен ръмеж',
+        61: '🌧️ Слаб дъжд',
+        63: '🌧️ Дъжд',
+        65: '🌧️ Силен дъжд',
+        71: '🌨️ Слаб сняг',
+        73: '🌨️ Сняг',
+        75: '🌨️ Силен снеговалеж',
+        77: '❄️ Снежни зърна',
+        80: '🌦️ Слаби превалявания',
+        81: '🌧️ Превалявания',
+        82: '🌧️ Пороен дъжд',
+        85: '🌨️ Слаби снежни превалявания',
+        86: '🌨️ Силни снежни превалявания',
+        95: '⛈️ Гръмотевична буря',
+        96: '⛈️ Буря с градушка',
+        99: '⛈️ Буря с градушка'
     };
-    return weatherCodes[code] || '🌡️ Unknown';
+    return weatherCodes[code] || '🌡️ Няма данни';
 }
 
 // Ham radio frequencies are static, no functionality needed

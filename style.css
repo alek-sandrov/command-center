@@ -52,6 +52,8 @@ body {
 .nav-brand {
     font-size: 1.2rem;
     font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
     background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -104,6 +106,82 @@ header h1 {
     margin-bottom: 0.25rem;
 }
 
+/* Emoji inside the gradient title keep their own colours */
+.h1-icon {
+    -webkit-text-fill-color: initial;
+    background: none;
+}
+
+/* Breadcrumb on subpages */
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.breadcrumb a {
+    color: var(--text-primary);
+    text-decoration: none;
+    font-weight: 600;
+    padding: 0.35rem 0.8rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    transition: all 0.2s;
+}
+
+.breadcrumb a:hover {
+    border-color: var(--primary-color);
+    background: var(--surface-hover);
+}
+
+/* Floating back-to-top button */
+.back-to-top {
+    position: fixed;
+    right: 1.25rem;
+    bottom: 1.25rem;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--primary-color);
+    color: white;
+    font-size: 1.4rem;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 4px 12px var(--shadow);
+    z-index: 900;
+}
+
+.back-to-top:hover {
+    background: var(--secondary-color);
+}
+
+.card-text {
+    color: var(--text-secondary);
+    margin-bottom: 0.75rem;
+}
+
+.steps {
+    margin: 0 0 1rem 1.25rem;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.steps li {
+    margin-bottom: 0.35rem;
+}
+
+.steps strong {
+    color: var(--text-primary);
+}
+
 #current-time {
     font-size: 0.95rem;
     color: var(--text-secondary);
@@ -129,6 +207,11 @@ header h1 {
 .card:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 12px var(--shadow);
+}
+
+/* Large content cards (maps, galleries) should not move under the cursor */
+.card.full-width:hover {
+    transform: none;
 }
 
 .card h2 {
@@ -343,7 +426,13 @@ header h1 {
     flex-wrap: wrap;
     gap: 0.5rem;
     margin: 1rem 0;
+    padding: 0.6rem 0;
     justify-content: center;
+    position: sticky;
+    top: 62px;
+    z-index: 500;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
 }
 
 .quick-nav-btn {
@@ -374,7 +463,7 @@ header h1 {
 
 .section-anchor {
     grid-column: 1 / -1;
-    scroll-margin-top: 80px;
+    scroll-margin-top: 140px;
 }
 
 .section-letter {
@@ -388,6 +477,8 @@ header h1 {
 
 .map-item {
     position: relative;
+    display: flex;
+    flex-direction: column;
     background: var(--background);
     border-radius: 0.75rem;
     overflow: hidden;
@@ -411,6 +502,10 @@ header h1 {
 }
 
 .map-label {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     padding: 0.75rem;
     background: var(--surface);
     color: var(--text-primary);
@@ -693,11 +788,14 @@ header h1 {
 /* Siren signals */
 .siren-list {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
     gap: 0.75rem;
 }
 
 .siren-item {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
     background: var(--background);
     border: 1px solid var(--border);
     border-radius: 0.75rem;
@@ -715,8 +813,11 @@ header h1 {
 }
 
 .siren-item audio {
+    display: block;
     width: 100%;
+    max-width: 100%;
     height: 36px;
+    margin-top: auto;
 }
 
 /* Footer */
@@ -742,20 +843,36 @@ footer p {
 
     .nav-brand {
         font-size: 1rem;
-        flex: 1;
-        min-width: 0;
+        flex: 1 1 100%;
+        text-align: center;
+        padding-top: 0.5rem;
     }
 
     .nav-links {
         flex: 1 1 100%;
-        justify-content: center;
-        padding: 0.5rem 0;
+        justify-content: space-between;
+        padding: 0.4rem 0 0.5rem;
         gap: 0.25rem;
     }
 
     .nav-link {
-        padding: 0.4rem 0.75rem;
-        font-size: 0.9rem;
+        flex: 1;
+        text-align: center;
+        padding: 0.4rem 0.25rem;
+        font-size: 0.85rem;
+    }
+
+    .section-anchor {
+        scroll-margin-top: 210px;
+    }
+
+    .quick-nav {
+        top: 92px;
+        gap: 0.35rem;
+    }
+
+    .quick-nav-btn {
+        padding: 0.35rem 0.7rem;
     }
 
     .container {

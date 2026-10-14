@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bg">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,10 +9,11 @@
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <div class="nav-brand">sofia-prepping.com</div>
+            <a href="index.html" class="nav-brand">sofia-prepping.com</a>
             <div class="nav-links">
                 <a href="index.html" class="nav-link active">Начало</a>
                 <a href="karti.html" class="nav-link">Карти</a>
+                <a href="signali.html" class="nav-link">Сигнали</a>
                 <a href="dokumenti.html" class="nav-link">Документи</a>
             </div>
         </div>
@@ -25,7 +26,7 @@
                 <h2>🌤️ Времето - София</h2>
                 <div id="weather-content">
                     <div id="weather-info">
-                        <div class="loading">Loading weather data...</div>
+                        <div class="loading">Зареждане...</div>
                     </div>
                 </div>
             </section>
@@ -84,17 +85,6 @@
                 </div>
             </section>
 
-            <!-- Traffic -->
-            <section class="card traffic-card">
-                <h2>🚗 Трафик</h2>
-                <div class="links-grid">
-                    <a href="https://livetransport.eu/#/sofia" target="_blank" class="link-item">
-                        <span>🚌</span>
-                        <p>Градски Транспорт</p>
-                    </a>
-                </div>
-            </section>
-
             <!-- Outages & Monitoring -->
             <section class="card outages-card">
                 <h2>⚠️ Аварии и мониторинг</h2>
@@ -132,37 +122,10 @@
                     </a>
                 </div>
             </section>
-            <!-- Siren Signals -->
-            <section class="card sirens-card full-width">
-                <h2>🚨 Сигнали за тревога</h2>
-                <div class="siren-list">
-                    <div class="siren-item">
-                        <div class="siren-name">Национален сигнал за тревога</div>
-                        <div class="siren-desc">Вой, който скача между 700 и 1000 Hz на всеки 8 секунди, 3 минути. При бедствие.</div>
-                        <audio controls preload="none" src="audio/trevoga.wav"></audio>
-                    </div>
-                    <div class="siren-item">
-                        <div class="siren-name">Край на тревогата</div>
-                        <div class="siren-desc">Равен тон (450 Hz), 2 минути.</div>
-                        <audio controls preload="none" src="audio/krai-trevoga.wav"></audio>
-                    </div>
-                    <div class="siren-item">
-                        <div class="siren-name">Въздушна опасност</div>
-                        <div class="siren-desc">Плавно вълнообразен вой през 15 секунди, 3 минути.</div>
-                        <audio controls preload="none" src="audio/vazdushna-opasnost.wav"></audio>
-                    </div>
-                    <div class="siren-item">
-                        <div class="siren-name">Отбой от въздушна опасност</div>
-                        <div class="siren-desc">Равен тон (450 Hz), 2 минути.</div>
-                        <audio controls preload="none" src="audio/otboi-vazdushna.wav"></audio>
-                    </div>
-                </div>
-                <p class="freq-note">Тестове: първия работен ден на април и октомври. Сигнал „Въздушна опасност“ звучи и всяка година на 2 юни в 12:00 ч. Източник: <a href="https://www.mvr.bg/gdpbzn/footer/info-center/pravila-signali/signali" target="_blank" rel="noopener">ГДПБЗН</a></p>
-            </section>
         </div>
 
         <footer>
-            <p>Last updated: <span id="last-update"></span></p>
+            <p>sofia-prepping.com - София · обновено: <span id="last-update"></span></p>
         </footer>
     </div>
 
