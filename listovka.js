@@ -17,6 +17,8 @@
     // each keeps at least MIN_SHOWN items
     const TRIM_GROUPS = [['evac', 'iodine'], ['hospitals'], ['shelters']];
     const MIN_SHOWN = 3;
+    // Map box: full content width, height from the district's proportions within these limits
+    const MAP_MM = { width: 186, min: 72, max: 110 };
 
     let map = null;
     let dataPromise = null;
@@ -93,13 +95,24 @@
         document.title = `${I18N.district(d.name)} – ${t('листовка')} - sofia-prepping.com`;
 
         if (map) map.remove();
-        map = L.map('sheet-map', {
+        // Map height follows the district's shape (Web Mercator), so tall districts aren't shrunk
+        // into a wide strip full of neighbouring areas
+        const mapEl = document.getElementById('sheet-map');
+        const sw = L.CRS.EPSG3857.project(L.latLng(s, w)), ne = L.CRS.EPSG3857.project(L.latLng(n, e));
+        const ratio = (ne.y - sw.y) / (ne.x - sw.x);
+        mapEl.style.height = `${Math.min(MAP_MM.max, Math.max(MAP_MM.min, Math.round(MAP_MM.width * ratio)))}mm`;
+        map = L.map(mapEl, {
             zoomControl: false, attributionControl: false, dragging: false, scrollWheelZoom: false,
-            doubleClickZoom: false, boxZoom: false, keyboard: false, touchZoom: false, zoomSnap: 0.25
+            doubleClickZoom: false, boxZoom: false, keyboard: false, touchZoom: false, zoomSnap: 0.1
         });
         const tiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(map);
-        const outline = L.polygon(shape.polygons.map(poly => poly.map(ring => ring.map(([lng, lat]) => [lat, lng]))), {
-            color: '#4f46e5', weight: 2.5, fillOpacity: 0.05, interactive: false
+        const rings = shape.polygons.map(poly => poly.map(ring => ring.map(([lng, lat]) => [lat, lng])));
+        // Fade everything outside the district: a large rectangle with the district's outer rings as holes
+        L.polygon([[[s - 1, w - 1], [s - 1, e + 1], [n + 1, e + 1], [n + 1, w - 1]], ...rings.map(poly => poly[0])], {
+            stroke: false, fillColor: '#ffffff', fillOpacity: 0.55, interactive: false
+        }).addTo(map);
+        const outline = L.polygon(rings, {
+            color: '#4f46e5', weight: 2.5, fill: false, interactive: false
         }).addTo(map);
         const bounds = outline.getBounds();
 
@@ -171,12 +184,11 @@
 
         // Numbered markers for exactly the items that made it onto the page
         for (const [key, { colour }] of Object.entries(LISTS)) {
-            rowsBy[key].slice(0, shown[key]).forEach(({ p, km }, i) => {
+            rowsBy[key].slice(0, shown[key]).forEach(({ p }, i) => {
                 L.marker([p[0], p[1]], { icon: marker(colour, i + 1), interactive: false }).addTo(map);
-                if (km !== undefined) bounds.extend([p[0], p[1]]);
             });
         }
-        map.fitBounds(bounds, { padding: [14, 14] });
+        map.fitBounds(bounds, { padding: [8, 8] });
 
         const qr = document.getElementById('qr');
         qr.replaceChildren();
