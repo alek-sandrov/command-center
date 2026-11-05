@@ -240,7 +240,7 @@
             'Latest news from BTA (Bulgarian News Agency) – Bulgaria, World and Balkans sections. Headlines are shown in Bulgarian exactly as published, with a link to the original.',
 
         // Redesign: page chrome, home page map and assessment
-        'Отворени източници // публична информация // не е държавен орган': 'Open sources // public information // not a government body',
+        'Отворени източници // публична информация': 'Open sources // public information',
         'sofia-prepping.com · независим граждански ресурс': 'sofia-prepping.com · independent civic resource',
         'Данни от отворени източници · без гаранция за точност · спешни случаи 112': 'Data from open sources · no guarantee of accuracy · emergencies 112',
         'Карта и обстановка': 'Map and situation', 'Слоеве': 'Layers', 'Отвори картата': 'Open the map',

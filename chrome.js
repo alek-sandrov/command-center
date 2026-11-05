@@ -5,7 +5,7 @@
 
     const strip = document.createElement('div');
     strip.className = 'notice-strip';
-    strip.textContent = t('Отворени източници // публична информация // не е държавен орган');
+    strip.textContent = t('Отворени източници // публична информация');
     document.body.prepend(strip);
 
     const nav = document.querySelector('.nav-container');

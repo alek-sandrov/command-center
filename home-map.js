@@ -57,11 +57,7 @@
             const input = document.createElement('input');
             input.type = 'checkbox';
             input.checked = visible.has(layer.key);
-            input.addEventListener('change', () => {
-                if (input.checked) { visible.add(layer.key); groups[layer.key].addTo(map); }
-                else { visible.delete(layer.key); map.removeLayer(groups[layer.key]); }
-                updateCount();
-            });
+            input.addEventListener('change', () => setVisible(layer.key, input.checked));
             const name = document.createElement('span');
             name.className = 'layer-name';
             name.textContent = t(layer.label);
@@ -72,6 +68,26 @@
             counts[layer.key] = n;
             list.append(label);
         });
+        // "Show all" / "Hide all" under the layer list
+        const actions = document.createElement('div');
+        actions.className = 'map-layers-actions';
+        [['Покажи всички', true], ['Скрий всички', false]].forEach(([text, on]) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.textContent = t(text);
+            btn.addEventListener('click', () => LAYERS.forEach(l => setVisible(l.key, on)));
+            actions.append(btn);
+        });
+        list.after(actions);
+        updateCount();
+    }
+
+    function setVisible(key, on) {
+        inputs[key].checked = on;
+        if (on) visible.add(key); else visible.delete(key);
+        if (groups[key]) {
+            if (on) groups[key].addTo(map); else map.removeLayer(groups[key]);
+        }
         updateCount();
     }
 
