@@ -15,6 +15,8 @@
     }).setView(SOFIA, 12);
     L.control.zoom({ position: 'topright' }).addTo(map);
     MapStyle.autoScale(map);
+    // The map box changes height with the status column next to it (opening an indicator's details)
+    if (window.ResizeObserver) new ResizeObserver(() => map.invalidateSize({ pan: false })).observe(box);
     MapStyle.basemap(map);
 
     const list = document.getElementById('home-layers');

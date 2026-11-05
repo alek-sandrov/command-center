@@ -799,9 +799,32 @@ header h1::before {
     content: none;
 }
 
-/* Detail panel under the hero */
+/* Detail panel, opened under the clicked indicator row */
 .status-detail {
-    padding: 20px 24px;
+    padding: 16px 20px 18px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+    box-shadow: inset 3px 0 0 var(--text);
+    max-height: 340px;
+    overflow-y: auto;
+}
+
+.status-tile::after {
+    content: '+';
+    flex: 0 0 auto;
+    width: 14px;
+    font-family: var(--mono);
+    color: var(--dim);
+    text-align: center;
+}
+
+.status-tile.open::after {
+    content: '−';
+    color: var(--text);
+}
+
+.status-tile:hover::after {
+    color: var(--accent);
 }
 
 .status-detail h3 {

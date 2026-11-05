@@ -97,6 +97,8 @@ function tile(key, code, label, { tone = 'neutral', value, note, href }) {
     } else {
         t.type = 'button';
         t.dataset.key = key;
+        t.setAttribute('aria-expanded', 'false');
+        t.setAttribute('aria-controls', 'status-detail');
         t.addEventListener('click', () => toggle(key, t));
     }
     const main = el('span', 'status-main');
@@ -109,18 +111,27 @@ function tile(key, code, label, { tone = 'neutral', value, note, href }) {
     return t;
 }
 
+// The detail panel opens right under the indicator that was clicked (an accordion)
+const detailPanel = document.getElementById('status-detail');
+
 function toggle(key, tileEl) {
-    const panel = document.getElementById('status-detail');
-    document.querySelectorAll('.status-tile.open').forEach(t => t.classList.remove('open'));
+    document.querySelectorAll('.status-tile.open').forEach(t => {
+        t.classList.remove('open');
+        t.setAttribute('aria-expanded', 'false');
+    });
     if (openTile === key) {
         openTile = null;
-        panel.hidden = true;
+        detailPanel.hidden = true;
         return;
     }
     openTile = key;
     tileEl.classList.add('open');
-    panel.replaceChildren(...details[key]);
-    panel.hidden = false;
+    tileEl.setAttribute('aria-expanded', 'true');
+    detailPanel.replaceChildren(...details[key]);
+    detailPanel.scrollTop = 0;
+    tileEl.after(detailPanel);
+    detailPanel.hidden = false;
+    detailPanel.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
 
 function failed() {
@@ -259,6 +270,8 @@ function render() {
     const data = lastData;
     details = {};
     const tiles = document.getElementById('status-tiles');
+    detailPanel.hidden = true;
+    tiles.after(detailPanel);  // park it outside the rows that are about to be replaced
     tiles.replaceChildren(
         tile('weather', '01', 'Времето', weather(data.weather)),
         tile('warnings', '02', 'Опасно време', warnings(data.warnings)),
