@@ -15,6 +15,26 @@
     }).setView(SOFIA, 12);
     L.control.zoom({ position: 'topright' }).addTo(map);
     MapStyle.autoScale(map);
+
+    // The layer panel folds away when the visitor zooms the map, and opens again from its header.
+    // Zooms the page makes itself (fitting a district) don't count.
+    const panel = document.getElementById('map-layers');
+    const toggleBtn = document.getElementById('map-layers-toggle');
+    let autoZoom = false;
+    function setOpen(open) {
+        panel.classList.toggle('collapsed', !open);
+        toggleBtn.setAttribute('aria-expanded', String(open));
+    }
+    toggleBtn.addEventListener('click', () => setOpen(panel.classList.contains('collapsed')));
+    map.on('zoomstart', () => {
+        // On phones the panel sits under the map rather than over it, so leave it alone there
+        if (!autoZoom && getComputedStyle(panel).position === 'absolute') setOpen(false);
+    });
+    function moveMap(fn) {
+        autoZoom = true;
+        fn();
+        setTimeout(() => { autoZoom = false; }, 400);
+    }
     // The map box changes height with the status column next to it (opening an indicator's details)
     if (window.ResizeObserver) new ResizeObserver(() => map.invalidateSize({ pan: false })).observe(box);
     MapStyle.basemap(map);
@@ -78,7 +98,7 @@
             btn.addEventListener('click', () => LAYERS.forEach(l => setVisible(l.key, on)));
             actions.append(btn);
         });
-        list.after(actions);
+        list.after(actions);  // inside #map-layers-body, so it folds away with the list
         updateCount();
     }
 
@@ -96,7 +116,7 @@
         if (overlay) map.removeLayer(overlay);
         overlay = null;
         if (!d) {
-            map.setView(SOFIA, 12);
+            moveMap(() => map.setView(SOFIA, 12));
             return;
         }
         const shape = (await SofiaDistrict.shapes())[d.index];
@@ -104,7 +124,7 @@
         overlay = MapStyle.districtOverlay(shape).addTo(map);
         // Leave room on the left for the layer panel when the map is wide enough
         const wide = box.clientWidth > 640;
-        map.fitBounds(overlay.getBounds(), { paddingTopLeft: [wide ? 290 : 20, 20], paddingBottomRight: [20, 60] });
+        moveMap(() => map.fitBounds(overlay.getBounds(), { paddingTopLeft: [wide ? 290 : 20, 20], paddingBottomRight: [20, 60] }));
     }
 
     buildPanel();

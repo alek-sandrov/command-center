@@ -28,9 +28,15 @@
         <div class="hero-inner">
             <div class="hero-map">
                 <div id="home-map" class="home-map"></div>
-                <div class="map-layers">
-                    <div class="map-layers-head"><span>Слоеве</span><span id="home-layers-count"></span></div>
-                    <div id="home-layers" class="map-layers-list"></div>
+                <div id="map-layers" class="map-layers">
+                    <button type="button" id="map-layers-toggle" class="map-layers-head" aria-expanded="true" aria-controls="map-layers-body">
+                        <span class="map-layers-title">Слоеве</span>
+                        <span id="home-layers-count" class="map-layers-count"></span>
+                        <svg class="map-layers-chevron" width="10" height="6" viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+                    </button>
+                    <div id="map-layers-body" class="map-layers-body">
+                        <div id="home-layers" class="map-layers-list"></div>
+                    </div>
                 </div>
                 <div class="map-foot">
                     <span class="map-credit">© OpenStreetMap · Столична община – отворени данни</span>
