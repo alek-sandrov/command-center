@@ -30,26 +30,26 @@
         'sofia-prepping.com - София · обновено:': 'sofia-prepping.com - Sofia · updated:',
         '← Карти': '← Maps', '← Документи': '← Documents', 'Към началото': 'Back to top',
         'Зареждане...': 'Loading...',
-        '📍 Цяла София': '📍 All of Sofia', 'Изберете район': 'Choose a district',
+        'Цяла София': 'All of Sofia', 'Изберете район': 'Choose a district',
 
         // Homepage
-        '📡 Състояние – цяла София': '📡 Status – all of Sofia',
-        '📢 Официални съобщения': '📢 Official announcements',
+        'Състояние – цяла София': 'Status – all of Sofia',
+        'Официални съобщения': 'Official announcements',
         'Покажи още': 'Show more',
         'От ГДПБЗН (пожарна безопасност и защита на населението) и Столична община (раздел „Сигурност“). Съобщенията се показват дословно с връзка към оригинала.':
             'From the Fire Safety and Civil Protection Directorate (ГДПБЗН) and Sofia Municipality (“Security” section). Announcements are shown in Bulgarian exactly as published, with a link to the original.',
-        '🌤️ Времето - София': '🌤️ Weather - Sofia',
-        '⚡ Бързи Линкове': '⚡ Quick links',
+        'Времето - София': 'Weather - Sofia',
+        'Бързи Линкове': 'Quick links',
         'Интерактивна карта': 'Interactive map', 'Бомбоубежища': 'Bomb shelters', 'Чешмите': 'Drinking fountains',
-        '📰 Новини': '📰 News',
-        '⚠️ Аварии и мониторинг': '⚠️ Outages and monitoring',
+        'Новини': 'News',
+        'Аварии и мониторинг': 'Outages and monitoring',
         'Радиация (EURDEP)': 'Radiation (EURDEP)', 'Софийска вода': 'Sofiyska Voda',
         'ЕРМ Запад': 'ERM Zapad', 'Топлофикация': 'District heating',
-        '📹 Публични Камери': '📹 Public cameras', 'Орлов Мост': 'Orlov Most', 'ж.к. Лагера': 'Lagera',
+        'Публични Камери': 'Public cameras', 'Орлов Мост': 'Orlov Most', 'ж.к. Лагера': 'Lagera',
 
         // Sirens page
         'Сигнали за тревога': 'Alarm signals',
-        '🔊 Чуйте как звучат сирените': '🔊 Hear what the sirens sound like',
+        'Чуйте как звучат сирените': 'Hear what the sirens sound like',
         'Национален сигнал за тревога': 'National alarm signal',
         'Вой, който скача между 700 и 1000 Hz на всеки 8 секунди, 3 минути. При бедствие.':
             'A wail jumping between 700 and 1000 Hz every 8 seconds, for 3 minutes. Used in a disaster.',
@@ -61,7 +61,7 @@
         'Тестове: първия работен ден на април и октомври. Сигнал „Въздушна опасност“ звучи и всяка година на 2 юни в 12:00 ч. Източник:':
             'Tests: the first working day of April and October. The “Air raid danger” signal also sounds every year on 2 June at 12:00. Source:',
         'ГДПБЗН': 'ГДПБЗН (Fire Safety and Civil Protection)',
-        '📱 BG-ALERT на телефона': '📱 BG-ALERT on your phone',
+        'BG-ALERT на телефона': 'BG-ALERT on your phone',
         'BG-ALERT изпраща предупреждения директно на мобилните телефони в засегнатия район – без приложение и без регистрация. Уверете се, че аварийните известия са включени в настройките на телефона.':
             'BG-ALERT sends warnings straight to mobile phones in the affected area – no app or registration needed. Make sure emergency alerts are turned on in your phone settings.',
         'Настройки → Безопасност и спешни случаи → Безжични сигнали при спешни случаи':
@@ -73,12 +73,12 @@
         'Правила за поведение': 'What to do (official guidance)',
 
         // Maps
-        '🗺️ Интерактивна карта – убежища, вода, евакуация, йод, болници':
-            '🗺️ Interactive map – shelters, water, evacuation, iodine, hospitals',
-        '🛡️ Бомбоубежища': '🛡️ Bomb shelters', '💧 Чешмите': '💧 Drinking fountains',
-        '↗️ Отвори в Google Maps': '↗️ Open in Google Maps',
+        'Интерактивна карта – убежища, вода, евакуация, йод, болници':
+            'Interactive map – shelters, water, evacuation, iodine, hospitals',
+        'Бомбоубежища': 'Bomb shelters', 'Чешмите': 'Drinking fountains',
+        'Отвори в Google Maps': 'Open in Google Maps',
         'Бомбоубежища в София': 'Bomb shelters in Sofia', 'Чешми в София': 'Drinking fountains in Sofia',
-        '📍 Намери най-близкия': '📍 Find the nearest',
+        'Намери най-близкия': 'Find the nearest',
         'Покажи всички': 'Show all', 'Скрий всички': 'Hide all',
         'Източници:': 'Sources:',
         'Столична община – отворени данни': 'Sofia Municipality open data',
@@ -89,7 +89,7 @@
             '. Your location is only used in your browser and is never sent anywhere.',
         'Сгради за настаняване': 'Shelter buildings', 'Йодни таблетки': 'Iodine tablets', 'Палатки': 'Tent camps',
         'Минерални извори': 'Mineral springs', 'Метро': 'Metro', 'Болници': 'Hospitals', 'Аптеки': 'Pharmacies',
-        '🧭 Маршрут': '🧭 Directions', 'Най-близо до вас': 'Nearest to you', '⏳ Търсене...': '⏳ Locating...',
+        'Маршрут': 'Directions', 'Най-близо до вас': 'Nearest to you', 'Търсене...': 'Locating...',
         'Вие сте тук': 'You are here',
         'Браузърът ви не поддържа определяне на местоположение.': 'Your browser does not support location.',
         'Не успяхме да определим местоположението ви. Проверете дали сте разрешили достъп до локацията.':
@@ -119,15 +119,15 @@
         'Спешно отделение': 'Emergency department', 'Денонощна': 'Open 24/7', 'Чешма': 'Fountain',
 
         // Documents and district PDF maps
-        '📋 Планове за защита на населението на Столична Община': '📋 Sofia Municipality civil protection plans',
+        'Планове за защита на населението на Столична Община': 'Sofia Municipality civil protection plans',
         'СО - План за защита при наводнения': 'Sofia Municipality – flood protection plan',
         'СО - План за защита при земетресения': 'Sofia Municipality – earthquake protection plan',
         'СО - План за защита при ядрени и радиационни заплахи': 'Sofia Municipality – nuclear and radiation protection plan',
-        '🗂️ Пунктове по райони': '🗂️ Protection points by district',
-        '🛡️ PDF с пунктове за защита на населението при бедствия и аварии': '🛡️ PDF maps of civil protection points',
-        '🛡️ Пунктове за защита на населението при бедствия и аварии': '🛡️ Civil protection points for disasters and accidents',
+        'Пунктове по райони': 'Protection points by district',
+        'PDF с пунктове за защита на населението при бедствия и аварии': 'PDF maps of civil protection points',
+        'Пунктове за защита на населението при бедствия и аварии': 'Civil protection points for disasters and accidents',
         'Пунктове по райони': 'Protection points by district', 'Пунктове за защита': 'Protection points',
-        '👁️ Виж в Drive': '👁️ View in Drive', '⬇️ Изтегли': '⬇️ Download',
+        'Виж в Drive': 'View in Drive', 'Изтегли': 'Download',
         'Показани са картите за {district}. ': 'Showing the maps for {district}. ',
         'Няма отделна карта за {district}. ': 'There is no separate map for {district}. ',
         'Показани са всички райони. ': 'Showing all districts. ',
@@ -137,20 +137,20 @@
 
         // Weather
         'София': 'Sofia', 'България': 'Bulgaria',
-        '💧 Влажност: {v}%': '💧 Humidity: {v}%', '🌡️ Усеща се: {v}°C': '🌡️ Feels like: {v}°C',
-        '💨 Вятър: {v} км/ч': '💨 Wind: {v} km/h', '🌧️ Валежи: {v} мм': '🌧️ Precipitation: {v} mm',
+        'Влажност: {v}%': 'Humidity: {v}%', 'Усеща се: {v}°C': 'Feels like: {v}°C',
+        'Вятър: {v} км/ч': 'Wind: {v} km/h', 'Валежи: {v} мм': 'Precipitation: {v} mm',
         'Неуспешно зареждане на времето. Опитайте по-късно.': 'Could not load the weather. Please try again later.',
-        '☀️ Ясно': '☀️ Clear', '🌤️ Предимно ясно': '🌤️ Mostly clear', '⛅ Разкъсана облачност': '⛅ Partly cloudy',
-        '☁️ Облачно': '☁️ Overcast', '🌫️ Мъгла': '🌫️ Fog', '🌦️ Слаб ръмеж': '🌦️ Light drizzle', '🌦️ Ръмеж': '🌦️ Drizzle',
-        '🌦️ Силен ръмеж': '🌦️ Heavy drizzle', '🌧️ Слаб дъжд': '🌧️ Light rain', '🌧️ Дъжд': '🌧️ Rain',
-        '🌧️ Силен дъжд': '🌧️ Heavy rain', '🌨️ Слаб сняг': '🌨️ Light snow', '🌨️ Сняг': '🌨️ Snow',
-        '🌨️ Силен снеговалеж': '🌨️ Heavy snow', '❄️ Снежни зърна': '❄️ Snow grains',
-        '🌦️ Слаби превалявания': '🌦️ Light showers', '🌧️ Превалявания': '🌧️ Showers', '🌧️ Пороен дъжд': '🌧️ Torrential rain',
-        '🌨️ Слаби снежни превалявания': '🌨️ Light snow showers', '🌨️ Силни снежни превалявания': '🌨️ Heavy snow showers',
-        '⛈️ Гръмотевична буря': '⛈️ Thunderstorm', '⛈️ Буря с градушка': '⛈️ Thunderstorm with hail', '🌡️ Няма данни': '🌡️ No data',
+        'Ясно': 'Clear', 'Предимно ясно': 'Mostly clear', 'Разкъсана облачност': 'Partly cloudy',
+        'Облачно': 'Overcast', 'Мъгла': 'Fog', 'Слаб ръмеж': 'Light drizzle', 'Ръмеж': 'Drizzle',
+        'Силен ръмеж': 'Heavy drizzle', 'Слаб дъжд': 'Light rain', 'Дъжд': 'Rain',
+        'Силен дъжд': 'Heavy rain', 'Слаб сняг': 'Light snow', 'Сняг': 'Snow',
+        'Силен снеговалеж': 'Heavy snow', 'Снежни зърна': 'Snow grains',
+        'Слаби превалявания': 'Light showers', 'Превалявания': 'Showers', 'Пороен дъжд': 'Torrential rain',
+        'Слаби снежни превалявания': 'Light snow showers', 'Силни снежни превалявания': 'Heavy snow showers',
+        'Гръмотевична буря': 'Thunderstorm', 'Буря с градушка': 'Thunderstorm with hail', 'Няма данни': 'No data',
 
         // Live status
-        '📡 Състояние – {place}': '📡 Status – {place}', 'цяла София': 'all of Sofia',
+        'Състояние – {place}': 'Status – {place}', 'цяла София': 'all of Sofia',
         'Опасно време': 'Severe weather', 'Земетресения': 'Earthquakes', 'Въздух': 'Air', 'Вода': 'Water', 'Ток': 'Power',
         'Жълт код': 'Yellow code', 'Оранжев код': 'Orange code', 'Червен код': 'Red code', 'зелен код': 'green code',
         'Добро': 'Good', 'Задоволително': 'Fair', 'Умерено': 'Moderate', 'Лошо': 'Poor', 'Много лошо': 'Very poor',
@@ -199,7 +199,7 @@
         'Ново': 'New', 'Покажи по-малко': 'Show less', 'Покажи още ({n})': 'Show more ({n})',
         'Неуспешно зареждане на съобщенията. Ще опитаме отново.': 'Could not load the announcements. We will try again.',
         'Столична община': 'Sofia Municipality',
-        '📢 Новини и съобщения': '📢 News and announcements',
+        'Новини и съобщения': 'News and announcements',
         'Последни новини': 'Latest news', 'Официални съобщения': 'Official announcements',
         'БТА': 'BTA', 'Свят': 'World', 'Балкани': 'Balkans',
         'Няма съобщения в момента.': 'No items right now.',
@@ -209,8 +209,8 @@
         'Листовка за печат - sofia-prepping.com': 'Printable sheet - sofia-prepping.com',
         'Материали за печат - sofia-prepping.com': 'Printable materials - sofia-prepping.com',
         '← Материали за печат': '← Printable materials', 'Материали за печат': 'Printable materials',
-        '🖨️ Материали за печат': '🖨️ Printable materials', '🖨️ Печат / PDF': '🖨️ Print / PDF',
-        '🖨️ Листовки по райони (PDF за печат)': '🖨️ District sheets (PDF to print)',
+        'Материали за печат': 'Printable materials', 'Печат / PDF': 'Print / PDF',
+        'Листовки по райони (PDF за печат)': 'District sheets (PDF to print)',
         'Изберете район от менюто горе, за да видите листовката за него.': 'Choose a district in the menu above to see its sheet.',
         'Листовка на една страница A4 за всеки район: карта с номерирани скривалища, пунктове за йодни таблетки, сгради за настаняване и болници, какво означават сирените и QR код към актуалната карта. Подходяща за входове на блокове, училища и читалища.':
             'A one-page A4 sheet for every district: a map with numbered shelters, iodine tablet points, shelter buildings and hospitals, what the sirens mean, and a QR code to the live map. Made for building entrances, schools and community centres. The ready PDFs are in Bulgarian; open a sheet for printing to get it in English.',
@@ -221,23 +221,42 @@
         'Няма в района – вижте актуалната карта.': 'None in the district – see the live map.',
         '(съседен район, {km} км)': '(neighbouring district, {km} km)',
         '+ още {n} – на актуалната карта (QR кода)': '+ {n} more – on the live map (QR code)',
-        'Също в района: ⛺ палатъчни лагери: {tents} · 💧 чешми: {fountains} · ♨️ минерални извори: {springs} · 🚇 метро (станции и входове): {metro}':
-            'Also in the district: ⛺ tent camps: {tents} · 💧 fountains: {fountains} · ♨️ mineral springs: {springs} · 🚇 metro (stations and entrances): {metro}',
+        'Също в района: палатъчни лагери: {tents} · чешми: {fountains} · минерални извори: {springs} · метро (станции и входове): {metro}':
+            'Also in the district: tent camps: {tents} · fountains: {fountains} · mineral springs: {springs} · metro (stations and entrances): {metro}',
         'Данни: Столична община (отворени данни), ГДПБЗН, OpenStreetMap · към {date} · Проверявайте актуалната информация на sofia-prepping.com':
             'Data: Sofia Municipality (open data), ГДПБЗН, OpenStreetMap · as of {date} · Check the latest information at sofia-prepping.com',
-        'Вашият район': 'Your district', '📄 PDF': '📄 PDF (BG)', '🖨️ Отвори за печат': '🖨️ Open for printing',
+        'Вашият район': 'Your district', 'PDF': 'PDF (BG)', 'Отвори за печат': 'Open for printing',
         'Времето': 'Weather', 'Времето в София': 'Weather in Sofia', 'Източник: Open-Meteo': 'Source: Open-Meteo',
-        '🧭 Бърз достъп': '🧭 Quick access', '🔗 Полезни връзки': '🔗 Useful links',
-        '📰 Медии': '📰 Media', '📹 Камери и други': '📹 Cameras and more',
+        'Бърз достъп': 'Quick access', 'Полезни връзки': 'Useful links',
+        'Медии': 'Media', 'Камери и други': 'Cameras and more',
         'Убежища, вода, евакуация, йод, болници': 'Shelters, water, evacuation, iodine, hospitals',
         'Скривалища и противорадиационни укрития': 'Shelters and anti-radiation shelters',
         'Питейна вода в града': 'Drinking water around the city',
         'Как звучат сирените, BG-ALERT': 'What the sirens sound like, BG-ALERT',
         'Планове за защита': 'Protection plans', 'Земетресение, наводнение, радиация': 'Earthquake, flood, radiation',
-        '🚰 Софийска вода': '🚰 Sofiyska Voda', '⚡ ЕРМ Запад': '⚡ ERM Zapad', '🔥 Топлофикация': '🔥 District heating',
-        '☢️ Радиация (EURDEP)': '☢️ Radiation (EURDEP)', '📷 Орлов Мост': '📷 Orlov Most', '📷 ж.к. Лагера': '📷 Lagera',
+        'Софийска вода': 'Sofiyska Voda', 'ЕРМ Запад': 'ERM Zapad', 'Топлофикация': 'District heating',
+        'Радиация (EURDEP)': 'Radiation (EURDEP)', 'Орлов Мост': 'Orlov Most', 'ж.к. Лагера': 'Lagera',
         'Последни новини от БТА (Българска телеграфна агенция) – разделите България, Свят и Балкани. Заглавията се показват дословно с връзка към оригинала.':
-            'Latest news from BTA (Bulgarian News Agency) – Bulgaria, World and Balkans sections. Headlines are shown in Bulgarian exactly as published, with a link to the original.'
+            'Latest news from BTA (Bulgarian News Agency) – Bulgaria, World and Balkans sections. Headlines are shown in Bulgarian exactly as published, with a link to the original.',
+
+        // Redesign: page chrome, home page map and assessment
+        'Отворени източници // публична информация // не е държавен орган': 'Open sources // public information // not a government body',
+        'sofia-prepping.com · независим граждански ресурс': 'sofia-prepping.com · independent civic resource',
+        'Данни от отворени източници · без гаранция за точност · спешни случаи 112': 'Data from open sources · no guarantee of accuracy · emergencies 112',
+        'Карта и обстановка': 'Map and situation', 'Слоеве': 'Layers', 'Отвори картата': 'Open the map',
+        'Оценка': 'Assessment', 'оценка': 'assessment',
+        'Ниво 1 – норма': 'Level 1 – normal', 'Ниво 4 – тревога': 'Level 4 – alarm', 'Ниво {level} от 4': 'Level {level} of 4',
+        'Обстановка: ': 'Situation: ', 'стабилна': 'stable', 'повишено внимание': 'heightened caution',
+        'опасност': 'danger', 'тревога': 'alarm',
+        '{ok} от {n} показателя в норма': '{ok} of {n} indicators normal',
+        '{n} с предупреждение': '{n} with a warning', '{n} с активни събития': '{n} with active events',
+        '{n} без данни': '{n} without data',
+        'Норма': 'Normal', 'Внимание': 'Caution', 'Опасност': 'Danger', 'Тревога': 'Alarm', 'Активно': 'Active', 'Инфо': 'Info',
+        'P-01 / Карта': 'P-01 / Map', 'P-02 / Укрития': 'P-02 / Shelters', 'P-03 / Вода': 'P-03 / Water',
+        'P-04 / Сигнали': 'P-04 / Sirens', 'P-05 / Планове': 'P-05 / Plans', 'P-06 / Печат': 'P-06 / Print',
+        'Листовка A4 за всеки район': 'One-page A4 sheet for every district',
+        'Информационен поток': 'Information feed', 'Източници': 'Sources',
+        'При опасност за живота': 'If life is in danger'
     };
 
     // Fixed labels with a variable part (map popups, district map captions)

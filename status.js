@@ -17,12 +17,12 @@ const WEATHER_URL = 'https://api.open-meteo.com/v1/forecast?latitude=42.6977&lon
     '&wind_speed_unit=kmh&timezone=auto';
 // WMO weather codes
 const WEATHER_CODES = {
-    0: '☀️ Ясно', 1: '🌤️ Предимно ясно', 2: '⛅ Разкъсана облачност', 3: '☁️ Облачно',
-    45: '🌫️ Мъгла', 48: '🌫️ Мъгла', 51: '🌦️ Слаб ръмеж', 53: '🌦️ Ръмеж', 55: '🌦️ Силен ръмеж',
-    61: '🌧️ Слаб дъжд', 63: '🌧️ Дъжд', 65: '🌧️ Силен дъжд', 71: '🌨️ Слаб сняг', 73: '🌨️ Сняг',
-    75: '🌨️ Силен снеговалеж', 77: '❄️ Снежни зърна', 80: '🌦️ Слаби превалявания', 81: '🌧️ Превалявания',
-    82: '🌧️ Пороен дъжд', 85: '🌨️ Слаби снежни превалявания', 86: '🌨️ Силни снежни превалявания',
-    95: '⛈️ Гръмотевична буря', 96: '⛈️ Буря с градушка', 99: '⛈️ Буря с градушка'
+    0: 'Ясно', 1: 'Предимно ясно', 2: 'Разкъсана облачност', 3: 'Облачно',
+    45: 'Мъгла', 48: 'Мъгла', 51: 'Слаб ръмеж', 53: 'Ръмеж', 55: 'Силен ръмеж',
+    61: 'Слаб дъжд', 63: 'Дъжд', 65: 'Силен дъжд', 71: 'Слаб сняг', 73: 'Сняг',
+    75: 'Силен снеговалеж', 77: 'Снежни зърна', 80: 'Слаби превалявания', 81: 'Превалявания',
+    82: 'Пороен дъжд', 85: 'Слаби снежни превалявания', 86: 'Силни снежни превалявания',
+    95: 'Гръмотевична буря', 96: 'Буря с градушка', 99: 'Буря с градушка'
 };
 const { t } = I18N;
 const LOCALE = I18N.lang === 'en' ? 'en-GB' : 'bg-BG';
@@ -82,7 +82,13 @@ function source(text, href, linkText) {
     return p;
 }
 
-function tile(key, icon, label, { tone = 'neutral', value, note, href }) {
+// Tag shown on each indicator row, and how much each tone counts towards the overall assessment
+const TAGS = { green: 'Норма', yellow: 'Внимание', orange: 'Опасност', red: 'Тревога', active: 'Активно', neutral: 'Инфо', na: 'Няма данни' };
+const SEVERITY = { yellow: 2, orange: 3, red: 4 };
+const ASSESSMENT = ['стабилна', 'стабилна', 'повишено внимание', 'опасност', 'тревога'];
+const LEVEL_TONES = ['', 'green', 'yellow', 'orange', 'red'];
+
+function tile(key, code, label, { tone = 'neutral', value, note, href }) {
     const t = el(href ? 'a' : 'button', `status-tile tone-${tone}`);
     if (href) {
         t.href = href;
@@ -93,8 +99,13 @@ function tile(key, icon, label, { tone = 'neutral', value, note, href }) {
         t.dataset.key = key;
         t.addEventListener('click', () => toggle(key, t));
     }
-    t.append(el('div', 'status-label', `${icon} ${I18N.t(label)}`), el('div', 'status-value', value));
-    if (note) t.append(el('div', 'status-note', note));
+    const main = el('span', 'status-main');
+    main.append(el('span', 'status-label', I18N.t(label)));
+    if (note) main.append(el('span', 'status-note', note));
+    const side = el('span', 'status-side');
+    side.append(el('span', 'status-value', value), el('span', 'status-tag', I18N.t(TAGS[tone] || TAGS.neutral)));
+    t.append(el('span', 'status-code', code), main, side);
+    t.dataset.tone = tone;
     return t;
 }
 
@@ -113,7 +124,7 @@ function toggle(key, tileEl) {
 }
 
 function failed() {
-    return { tone: 'neutral', value: t('Няма данни'), note: t('източникът не отговаря') };
+    return { tone: 'na', value: t('Няма данни'), note: t('източникът не отговаря') };
 }
 
 function inDistrict(lat, lng) {
@@ -127,15 +138,15 @@ function districtLabel() {
 
 function weather(w) {
     if (!w.ok) return failed();
-    const sky = t(WEATHER_CODES[w.code] || '🌡️ Няма данни');
+    const sky = t(WEATHER_CODES[w.code] || 'Няма данни');
     details.weather = [
         el('h3', null, t('Времето в София')),
-        detailRow(`${w.temp}°C · ${sky}`, t('🌡️ Усеща се: {v}°C', { v: w.feels })),
-        detailRow(t('💧 Влажност: {v}%', { v: w.humidity }), t('💨 Вятър: {v} км/ч', { v: w.wind })),
-        detailRow(t('🌧️ Валежи: {v} мм', { v: w.precip })),
+        detailRow(`${w.temp}°C · ${sky}`, t('Усеща се: {v}°C', { v: w.feels })),
+        detailRow(t('Влажност: {v}%', { v: w.humidity }), t('Вятър: {v} км/ч', { v: w.wind })),
+        detailRow(t('Валежи: {v} мм', { v: w.precip })),
         source(t('Източник: Open-Meteo'))
     ];
-    return { tone: 'neutral', value: `${w.temp}°C`, note: sky.replace(/^\S+\s/, '') };  // icon is already on the tile
+    return { tone: 'neutral', value: `${w.temp}°C`, note: sky };
 }
 
 function earthquakes(q) {
@@ -220,7 +231,7 @@ function water(w) {
         source(t('Източник: Софийска вода · '), 'https://www.sofiyskavoda.bg/water-stops', t('Пълна информация и карта'))
     ];
     return {
-        tone: current.length ? 'neutral' : 'green',
+        tone: current.length ? 'active' : 'green',
         value: current.length ? t(current.length === 1 ? '{n} спиране' : '{n} спирания', { n: current.length }) : t('Няма спирания'),
         note: planned.length ? t('+ {n} планирани', { n: planned.length }) : t('в момента')
     };
@@ -237,7 +248,7 @@ function heating(h) {
         source(t('Източник: Топлофикация София · '), 'https://www.toplo.bg/accidents-and-maintenance', t('Карта и пълен списък'))
     ];
     return {
-        tone: items.length ? 'neutral' : 'green',
+        tone: items.length ? 'active' : 'green',
         value: items.length ? t('{n} активни', { n: items.length }) : t('Няма'),
         note: t('аварии и ремонти')
     };
@@ -247,22 +258,45 @@ function render() {
     if (!lastData) return;
     const data = lastData;
     details = {};
-    document.getElementById('status-title').textContent = t('📡 Състояние – {place}', { place: SofiaDistrict.get() ? districtLabel() : t('цяла София') });
     const tiles = document.getElementById('status-tiles');
     tiles.replaceChildren(
-        tile('weather', '🌤️', 'Времето', weather(data.weather)),
-        tile('warnings', '⚠️', 'Опасно време', warnings(data.warnings)),
-        tile('quakes', '🌍', 'Земетресения', earthquakes(data.earthquakes)),
-        tile('air', '🌫️', 'Въздух', air(data.air)),
-        tile('water', '🚰', 'Вода', water(data.water)),
-        tile('heating', '🔥', 'Топлофикация', heating(data.heating))
+        tile('weather', '01', 'Времето', weather(data.weather)),
+        tile('warnings', '02', 'Опасно време', warnings(data.warnings)),
+        tile('quakes', '03', 'Земетресения', earthquakes(data.earthquakes)),
+        tile('air', '04', 'Въздух', air(data.air)),
+        tile('water', '05', 'Вода', water(data.water)),
+        tile('heating', '06', 'Топлофикация', heating(data.heating))
     );
+    assess([...tiles.children].map(x => x.dataset.tone), data.generated);
     if (openTile && details[openTile]) {
         const t = tiles.querySelector(`[data-key="${openTile}"]`);
         openTile = null;
         toggle(t.dataset.key, t);
     }
     document.getElementById('status-updated').textContent = t('Обновено {ago}', { ago: ago(data.generated) });
+}
+
+// Overall assessment above the indicators: the level follows the most severe indicator
+function assess(tones, generated) {
+    const level = Math.max(1, ...tones.map(x => SEVERITY[x] || 1));
+    const n = tone => tones.filter(x => x === tone).length;
+    const warned = tones.filter(x => SEVERITY[x]).length;
+    const title = document.getElementById('status-title');
+    const word = el('span', `assessment-word level-${level}`, t(ASSESSMENT[level]));
+    title.replaceChildren(t('Обстановка: '), word);
+
+    const parts = [t('{ok} от {n} показателя в норма', { ok: n('green'), n: tones.length })];
+    if (warned) parts.push(t('{n} с предупреждение', { n: warned }));
+    if (n('active')) parts.push(t('{n} с активни събития', { n: n('active') }));
+    if (n('na')) parts.push(t('{n} без данни', { n: n('na') }));
+    document.getElementById('status-summary').textContent = parts.join(' · ');
+
+    const bar = document.getElementById('readiness');
+    [...bar.children].forEach((seg, i) => { seg.className = i < level ? `on tone-${LEVEL_TONES[level]}` : ''; });
+    bar.setAttribute('aria-label', t('Ниво {level} от 4', { level }));
+
+    const time = new Date(generated).toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Sofia' });
+    document.getElementById('status-place').textContent = `${SofiaDistrict.get() ? districtLabel() : t('Цяла София')} · ${t('оценка')} ${time}`;
 }
 
 async function loadPart(part) {

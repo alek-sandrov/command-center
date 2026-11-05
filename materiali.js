@@ -20,11 +20,11 @@
         actions.className = 'sheet-card-actions';
         const pdf = document.createElement('a');
         pdf.href = `pechat/rayon-${d.slug}.pdf`;
-        pdf.textContent = t('📄 PDF');
+        pdf.textContent = t('PDF');
         pdf.setAttribute('download', '');
         const print = document.createElement('a');
         print.href = `listovka.html?rayon=${d.slug}`;
-        print.textContent = t('🖨️ Отвори за печат');
+        print.textContent = t('Отвори за печат');
         actions.append(pdf, print);
         div.append(name, actions);
         return div;

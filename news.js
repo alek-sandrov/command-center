@@ -70,6 +70,15 @@
         more.textContent = expanded ? t('Покажи по-малко') : t('Покажи още ({n})', { n: items.length - SHOW });
     }
 
+    // One-line strip under the map with the newest headline
+    function ticker(item) {
+        const link = document.getElementById('ticker-link');
+        if (!link || !item) return;
+        link.href = item.url;
+        link.textContent = item.title;
+        document.getElementById('ticker-stamp').textContent = `${I18N.text(item.source)} · ${stamp(item)}`;
+    }
+
     function select(name) {
         tab = name;
         expanded = false;
@@ -94,6 +103,7 @@
             if (!json.ok) throw new Error(json.error);
             // Older response format had a single "items" list of official announcements
             data = { latest: json.latest || [], official: json.official || json.items || [], failed: json.failed || [] };
+            ticker(data.latest[0] || data.official[0]);
             // If BTA is unavailable, open on the official announcements rather than an empty list
             if (!chosen && !data.latest.length && data.official.length) select('official');
             else render();

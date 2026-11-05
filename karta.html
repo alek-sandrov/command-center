@@ -10,7 +10,10 @@
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <a href="index.html" class="nav-brand">sofia-prepping.com</a>
+            <a href="index.html" class="nav-brand" aria-label="sofia-prepping.com">
+                <svg class="brand-mark" width="26" height="26" viewBox="0 0 28 28" fill="none" aria-hidden="true"><rect x="2" y="2" width="24" height="24"/><circle cx="14" cy="14" r="6"/><path d="M14 2v6M14 20v6M2 14h6M20 14h6"/></svg>
+                <span class="brand-text">SOFIA<span class="brand-slash">/</span>PREP</span>
+            </a>
             <div class="nav-links">
                 <a href="index.html" class="nav-link">Начало</a>
                 <a href="karti.html" class="nav-link active">Карти</a>
@@ -24,13 +27,13 @@
         <div class="breadcrumb"><a href="karti.html">← Карти</a><span>›</span>Интерактивна карта</div>
 
         <header>
-            <h1><span class="h1-icon">🗺️</span> Интерактивна карта</h1>
+            <h1>Интерактивна карта</h1>
         </header>
 
         <div class="grid">
             <section class="card full-width">
                 <div class="map-controls">
-                    <button id="locate-btn" class="modal-nav-btn">📍 Намери най-близкия</button>
+                    <button id="locate-btn" class="modal-nav-btn">Намери най-близкия</button>
                 </div>
 
                 <div class="type-filters" id="type-filters"></div>
@@ -63,6 +66,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
     <script src="i18n.js"></script>
     <script src="district.js"></script>
+    <script src="chrome.js"></script>
+    <script src="map-style.js"></script>
     <script src="karta.js"></script>
 </body>
 </html>

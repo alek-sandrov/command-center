@@ -11,7 +11,10 @@
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <a href="index.html" class="nav-brand">sofia-prepping.com</a>
+            <a href="index.html" class="nav-brand" aria-label="sofia-prepping.com">
+                <svg class="brand-mark" width="26" height="26" viewBox="0 0 28 28" fill="none" aria-hidden="true"><rect x="2" y="2" width="24" height="24"/><circle cx="14" cy="14" r="6"/><path d="M14 2v6M14 20v6M2 14h6M20 14h6"/></svg>
+                <span class="brand-text">SOFIA<span class="brand-slash">/</span>PREP</span>
+            </a>
             <div class="nav-links">
                 <a href="index.html" class="nav-link">Начало</a>
                 <a href="karti.html" class="nav-link">Карти</a>
@@ -23,7 +26,7 @@
 
     <div class="sheet-toolbar">
         <div class="breadcrumb"><a href="materiali.html">← Материали за печат</a></div>
-        <button type="button" id="print-btn" class="modal-nav-btn">🖨️ Печат / PDF</button>
+        <button type="button" id="print-btn" class="modal-nav-btn">Печат / PDF</button>
     </div>
 
     <p id="sheet-empty" class="sheet-empty" hidden>Изберете район от менюто горе, за да видите листовката за него.</p>
@@ -76,6 +79,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="i18n.js"></script>
     <script src="district.js"></script>
+    <script src="chrome.js"></script>
     <script src="listovka.js"></script>
 </body>
 </html>

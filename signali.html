@@ -9,7 +9,10 @@
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <a href="index.html" class="nav-brand">sofia-prepping.com</a>
+            <a href="index.html" class="nav-brand" aria-label="sofia-prepping.com">
+                <svg class="brand-mark" width="26" height="26" viewBox="0 0 28 28" fill="none" aria-hidden="true"><rect x="2" y="2" width="24" height="24"/><circle cx="14" cy="14" r="6"/><path d="M14 2v6M14 20v6M2 14h6M20 14h6"/></svg>
+                <span class="brand-text">SOFIA<span class="brand-slash">/</span>PREP</span>
+            </a>
             <div class="nav-links">
                 <a href="index.html" class="nav-link">Начало</a>
                 <a href="karti.html" class="nav-link">Карти</a>
@@ -21,13 +24,13 @@
 
     <div class="container">
         <header>
-            <h1><span class="h1-icon">🚨</span> Сигнали за тревога</h1>
+            <h1>Сигнали за тревога</h1>
         </header>
 
         <div class="grid">
             <!-- Siren Signals -->
             <section class="card sirens-card full-width">
-                <h2>🔊 Чуйте как звучат сирените</h2>
+                <h2>Чуйте как звучат сирените</h2>
                 <div class="siren-list">
                     <div class="siren-item">
                         <div class="siren-name">Национален сигнал за тревога</div>
@@ -54,7 +57,7 @@
             </section>
 
             <section class="card full-width">
-                <h2>📱 BG-ALERT на телефона</h2>
+                <h2>BG-ALERT на телефона</h2>
                 <p class="card-text">BG-ALERT изпраща предупреждения директно на мобилните телефони в засегнатия район – без приложение и без регистрация. Уверете се, че аварийните известия са включени в настройките на телефона.</p>
                 <ul class="steps">
                     <li><strong>Android:</strong> Настройки → Безопасност и спешни случаи → Безжични сигнали при спешни случаи</li>
@@ -63,11 +66,9 @@
                 </ul>
                 <div class="links-grid">
                     <a href="https://www.bg-alert.bg" target="_blank" rel="noopener" class="link-item">
-                        <span>📲</span>
                         <p>BG-ALERT</p>
                     </a>
                     <a href="https://www.mvr.bg/gdpbzn/info-center/pravila-povedenie" target="_blank" rel="noopener" class="link-item">
-                        <span>📘</span>
                         <p>Правила за поведение</p>
                     </a>
                 </div>
@@ -80,5 +81,6 @@
     </div>
     <script src="i18n.js"></script>
     <script src="district.js"></script>
+    <script src="chrome.js"></script>
 </body>
 </html>

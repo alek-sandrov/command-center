@@ -119,7 +119,7 @@
         // Fixed text first, so the fitting below measures the complete page
         const count = key => inDistrict(key).length;
         document.getElementById('sheet-summary').textContent = t(
-            'Също в района: ⛺ палатъчни лагери: {tents} · 💧 чешми: {fountains} · ♨️ минерални извори: {springs} · 🚇 метро (станции и входове): {metro}',
+            'Също в района: палатъчни лагери: {tents} · чешми: {fountains} · минерални извори: {springs} · метро (станции и входове): {metro}',
             { tents: count('tents'), fountains: count('fountains'), springs: count('springs'), metro: count('metro') });
 
         const dates = Object.values(updated || {}).sort();
