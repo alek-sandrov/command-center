@@ -256,7 +256,9 @@
         'P-04 / Сигнали': 'P-04 / Sirens', 'P-05 / Планове': 'P-05 / Plans', 'P-06 / Печат': 'P-06 / Print',
         'Листовка A4 за всеки район': 'One-page A4 sheet for every district',
         'Информационен поток': 'Information feed', 'Източници': 'Sources',
-        'При опасност за живота': 'If life is in danger'
+        'При опасност за живота': 'If life is in danger',
+        '⌘ + колелце за увеличаване': 'Use ⌘ + scroll to zoom the map',
+        'Ctrl + колелце за увеличаване': 'Use Ctrl + scroll to zoom the map'
     };
 
     // Fixed labels with a variable part (map popups, district map captions)

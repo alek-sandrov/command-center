@@ -16,6 +16,27 @@
     L.control.zoom({ position: 'topright' }).addTo(map);
     MapStyle.autoScale(map);
 
+    // The scroll wheel scrolls the page, not the map, unless Ctrl/⌘ is held (a trackpad pinch
+    // sends Ctrl too) or the visitor has clicked into the map; that lasts until the pointer leaves.
+    // Runs in the capture phase on the container, before Leaflet's own wheel handler.
+    const hint = document.getElementById('map-scroll-hint');
+    const mac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+    hint.textContent = t(mac ? '⌘ + колелце за увеличаване' : 'Ctrl + колелце за увеличаване');
+    let engaged = false;
+    let hintTimer = null;
+    box.addEventListener('wheel', e => {
+        if (engaged || e.ctrlKey || e.metaKey) return;
+        e.stopPropagation();  // Leaflet never sees it, the page scrolls as usual
+        hint.classList.add('show');
+        clearTimeout(hintTimer);
+        hintTimer = setTimeout(() => hint.classList.remove('show'), 1400);
+    }, { capture: true });
+    box.addEventListener('mousedown', () => {
+        engaged = true;
+        hint.classList.remove('show');
+    });
+    box.addEventListener('mouseleave', () => { engaged = false; });
+
     // The layer panel folds away when the visitor zooms the map, and opens again from its header.
     // Zooms the page makes itself (fitting a district) don't count.
     const panel = document.getElementById('map-layers');

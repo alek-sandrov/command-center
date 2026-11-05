@@ -487,6 +487,7 @@ header h1::before {
 }
 
 .hero-map {
+    isolation: isolate;  /* keep Leaflet's z-indexes inside the map, under the sticky navbar */
     flex: 999 1 560px;
     min-width: 0;
     position: relative;
@@ -650,6 +651,28 @@ header h1::before {
 
 .map-foot > * {
     pointer-events: auto;
+}
+
+.map-scroll-hint {
+    position: absolute;
+    inset: 0;
+    z-index: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(5, 7, 10, 0.55);
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+}
+
+.map-scroll-hint.show {
+    opacity: 1;
 }
 
 .map-credit {
@@ -1509,6 +1532,7 @@ header h1::before {
 }
 
 .leaflet-map {
+    isolation: isolate;
     height: 68vh;
     min-height: 420px;
     border: 1px solid var(--line);
