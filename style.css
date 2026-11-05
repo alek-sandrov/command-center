@@ -986,53 +986,77 @@ header h1::before {
 /* Protocol tiles */
 .protocols {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
     gap: 1px;
-    margin: 8px 0 24px;
     padding: 1px;
+    margin: 8px 0 24px;
 }
 
 .protocol {
+    --c: var(--accent);
     background: var(--bg);
-    padding: 18px 20px;
+    padding: 20px;
     display: flex;
-    flex-direction: column;
-    gap: 6px;
-    min-height: 112px;
+    align-items: center;
+    gap: 16px;
+    min-height: 96px;
     color: var(--text);
+    transition: background 0.15s;
 }
 
 .protocol:hover {
     background: var(--surface);
     color: var(--text);
+    box-shadow: 0 0 0 1px var(--line), inset 3px 0 0 var(--c);
 }
 
-.protocol-code {
+.protocol-icon {
+    flex: 0 0 48px;
+    height: 48px;
     display: flex;
-    justify-content: space-between;
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--accent);
+    align-items: center;
+    justify-content: center;
+    border: 1px solid color-mix(in srgb, var(--c) 45%, transparent);
+    background: color-mix(in srgb, var(--c) 8%, transparent);
 }
 
-.protocol-code span:last-child {
-    color: var(--dim);
+.protocol-icon svg {
+    fill: none;
+    stroke: var(--c);
+    stroke-width: 1.6;
+    stroke-linejoin: round;
+    stroke-linecap: round;
 }
 
-.protocol:hover .protocol-code span:last-child {
-    color: var(--accent);
+.protocol-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
 }
 
 .protocol strong {
     font-weight: 600;
-    font-size: 15px;
+    font-size: 17px;
+    line-height: 1.3;
 }
 
 .protocol small {
-    font-size: 12px;
+    font-size: 13px;
     color: var(--muted);
+}
+
+.protocol-arrow {
+    font-family: var(--mono);
+    font-size: 16px;
+    color: var(--dim);
+    transition: transform 0.15s, color 0.15s;
+}
+
+.protocol:hover .protocol-arrow {
+    color: var(--c);
+    transform: translateX(3px);
 }
 
 /* Feed + sources row */
