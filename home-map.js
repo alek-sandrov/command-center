@@ -7,14 +7,14 @@
     const { t } = I18N;
 
     const map = L.map(box, {
-        preferCanvas: true,
-        scrollWheelZoom: false,          // don't trap the page scroll
-        dragging: !L.Browser.mobile,     // on phones one finger scrolls the page
+        renderer: MapStyle.renderer(),
+        dragging: !L.Browser.mobile,     // on phones one finger scrolls the page; zoom with the buttons or pinch
         tap: false,
         zoomControl: false,
         attributionControl: false
     }).setView(SOFIA, 12);
     L.control.zoom({ position: 'topright' }).addTo(map);
+    MapStyle.autoScale(map);
     MapStyle.basemap(map);
 
     const list = document.getElementById('home-layers');

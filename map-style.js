@@ -1,18 +1,18 @@
 // Shared look of the Leaflet maps (home page and karta.html): the layer list with a marker
 // shape and colour per layer, a dark basemap, the district outline and the popups.
-// Markers are drawn on canvas (map option preferCanvas: true), so the whole city stays fast.
+// Markers are drawn on one canvas (renderer()), so the whole city stays fast.
 (function () {
     // Keys match data/karta.json; rows are [lat, lng, name, info, extra, districtIndex]
     const LAYERS = [
-        { key: 'shelters', label: 'Бомбоубежища', shape: 'square', colour: '#E6E9ED', radius: 6 },
-        { key: 'evac', label: 'Сгради за настаняване', shape: 'square', colour: '#0D1014', stroke: '#E6E9ED', radius: 5 },
-        { key: 'iodine', label: 'Йодни таблетки', shape: 'diamond', colour: '#F2A93B', radius: 6 },
-        { key: 'tents', label: 'Палатки', shape: 'triangle', colour: '#4CC38A', radius: 6 },
-        { key: 'fountains', label: 'Чешмите', shape: 'circle', colour: '#5FD4E6', radius: 5 },
-        { key: 'springs', label: 'Минерални извори', shape: 'circle', colour: '#0D1014', stroke: '#5FD4E6', radius: 5 },
-        { key: 'metro', label: 'Метро', shape: 'square', colour: '#7FB2FF', radius: 3.5 },
-        { key: 'hospitals', label: 'Болници', shape: 'cross', colour: '#FF6B6B', radius: 6.5 },
-        { key: 'pharmacies', label: 'Аптеки', shape: 'circle', colour: '#D29BFF', radius: 3, off: true }
+        { key: 'shelters', label: 'Бомбоубежища', shape: 'square', colour: '#E6E9ED', radius: 7 },
+        { key: 'evac', label: 'Сгради за настаняване', shape: 'square', colour: '#0D1014', stroke: '#E6E9ED', radius: 6 },
+        { key: 'iodine', label: 'Йодни таблетки', shape: 'diamond', colour: '#F2A93B', radius: 6.5 },
+        { key: 'tents', label: 'Палатки', shape: 'triangle', colour: '#4CC38A', radius: 7 },
+        { key: 'fountains', label: 'Чешмите', shape: 'circle', colour: '#5FD4E6', radius: 6 },
+        { key: 'springs', label: 'Минерални извори', shape: 'circle', colour: '#0D1014', stroke: '#5FD4E6', radius: 6 },
+        { key: 'metro', label: 'Метро', shape: 'square', colour: '#7FB2FF', radius: 5 },
+        { key: 'hospitals', label: 'Болници', shape: 'cross', colour: '#FF6B6B', radius: 7.5 },
+        { key: 'pharmacies', label: 'Аптеки', shape: 'circle', colour: '#D29BFF', radius: 4.5, off: true }
     ];
     const SOFIA = [42.6977, 23.3219];
     const ACCENT = '#F2A93B';
@@ -46,11 +46,35 @@
         }
     });
 
+    // Markers grow as you zoom in, so they are easy to see and tap up close
+    let scale = 1;
+    function scaleFor(zoom) {
+        return zoom >= 16 ? 1.6 : zoom >= 15 ? 1.4 : zoom >= 14 ? 1.2 : 1;
+    }
+
+    // Canvas renderer with a generous hit area around each marker
+    function renderer() {
+        return L.canvas({ padding: 0.5, tolerance: L.Browser.mobile ? 10 : 6 });
+    }
+
+    // Keep marker sizes in step with the zoom level of this map
+    function autoScale(map) {
+        scale = scaleFor(map.getZoom());
+        map.on('zoomend', () => {
+            const next = scaleFor(map.getZoom());
+            if (next === scale) return;
+            scale = next;
+            map.eachLayer(l => { if (l.options.baseRadius) l.setRadius(l.options.baseRadius * scale); });
+        });
+    }
+
     function marker(layer, p) {
         const small = p[4] === 'вход';
+        const base = small ? Math.max(4, layer.radius - 1) : layer.radius;
         return new ShapeMarker([p[0], p[1]], {
             shape: layer.shape,
-            radius: small ? Math.max(2.5, layer.radius - 1.5) : layer.radius,
+            baseRadius: base,
+            radius: base * scale,
             color: layer.stroke || '#0A0C0F',
             weight: layer.stroke ? 1.5 : 1,
             fillColor: layer.colour,
@@ -131,5 +155,5 @@
         return div;
     }
 
-    window.MapStyle = { LAYERS, SOFIA, marker, swatch, basemap, districtOverlay, directionsLink, popupFor };
+    window.MapStyle = { LAYERS, SOFIA, marker, renderer, autoScale, swatch, basemap, districtOverlay, directionsLink, popupFor };
 })();

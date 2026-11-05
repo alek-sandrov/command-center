@@ -10,8 +10,9 @@ let outline = null;
 let userPos = null;
 let userMarker = null;
 
-const map = L.map('map', { preferCanvas: true }).setView(SOFIA, 12);
+const map = L.map('map', { renderer: MapStyle.renderer() }).setView(SOFIA, 12);
 MapStyle.basemap(map);
+MapStyle.autoScale(map);
 
 // Rows of a layer limited to the district picked in the navbar (all of Sofia if none)
 function rowsFor(key) {
