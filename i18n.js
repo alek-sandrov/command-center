@@ -236,6 +236,7 @@
         'Планове за защита': 'Protection plans', 'Земетресение, наводнение, радиация': 'Earthquake, flood, radiation',
         'Софийска вода': 'Sofiyska Voda', 'ЕРМ Запад': 'ERM Zapad', 'Топлофикация': 'District heating',
         'Радиация (EURDEP)': 'Radiation (EURDEP)', 'Орлов Мост': 'Orlov Most', 'ж.к. Лагера': 'Lagera',
+        'Хладилника': 'Hladilnika', 'Банишора': 'Banishora', 'Гео Милев': 'Geo Milev',
         'Последни новини от БТА (Българска телеграфна агенция) – разделите България, Свят и Балкани. Заглавията се показват дословно с връзка към оригинала.':
             'Latest news from BTA (Bulgarian News Agency) – Bulgaria, World and Balkans sections. Headlines are shown in Bulgarian exactly as published, with a link to the original.',
 
