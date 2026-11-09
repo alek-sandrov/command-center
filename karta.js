@@ -9,6 +9,7 @@ let data = {};
 let outline = null;
 let userPos = null;
 let nearestAt = null;  // position the nearest list was last worked out for
+let keepView = false;  // a district change that follows the visitor's location: stay centred on them
 
 const map = L.map('map', { renderer: MapStyle.renderer() }).setView(SOFIA, 12);
 MapStyle.basemap(map);
@@ -19,8 +20,21 @@ const locator = MapStyle.locateControl(map, {
     onUpdate(at) {
         userPos = at;
         if (!nearestAt || distanceKm(nearestAt[0], nearestAt[1], at[0], at[1]) > 0.03) showNearest();
-    }
+    },
+    onLocate: followDistrict
 });
+
+// When the visitor asks for their location, switch the selected district to the one they're in,
+// so the map shows the points around them. Outside Sofia the selection is left as it is.
+async function followDistrict([lat, lng]) {
+    const here = await SofiaDistrict.at(lat, lng);
+    if (!here || here === SofiaDistrict.get()) return;
+    keepView = true;
+    SofiaDistrict.set(here.slug);
+    keepView = false;
+    document.getElementById('district-note').textContent =
+        I18N.t('Районът е сменен на {district} според местоположението ви.', { district: I18N.district(here.name) });
+}
 
 // Rows of a layer limited to the district picked in the navbar (all of Sofia if none)
 function rowsFor(key) {
@@ -152,13 +166,9 @@ function showNearest() {
 // "Find the nearest" turns on the live location (the browser asks first); the list appears with the first fix
 document.getElementById('locate-btn').addEventListener('click', () => {
     const here = locator.position();  // null once the visitor has switched the location off
-    if (here) {
-        userPos = here;
-        map.setView(here, Math.max(map.getZoom(), 15));
-        showNearest();
-    } else {
-        locator.start(true);
-    }
+    if (here) userPos = here;
+    locator.start(true);  // centres on the visitor and switches to their district
+    if (here) showNearest();
 });
 
 // Initial layers: ?layers=shelters,fountains in the URL, otherwise every layer not marked off
@@ -176,7 +186,7 @@ fetch('data/karta.json')
         buildFilters();
         initialLayers().forEach(k => setVisible(k, true));
         if (SofiaDistrict.get()) applyDistrict(SofiaDistrict.get());
-        SofiaDistrict.onChange(d => applyDistrict(d));
+        SofiaDistrict.onChange(d => applyDistrict(d, !keepView));
         showNearest();  // the location may have arrived before the data
         const dates = Object.values(json.updated || {}).sort();
         if (dates.length) {

@@ -107,6 +107,12 @@
         onChange: fn => listeners.push(fn),
         // District shapes (data/rayoni.json), loaded once on first use
         shapes: () => (shapesPromise ||= fetch('data/rayoni.json').then(r => r.json())),
-        contains
+        contains,
+        // District containing a point, or null outside Sofia
+        at: async (lat, lng) => {
+            const shapes = await window.SofiaDistrict.shapes();
+            const i = shapes.findIndex(shape => contains(shape, lat, lng));
+            return i < 0 ? null : LIST[i];
+        }
     };
 })();
