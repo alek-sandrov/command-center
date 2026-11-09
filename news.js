@@ -2,6 +2,8 @@
 // latest news from BTA (default) and official announcements (ГДПБЗН + Sofia municipality)
 (function () {
     const SHOW = 4;
+    // Headlines link to other sites; only https links are used, never javascript: and the like
+    const httpsOnly = href => { try { return new URL(href, location.href).protocol === 'https:' ? href : '#'; } catch { return '#'; } };
     const NEW_DAYS = 3;
     const { t } = I18N;
     const locale = I18N.lang === 'en' ? 'en-GB' : 'bg-BG';
@@ -51,7 +53,7 @@
         (expanded ? items : items.slice(0, SHOW)).forEach(item => {
             const a = document.createElement('a');
             a.className = 'news-item';
-            a.href = item.url;
+            a.href = httpsOnly(item.url);
             a.target = '_blank';
             a.rel = 'noopener';
             const meta = document.createElement('div');
@@ -74,7 +76,7 @@
     function ticker(item) {
         const link = document.getElementById('ticker-link');
         if (!link || !item) return;
-        link.href = item.url;
+        link.href = httpsOnly(item.url);
         link.textContent = item.title;
         document.getElementById('ticker-stamp').textContent = `${I18N.text(item.source)} · ${stamp(item)}`;
     }

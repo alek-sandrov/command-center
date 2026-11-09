@@ -39,9 +39,14 @@ function el(tag, cls, text) {
     return e;
 }
 
+// Links come from other sites via /api/status; only https ones are used, never javascript: and the like
+function httpsOnly(href) {
+    try { return new URL(href, location.href).protocol === 'https:' ? href : '#'; } catch { return '#'; }
+}
+
 function link(href, text) {
     const a = el('a', null, text);
-    a.href = href;
+    a.href = httpsOnly(href);
     a.target = '_blank';
     a.rel = 'noopener';
     return a;
@@ -91,7 +96,7 @@ const LEVEL_TONES = ['', 'green', 'yellow', 'orange', 'red'];
 function tile(key, code, label, { tone = 'neutral', value, note, href }) {
     const t = el(href ? 'a' : 'button', `status-tile tone-${tone}`);
     if (href) {
-        t.href = href;
+        t.href = httpsOnly(href);
         t.target = '_blank';
         t.rel = 'noopener';
     } else {

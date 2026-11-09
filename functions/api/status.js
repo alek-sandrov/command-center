@@ -59,7 +59,7 @@ async function earthquakes() {
             time: Date.parse(p.time),
             km: Math.round(distanceKm(SOFIA.lat, SOFIA.lng, p.lat, p.lon)),
             depth: Math.round(p.depth),
-            url: `https://www.seismicportal.eu/eventdetails.html?unid=${p.unid}`
+            url: `https://www.seismicportal.eu/eventdetails.html?unid=${encodeURIComponent(p.unid)}`
         };
     });
     return { items: items.slice(0, 10), count: items.length, radiusKm: QUAKE_KM, days: 30 };
@@ -74,7 +74,8 @@ async function warnings() {
     for (const [, entry] of atom.matchAll(/<entry>([\s\S]*?)<\/entry>/g)) {
         if (!/<value>BG411<\/value>/.test(entry)) continue;
         const link = entry.match(/type="application\/cap\+xml" href="([^"]+)"/);
-        if (link) capLinks.add(link[1].replace(/&amp;/g, '&'));
+        const url = link && safeUrl(link[1].replace(/&amp;/g, '&'), 'feeds.meteoalarm.org');
+        if (url) capLinks.add(url);  // only ever fetch warning documents from Meteoalarm itself
     }
     const tag = (xml, name) => (xml.match(new RegExp(`<${name}>([\\s\\S]*?)</${name}>`)) || [])[1]?.trim() || '';
     const now = Date.now();
@@ -202,6 +203,17 @@ async function heating() {
 const MONTHS = ['януари', 'февруари', 'март', 'април', 'май', 'юни', 'юли', 'август',
     'септември', 'октомври', 'ноември', 'декември'];
 
+// A scraped link is passed on only if it is https and on the expected site, so a tampered
+// source page can't plant a javascript: link or send readers to a look-alike address
+function safeUrl(href, host, base) {
+    try {
+        const u = new URL(href, base);
+        return u.protocol === 'https:' && u.hostname === host ? u.href : null;
+    } catch {
+        return null;
+    }
+}
+
 function plain(html) {
     return html.replace(/<[^>]+>/g, ' ')
         .replace(/&quot;/g, '"').replace(/&#0?39;|&apos;/g, "'").replace(/&amp;/g, '&')
@@ -217,8 +229,9 @@ async function gdpbznNews() {
     const re = /<div class="card__meta">\s*(\d{1,2}) (\S+) (\d{4})\s*<\/div>\s*<a href="([^"]+)"\s+class="card__title">([\s\S]*?)<\/a>/g;
     for (const [, day, month, year, href, title] of html.matchAll(re)) {
         const m = MONTHS.indexOf(month.toLowerCase());
-        if (m < 0 || /^Брой \d/.test(plain(title))) continue;  // skip magazine issue notices
-        items.push({ source: 'ГДПБЗН', title: plain(title), url: base + href, date: Date.UTC(+year, m, +day) });
+        const url = safeUrl(href, 'www.mvr.bg', base);
+        if (!url || m < 0 || /^Брой \d/.test(plain(title))) continue;  // skip magazine issue notices
+        items.push({ source: 'ГДПБЗН', title: plain(title), url, date: Date.UTC(+year, m, +day) });
     }
     return items;
 }
@@ -228,7 +241,9 @@ async function sofiaSecurityNews() {
     const html = await get('https://www.sofia.bg/security-news', { type: 'text', headers: BROWSER_HEADERS });
     const items = [];
     const re = /<a href="(https:\/\/www\.sofia\.bg\/[^"]+)"[^>]*>\s*<div class="read-more">[\s\S]*?<span class="date">(\d{2})\.(\d{2})\.(\d{4})<\/span>[\s\S]*?<div class="news-title">([\s\S]*?)<\/div>/g;
-    for (const [, url, day, month, year, title] of html.matchAll(re)) {
+    for (const [, href, day, month, year, title] of html.matchAll(re)) {
+        const url = safeUrl(href, 'www.sofia.bg');
+        if (!url) continue;
         items.push({ source: 'Столична община', title: plain(title), url, date: Date.UTC(+year, month - 1, +day) });
     }
     return items;
@@ -243,9 +258,10 @@ async function btaNews() {
     const tag = (item, name) => plain((item.match(new RegExp(`<${name}>([\\s\\S]*?)</${name}>`)) || [])[1]?.replace(/<!\[CDATA\[|\]\]>/g, '') || '');
     const items = [];
     for (const [, item] of xml.matchAll(/<item>([\s\S]*?)<\/item>/g)) {
-        const url = tag(item, 'link');
-        const section = (url.match(/\/bg\/news\/([a-z-]+)\//) || [])[1];
-        if (!BTA_SECTIONS[section] || url.includes('/oficial-messages/')) continue;
+        const url = safeUrl(tag(item, 'link'), 'www.bta.bg');
+        if (!url) continue;
+        const section = (new URL(url).pathname.match(/^\/bg\/news\/([a-z-]+)\//) || [])[1];
+        if (!Object.hasOwn(BTA_SECTIONS, section) || url.includes('/oficial-messages/')) continue;
         const date = Date.parse(tag(item, 'pubDate'));
         if (!date) continue;
         items.push({ source: 'БТА', section: BTA_SECTIONS[section], title: tag(item, 'title'), url, date, timed: true });
@@ -289,7 +305,7 @@ const PARTS = { earthquakes, warnings, air, water, heating, news };
 export async function onRequestGet(context) {
     const url = new URL(context.request.url);
     const part = url.searchParams.get('part');
-    if (!PARTS[part]) {
+    if (!Object.hasOwn(PARTS, part)) {
         return new Response(JSON.stringify({ error: 'unknown part', parts: Object.keys(PARTS) }), {
             status: 400, headers: { 'Content-Type': 'application/json; charset=utf-8' }
         });
