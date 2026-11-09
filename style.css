@@ -1669,6 +1669,43 @@ header h1::before {
     color: var(--accent);
 }
 
+/* The visitor's position on the maps (map-style.js personIcon) */
+.you-icon {
+    background: none;
+    border: 0;
+}
+
+.you-marker {
+    position: relative;
+    width: 34px;
+    height: 34px;
+}
+
+.you-marker svg {
+    position: relative;
+    display: block;
+    width: 34px;
+    height: 34px;
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.6));
+}
+
+.you-pulse {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: #3B82F6;
+    animation: you-pulse 2s ease-out infinite;
+}
+
+@keyframes you-pulse {
+    from { transform: scale(1); opacity: 0.55; }
+    to { transform: scale(2.2); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .you-pulse { animation: none; opacity: 0; }
+}
+
 /* "Show my location" button on the maps (map-style.js locateControl) */
 .locate-control .locate-btn {
     display: flex;

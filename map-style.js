@@ -156,6 +156,28 @@
         return div;
     }
 
+    // The visitor's own position: a white person in a blue circle with a soft pulse, so it can't be
+    // mistaken for any of the map's points (all of which are plain shapes)
+    function personIcon() {
+        const ns = 'http://www.w3.org/2000/svg';
+        const wrap = document.createElement('div');
+        wrap.className = 'you-marker';
+        const pulse = document.createElement('span');
+        pulse.className = 'you-pulse';
+        const svg = document.createElementNS(ns, 'svg');
+        svg.setAttribute('viewBox', '0 0 32 32');
+        svg.setAttribute('aria-hidden', 'true');
+        [['circle', { cx: 16, cy: 16, r: 14, fill: YOU, stroke: '#FFFFFF', 'stroke-width': 2.5 }],
+            ['circle', { cx: 16, cy: 10.5, r: 3.6, fill: '#FFFFFF' }],
+            ['path', { d: 'M9.5 24.5c0-4.4 2.9-7.6 6.5-7.6s6.5 3.2 6.5 7.6z', fill: '#FFFFFF' }]].forEach(([tag, attrs]) => {
+            const el = document.createElementNS(ns, tag);
+            Object.entries(attrs).forEach(([k, v]) => el.setAttribute(k, v));
+            svg.append(el);
+        });
+        wrap.append(pulse, svg);
+        return L.divIcon({ html: wrap, className: 'you-icon', iconSize: [34, 34], iconAnchor: [17, 17], popupAnchor: [0, -17] });
+    }
+
     // "Show my location" button for a map. Nothing is asked until the visitor presses it; then the
     // browser asks for permission and, once allowed, a dot with an accuracy circle follows them as
     // they move. Pressing it again stops. If permission was already given on an earlier visit the
@@ -190,13 +212,12 @@
             if (!dot) {
                 // The familiar blue "you are here" dot, so it can't be mistaken for a map point
                 ring = L.circle(at, { radius: accuracy, color: YOU, weight: 1, opacity: 0.6, fillColor: YOU, fillOpacity: 0.15, interactive: false }).addTo(map);
-                dot = L.circleMarker(at, { radius: 8, color: '#FFFFFF', weight: 3, fillColor: YOU, fillOpacity: 1 })
+                dot = L.marker(at, { icon: personIcon(), zIndexOffset: 1000, keyboard: false, title: t('Вие сте тук') })
                     .bindPopup(t('Вие сте тук')).addTo(map);
             } else {
                 ring.setLatLng(at).setRadius(accuracy);
                 dot.setLatLng(at);
             }
-            dot.bringToFront();
             if (centreNext) {
                 centreNext = false;
                 map.setView(at, Math.max(map.getZoom(), 15));
