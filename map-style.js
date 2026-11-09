@@ -173,8 +173,9 @@
     // browser asks for permission and, once allowed, a dot with an accuracy circle follows them as
     // they move. Pressing it again stops. If permission was already given on an earlier visit the
     // dot comes back by itself (without moving the map). The position never leaves the browser.
-    // onUpdate([lat, lng]) runs on every fix; returns { start(centre) } so a page can start it too.
-    function locateControl(map, { position = 'topleft', onUpdate } = {}) {
+    // onUpdate([lat, lng]) runs on every fix; onLocate([lat, lng]) once per press of the button (or
+    // start(true)), when the position is known. Returns { start(centre) } so a page can start it too.
+    function locateControl(map, { position = 'topleft', onUpdate, onLocate } = {}) {
         const t = I18N.t;
         let watchId = null;
         let dot = null;
@@ -183,11 +184,26 @@
         let wanted = false;   // tracking switched on by the visitor (kept while the tab is hidden)
         let btn = null;
 
+        // Whether the map is centred on the visitor (within a few pixels)
+        function centred() {
+            if (!dot) return false;
+            const p = map.latLngToContainerPoint(dot.getLatLng());
+            const size = map.getSize();
+            return Math.hypot(p.x - size.x / 2, p.y - size.y / 2) < 40;
+        }
+
+        // Like the big map apps: a press centres on the visitor; a press while already centred stops
+        function updateLabel() {
+            const on = btn.classList.contains('active');
+            btn.title = !on ? t('Покажи местоположението ми')
+                : centred() ? t('Скрий местоположението ми') : t('Центрирай върху мен');
+            btn.setAttribute('aria-label', btn.title);
+        }
+
         function setActive(on) {
             btn.classList.toggle('active', on);
             btn.setAttribute('aria-pressed', String(on));
-            btn.title = on ? t('Скрий местоположението ми') : t('Покажи местоположението ми');
-            btn.setAttribute('aria-label', btn.title);
+            updateLabel();
         }
 
         function clear() {
@@ -209,11 +225,14 @@
                 ring.setLatLng(at).setRadius(accuracy);
                 dot.setLatLng(at);
             }
+            const pressed = centreNext;
             if (centreNext) {
                 centreNext = false;
                 map.setView(at, Math.max(map.getZoom(), 15));
             }
             if (onUpdate) onUpdate(at);
+            if (pressed && onLocate) onLocate(at);
+            updateLabel();
         }
 
         function onError(err) {
@@ -242,7 +261,11 @@
             }
             wanted = true;
             setActive(true);
-            if (dot && centre) map.setView(dot.getLatLng(), Math.max(map.getZoom(), 15));
+            if (dot && centre) {
+                const at = [dot.getLatLng().lat, dot.getLatLng().lng];
+                map.setView(at, Math.max(map.getZoom(), 15));
+                if (onLocate) onLocate(at);
+            }
             centreNext = centre && !dot;
             watch();
         }
@@ -275,12 +298,13 @@
                 L.DomEvent.disableClickPropagation(bar);
                 L.DomEvent.on(btn, 'click', e => {
                     L.DomEvent.preventDefault(e);
-                    if (btn.classList.contains('active')) stop(); else start(true);
+                    if (btn.classList.contains('active') && centred()) stop(); else start(true);
                 });
                 return bar;
             }
         });
         new Control().addTo(map);
+        map.on('moveend', updateLabel);
 
         // Save the battery while the tab is in the background; resume when it's back
         document.addEventListener('visibilitychange', () => {
