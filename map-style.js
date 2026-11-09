@@ -171,8 +171,9 @@
 
     // "Show my location" button for a map. Nothing is asked until the visitor presses it; then the
     // browser asks for permission and, once allowed, a dot with an accuracy circle follows them as
-    // they move. Pressing it again stops. If permission was already given on an earlier visit the
-    // dot comes back by itself (without moving the map). The position never leaves the browser.
+    // they move. Every later press centres on them again; it never hides the location. If permission
+    // was already given on an earlier visit, the dot comes back by itself (without moving the map).
+    // The position never leaves the browser.
     // onUpdate([lat, lng]) runs on every fix; onLocate([lat, lng]) once per press of the button (or
     // start(true)), when the position is known. Returns { start(centre) } so a page can start it too.
     function locateControl(map, { position = 'topleft', onUpdate, onLocate } = {}) {
@@ -184,19 +185,9 @@
         let wanted = false;   // tracking switched on by the visitor (kept while the tab is hidden)
         let btn = null;
 
-        // Whether the map is centred on the visitor (within a few pixels)
-        function centred() {
-            if (!dot) return false;
-            const p = map.latLngToContainerPoint(dot.getLatLng());
-            const size = map.getSize();
-            return Math.hypot(p.x - size.x / 2, p.y - size.y / 2) < 40;
-        }
-
-        // Like the big map apps: a press centres on the visitor; a press while already centred stops
+        // Like the big map apps, every press (re)centres on the visitor; it never hides the location
         function updateLabel() {
-            const on = btn.classList.contains('active');
-            btn.title = !on ? t('Покажи местоположението ми')
-                : centred() ? t('Скрий местоположението ми') : t('Центрирай върху мен');
+            btn.title = btn.classList.contains('active') ? t('Центрирай върху мен') : t('Покажи местоположението ми');
             btn.setAttribute('aria-label', btn.title);
         }
 
@@ -232,7 +223,6 @@
             }
             if (onUpdate) onUpdate(at);
             if (pressed && onLocate) onLocate(at);
-            updateLabel();
         }
 
         function onError(err) {
@@ -298,13 +288,12 @@
                 L.DomEvent.disableClickPropagation(bar);
                 L.DomEvent.on(btn, 'click', e => {
                     L.DomEvent.preventDefault(e);
-                    if (btn.classList.contains('active') && centred()) stop(); else start(true);
+                    start(true);
                 });
                 return bar;
             }
         });
         new Control().addTo(map);
-        map.on('moveend', updateLabel);
 
         // Save the battery while the tab is in the background; resume when it's back
         document.addEventListener('visibilitychange', () => {
