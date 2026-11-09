@@ -65,7 +65,8 @@
     const groups = {};
     const counts = {};
     const inputs = {};
-    const visible = new Set(LAYERS.filter(l => !l.off).map(l => l.key));
+    // Start calm: only the iodine tablet points; the rest are one tick away in the layer panel
+    const visible = new Set(['iodine']);
     let data = {};
     let overlay = null;
 
