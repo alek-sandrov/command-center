@@ -1657,7 +1657,8 @@ header h1::before {
 }
 
 .leaflet-bar a,
-.leaflet-bar a:hover {
+.leaflet-bar a:hover,
+.leaflet-bar a:focus {
     background: rgba(10, 12, 15, 0.94);
     color: var(--text);
     border-bottom-color: var(--line-strong);
@@ -1666,6 +1667,31 @@ header h1::before {
 
 .leaflet-bar a:hover {
     color: var(--accent);
+}
+
+/* "Show my location" button on the maps (map-style.js locateControl) */
+.locate-control .locate-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.locate-control svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+}
+
+.locate-control .locate-btn.active,
+.locate-control .locate-btn.active:hover {
+    color: var(--accent);
+}
+
+.locate-control .locate-btn.active svg circle:first-child {
+    fill: currentColor;
 }
 
 .leaflet-control-attribution {

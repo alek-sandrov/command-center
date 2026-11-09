@@ -91,6 +91,9 @@
         'Минерални извори': 'Mineral springs', 'Метро': 'Metro', 'Болници': 'Hospitals', 'Аптеки': 'Pharmacies',
         'Маршрут': 'Directions', 'Най-близо до вас': 'Nearest to you', 'Търсене...': 'Locating...',
         'Вие сте тук': 'You are here',
+        'Покажи местоположението ми': 'Show my location',
+        'Скрий местоположението ми': 'Hide my location',
+        'Местоположението ви не може да бъде определено в момента. Опитайте отново.': 'Your location can\'t be found right now. Please try again.',
         'Браузърът ви не поддържа определяне на местоположение.': 'Your browser does not support location.',
         'Не успяхме да определим местоположението ви. Проверете дали сте разрешили достъп до локацията.':
             'We could not find your location. Please check that location access is allowed.',
