@@ -2035,12 +2035,28 @@ footer > p {
         margin-right: 0;
     }
 
+    .nav-container {
+        gap: 8px;
+    }
+
+    .nav-brand {
+        gap: 8px;
+    }
+
+    .brand-mark {
+        width: 22px;
+        height: 22px;
+    }
+
     .brand-text {
-        font-size: 13px;
+        font-size: 12px;
+        letter-spacing: 0.04em;
     }
 
     .district-select {
-        max-width: 140px;
+        max-width: 124px;
+        padding-right: 28px;
+        background-position: right 10px center;
     }
 
     .map-foot {

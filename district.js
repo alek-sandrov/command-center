@@ -69,7 +69,7 @@
         select.className = 'district-select';
         select.setAttribute('aria-label', I18N.t('Изберете район'));
         select.add(new Option(I18N.t('Цяла София'), ''));
-        LIST.forEach(d => select.add(new Option(I18N.district(d.name), d.slug)));
+        LIST.forEach(d => select.add(new Option(I18N.districtName(d.name), d.slug)));  // just the name: the menu only lists districts
         select.value = current?.slug || '';
         select.addEventListener('change', () => set(select.value));
         nav.querySelector('.nav-brand').after(select);
