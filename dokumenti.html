@@ -42,20 +42,20 @@
                 <h2>Планове за защита на населението на Столична Община</h2>
 
                 <div class="map-gallery">
-                    <div class="map-item" onclick="openModal('1UCxnFrJ6XVQ-G_66tDkIxjRvg8x6zrz7', 'СО - План за защита при наводнения')">
-                        <img src="https://drive.google.com/thumbnail?id=1UCxnFrJ6XVQ-G_66tDkIxjRvg8x6zrz7&sz=w800" alt="СО - План за защита при наводнения" onerror="this.src='https://via.placeholder.com/400x300?text=План+наводнения'">
+                    <a class="map-item" href="planove/plan-navodnenia.pdf" target="_blank" rel="noopener">
+                        <img src="img/planove/plan-navodnenia.jpg" alt="СО - План за защита при наводнения" loading="lazy">
                         <div class="map-label">СО - План за защита при наводнения</div>
-                    </div>
+                    </a>
 
-                    <div class="map-item" onclick="openModal('18iNPnkJFkCLJWy5S8BcyA_5l3zJt6Wmw', 'СО - План за защита при земетресения')">
-                        <img src="https://drive.google.com/thumbnail?id=18iNPnkJFkCLJWy5S8BcyA_5l3zJt6Wmw&sz=w800" alt="СО - План за защита при земетресения" onerror="this.src='https://via.placeholder.com/400x300?text=План+земетресения'">
+                    <a class="map-item" href="planove/plan-zemetresenia.pdf" target="_blank" rel="noopener">
+                        <img src="img/planove/plan-zemetresenia.jpg" alt="СО - План за защита при земетресения" loading="lazy">
                         <div class="map-label">СО - План за защита при земетресения</div>
-                    </div>
+                    </a>
 
-                    <div class="map-item" onclick="openModal('1FnqDX6fUQX0YI2O7hl9hC6x2FzA-RrI3', 'СО - План за защита при ядрени и радиационни заплахи')">
-                        <img src="https://drive.google.com/thumbnail?id=1FnqDX6fUQX0YI2O7hl9hC6x2FzA-RrI3&sz=w800" alt="СО - План за защита при ядрени и радиационни заплахи" onerror="this.src='https://via.placeholder.com/400x300?text=План+радиация'">
+                    <a class="map-item" href="planove/plan-radiacia.pdf" target="_blank" rel="noopener">
+                        <img src="img/planove/plan-radiacia.jpg" alt="СО - План за защита при ядрени и радиационни заплахи" loading="lazy">
                         <div class="map-label">СО - План за защита при ядрени и радиационни заплахи</div>
-                    </div>
+                    </a>
                 </div>
             </section>
 
@@ -75,7 +75,7 @@
 
                 <div class="map-gallery">
                     <a href="rayoni.html" class="map-item" style="text-decoration: none;">
-                        <img src="https://drive.google.com/thumbnail?id=1e6dAQrZwqBgJoS3L_izkb9URzboHhSRD&sz=w400" alt="Пунктове за защита">
+                        <img src="img/punktove/thumb/rayon-sredets.jpg" alt="Пунктове за защита" loading="lazy">
                         <div class="map-label">PDF с пунктове за защита на населението при бедствия и аварии</div>
                     </a>
                 </div>
@@ -87,23 +87,8 @@
         </footer>
     </div>
 
-    <!-- Modal for full-size image viewing -->
-    <div id="imageModal" class="modal" onclick="closeModal()">
-        <span class="modal-close">&times;</span>
-        <div class="modal-content-wrapper">
-            <img class="modal-content" id="modalImage" alt="" style="display: none;">
-            <div class="modal-caption" id="modalCaption"></div>
-        </div>
-        <div class="modal-nav">
-            <button class="modal-nav-btn" onclick="event.stopPropagation(); viewInDrive()">Виж в Drive</button>
-            <button class="modal-nav-btn" onclick="event.stopPropagation(); downloadImage()">Изтегли</button>
-        </div>
-    </div>
-
     <script src="i18n.js"></script>
     <script src="district.js"></script>
     <script src="chrome.js"></script>
-
-    <script src="dokumenti.js"></script>
 </body>
 </html>

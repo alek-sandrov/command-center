@@ -2,7 +2,7 @@
 let currentFileId = '';
 
 // Open modal with image
-function openModal(fileId, caption) {
+function openModal(fileId, caption, src) {
     const modal = document.getElementById('imageModal');
     const modalImg = document.getElementById('modalImage');
     const modalCaption = document.getElementById('modalCaption');
@@ -20,7 +20,8 @@ function openModal(fileId, caption) {
     };
 
     // Set the image source (this starts loading)
-    modalImg.src = `https://drive.google.com/uc?export=view&id=${fileId}`;
+    // Google no longer lets other sites show Drive images, so the page passes a copy hosted with the site
+    modalImg.src = src || `https://drive.google.com/uc?export=view&id=${fileId}`;
 
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden'; // Prevent scrolling

@@ -6,7 +6,7 @@
     let showAll = false;
 
     // Original (Bulgarian) labels, read before any translation of the page text
-    const labels = new Map(items.map(item => [item, (item.getAttribute('onclick').match(/'(Район [^']+)'\)/) || [])[1] || '']));
+    const labels = new Map(items.map(item => [item, (item.getAttribute('onclick').match(/'(Район [^']+)'[,)]/) || [])[1] || '']));
 
     function belongsTo(item, name) {
         const label = labels.get(item);
