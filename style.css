@@ -1657,7 +1657,8 @@ header h1::before {
 }
 
 .leaflet-bar a,
-.leaflet-bar a:hover {
+.leaflet-bar a:hover,
+.leaflet-bar a:focus {
     background: rgba(10, 12, 15, 0.94);
     color: var(--text);
     border-bottom-color: var(--line-strong);
@@ -1666,6 +1667,85 @@ header h1::before {
 
 .leaflet-bar a:hover {
     color: var(--accent);
+}
+
+/* The visitor's position on the maps (map-style.js youIcon): a blue dot with radar rings */
+.you-icon {
+    background: none;
+    border: 0;
+    pointer-events: none;  /* only the dot itself takes taps */
+}
+
+.you-marker {
+    position: relative;
+    width: 70px;
+    height: 70px;
+}
+
+.you-marker span {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.you-dot {
+    width: 18px;
+    height: 18px;
+    background: #3B82F6;
+    border: 3px solid #FFFFFF;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+.you-ring {
+    width: 66px;
+    height: 66px;
+    border: 1.5px solid #3B82F6;
+    opacity: 0;
+    animation: you-ring 2.4s ease-out infinite;
+}
+
+.you-ring-2 {
+    animation-delay: 1.2s;
+}
+
+@keyframes you-ring {
+    from { transform: translate(-50%, -50%) scale(0.3); opacity: 0.9; }
+    to { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+}
+
+/* Without motion: two still rings, as in the static design */
+@media (prefers-reduced-motion: reduce) {
+    .you-ring { animation: none; opacity: 0.35; }
+    .you-ring-2 { width: 44px; height: 44px; opacity: 0.6; }
+}
+
+/* "Show my location" button on the maps (map-style.js locateControl) */
+.locate-control .locate-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.locate-control svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+}
+
+.locate-control .locate-btn.active,
+.locate-control .locate-btn.active:hover {
+    color: var(--accent);
+}
+
+.locate-control .locate-btn.active svg circle:first-child {
+    fill: currentColor;
 }
 
 .leaflet-control-attribution {

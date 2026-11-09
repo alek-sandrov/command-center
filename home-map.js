@@ -14,6 +14,7 @@
         attributionControl: false
     }).setView(SOFIA, 12);
     L.control.zoom({ position: 'topright' }).addTo(map);
+    MapStyle.locateControl(map, { position: 'topright' });  // "show my location", only after the visitor allows it
     MapStyle.autoScale(map);
 
     // The scroll wheel scrolls the page, not the map, unless Ctrl/⌘ is held (a trackpad pinch

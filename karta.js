@@ -8,11 +8,19 @@ const chipCounts = {};
 let data = {};
 let outline = null;
 let userPos = null;
-let userMarker = null;
+let nearestAt = null;  // position the nearest list was last worked out for
 
 const map = L.map('map', { renderer: MapStyle.renderer() }).setView(SOFIA, 12);
 MapStyle.basemap(map);
 MapStyle.autoScale(map);
+
+// Live position from the map's locate button; the nearest list follows it as the visitor moves
+const locator = MapStyle.locateControl(map, {
+    onUpdate(at) {
+        userPos = at;
+        if (!nearestAt || distanceKm(nearestAt[0], nearestAt[1], at[0], at[1]) > 0.03) showNearest();
+    }
+});
 
 // Rows of a layer limited to the district picked in the navbar (all of Sofia if none)
 function rowsFor(key) {
@@ -96,9 +104,11 @@ function formatDistance(km) {
 }
 
 function showNearest() {
+    if (!userPos || !Object.keys(data).length) return;
     const box = document.getElementById('nearest');
-    box.innerHTML = '';
+    box.replaceChildren();
     const [lat, lng] = userPos;
+    nearestAt = userPos;
     const shown = LAYERS.filter(l => visible.has(l.key));
     if (!shown.length) return;
 
@@ -139,26 +149,16 @@ function showNearest() {
     box.append(heading, list);
 }
 
+// "Find the nearest" turns on the live location (the browser asks first); the list appears with the first fix
 document.getElementById('locate-btn').addEventListener('click', () => {
-    const btn = document.getElementById('locate-btn');
-    if (!navigator.geolocation) {
-        alert(I18N.t('Браузърът ви не поддържа определяне на местоположение.'));
-        return;
-    }
-    btn.textContent = I18N.t('Търсене...');
-    navigator.geolocation.getCurrentPosition(pos => {
-        userPos = [pos.coords.latitude, pos.coords.longitude];
-        if (userMarker) map.removeLayer(userMarker);
-        userMarker = L.circleMarker(userPos, {
-            radius: 8, color: '#0A0C0F', weight: 3, fillColor: '#F2A93B', fillOpacity: 1
-        }).bindPopup(I18N.t('Вие сте тук')).addTo(map);
-        map.setView(userPos, 15);
+    const here = locator.position();  // null once the visitor has switched the location off
+    if (here) {
+        userPos = here;
+        map.setView(here, Math.max(map.getZoom(), 15));
         showNearest();
-        btn.textContent = I18N.t('Намери най-близкия');
-    }, () => {
-        alert(I18N.t('Не успяхме да определим местоположението ви. Проверете дали сте разрешили достъп до локацията.'));
-        btn.textContent = I18N.t('Намери най-близкия');
-    }, { enableHighAccuracy: true, timeout: 15000 });
+    } else {
+        locator.start(true);
+    }
 });
 
 // Initial layers: ?layers=shelters,fountains in the URL, otherwise every layer not marked off
@@ -177,6 +177,7 @@ fetch('data/karta.json')
         initialLayers().forEach(k => setVisible(k, true));
         if (SofiaDistrict.get()) applyDistrict(SofiaDistrict.get());
         SofiaDistrict.onChange(d => applyDistrict(d));
+        showNearest();  // the location may have arrived before the data
         const dates = Object.values(json.updated || {}).sort();
         if (dates.length) {
             const [y, m, d] = dates[0].split('-');

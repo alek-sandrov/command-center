@@ -16,6 +16,7 @@
     ];
     const SOFIA = [42.6977, 23.3219];
     const ACCENT = '#F2A93B';
+    const YOU = '#3B82F6';  // the visitor's own position
 
     // Outline of a shape centred on (x, y) with "radius" s, as a list of points
     function outline(shape, x, y, s) {
@@ -155,5 +156,147 @@
         return div;
     }
 
-    window.MapStyle = { LAYERS, SOFIA, marker, renderer, autoScale, swatch, basemap, districtOverlay, directionsLink, popupFor };
+    // The visitor's own position: a blue dot with radar rings rippling out from it (style.css
+    // .you-*), easy to spot when zoomed out and unlike any of the map's points
+    function youIcon() {
+        const wrap = document.createElement('div');
+        wrap.className = 'you-marker';
+        ['you-ring', 'you-ring you-ring-2', 'you-dot'].forEach(cls => {
+            const el = document.createElement('span');
+            el.className = cls;
+            wrap.append(el);
+        });
+        return L.divIcon({ html: wrap, className: 'you-icon', iconSize: [70, 70], iconAnchor: [35, 35], popupAnchor: [0, -14] });
+    }
+
+    // "Show my location" button for a map. Nothing is asked until the visitor presses it; then the
+    // browser asks for permission and, once allowed, a dot with an accuracy circle follows them as
+    // they move. Pressing it again stops. If permission was already given on an earlier visit the
+    // dot comes back by itself (without moving the map). The position never leaves the browser.
+    // onUpdate([lat, lng]) runs on every fix; returns { start(centre) } so a page can start it too.
+    function locateControl(map, { position = 'topleft', onUpdate } = {}) {
+        const t = I18N.t;
+        let watchId = null;
+        let dot = null;
+        let ring = null;
+        let centreNext = false;
+        let wanted = false;   // tracking switched on by the visitor (kept while the tab is hidden)
+        let btn = null;
+
+        function setActive(on) {
+            btn.classList.toggle('active', on);
+            btn.setAttribute('aria-pressed', String(on));
+            btn.title = on ? t('Скрий местоположението ми') : t('Покажи местоположението ми');
+            btn.setAttribute('aria-label', btn.title);
+        }
+
+        function clear() {
+            if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+            watchId = null;
+            [dot, ring].forEach(l => l && map.removeLayer(l));
+            dot = ring = null;
+        }
+
+        function onFix(pos) {
+            const at = [pos.coords.latitude, pos.coords.longitude];
+            const accuracy = Math.min(pos.coords.accuracy || 0, 2000);
+            if (!dot) {
+                // The familiar blue "you are here" dot, so it can't be mistaken for a map point
+                ring = L.circle(at, { radius: accuracy, color: YOU, weight: 1, opacity: 0.6, fillColor: YOU, fillOpacity: 0.15, interactive: false }).addTo(map);
+                dot = L.marker(at, { icon: youIcon(), zIndexOffset: 1000, keyboard: false, title: t('Вие сте тук') })
+                    .bindPopup(t('Вие сте тук')).addTo(map);
+            } else {
+                ring.setLatLng(at).setRadius(accuracy);
+                dot.setLatLng(at);
+            }
+            if (centreNext) {
+                centreNext = false;
+                map.setView(at, Math.max(map.getZoom(), 15));
+            }
+            if (onUpdate) onUpdate(at);
+        }
+
+        function onError(err) {
+            const firstTry = !dot;
+            if (!firstTry && err && err.code !== 1) return;  // a slow fix while already tracking: keep the last dot
+            stop();
+            // A refusal or failure on the automatic restart stays silent; only a press gets a message
+            if (firstTry && centreNext) {
+                alert(err && err.code === 1
+                    ? t('Не успяхме да определим местоположението ви. Проверете дали сте разрешили достъп до локацията.')
+                    : t('Местоположението ви не може да бъде определено в момента. Опитайте отново.'));
+            }
+            centreNext = false;
+        }
+
+        function watch() {
+            if (watchId === null) {
+                watchId = navigator.geolocation.watchPosition(onFix, onError, { enableHighAccuracy: true, timeout: 20000, maximumAge: 10000 });
+            }
+        }
+
+        function start(centre = true) {
+            if (!navigator.geolocation) {
+                alert(t('Браузърът ви не поддържа определяне на местоположение.'));
+                return;
+            }
+            wanted = true;
+            setActive(true);
+            if (dot && centre) map.setView(dot.getLatLng(), Math.max(map.getZoom(), 15));
+            centreNext = centre && !dot;
+            watch();
+        }
+
+        function stop() {
+            wanted = false;
+            clear();
+            setActive(false);
+        }
+
+        const Control = L.Control.extend({
+            options: { position },
+            onAdd() {
+                const bar = L.DomUtil.create('div', 'leaflet-bar leaflet-control locate-control');
+                btn = L.DomUtil.create('a', 'locate-btn', bar);
+                btn.href = '#';
+                btn.setAttribute('role', 'button');
+                const ns = 'http://www.w3.org/2000/svg';
+                const svg = document.createElementNS(ns, 'svg');
+                svg.setAttribute('viewBox', '0 0 24 24');
+                svg.setAttribute('aria-hidden', 'true');
+                [['circle', { cx: 12, cy: 12, r: 4 }], ['circle', { cx: 12, cy: 12, r: 8 }],
+                    ['path', { d: 'M12 1v3M12 20v3M1 12h3M20 12h3' }]].forEach(([tag, attrs]) => {
+                    const el = document.createElementNS(ns, tag);
+                    Object.entries(attrs).forEach(([k, v]) => el.setAttribute(k, v));
+                    svg.append(el);
+                });
+                btn.append(svg);
+                setActive(false);
+                L.DomEvent.disableClickPropagation(bar);
+                L.DomEvent.on(btn, 'click', e => {
+                    L.DomEvent.preventDefault(e);
+                    if (btn.classList.contains('active')) stop(); else start(true);
+                });
+                return bar;
+            }
+        });
+        new Control().addTo(map);
+
+        // Save the battery while the tab is in the background; resume when it's back
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) clear();
+            else if (wanted) watch();
+        });
+
+        // Permission given on an earlier visit: show the dot again without asking or moving the map
+        if (navigator.permissions && navigator.geolocation) {
+            navigator.permissions.query({ name: 'geolocation' })
+                .then(p => { if (p.state === 'granted') start(false); })
+                .catch(() => { /* not supported for geolocation in this browser */ });
+        }
+
+        return { start, stop, position: () => (dot ? [dot.getLatLng().lat, dot.getLatLng().lng] : null) };
+    }
+
+    window.MapStyle = { LAYERS, SOFIA, marker, renderer, autoScale, swatch, basemap, districtOverlay, directionsLink, popupFor, locateControl };
 })();
