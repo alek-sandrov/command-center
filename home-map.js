@@ -14,7 +14,19 @@
         attributionControl: false
     }).setView(SOFIA, 12);
     L.control.zoom({ position: 'topright' }).addTo(map);
-    MapStyle.locateControl(map, { position: 'topright' });  // "show my location", only after the visitor allows it
+    // "Show my location", only after the visitor allows it. A press also switches the site to the
+    // visitor's district (map, status tiles and all), keeping the map centred on them.
+    let keepView = false;
+    MapStyle.locateControl(map, {
+        position: 'topright',
+        async onLocate([lat, lng]) {
+            const here = await SofiaDistrict.at(lat, lng);
+            if (!here || here === SofiaDistrict.get()) return;  // outside Sofia, or already there
+            keepView = true;
+            SofiaDistrict.set(here.slug);
+            keepView = false;
+        }
+    });
     MapStyle.autoScale(map);
 
     // The scroll wheel scrolls the page, not the map, unless Ctrl/⌘ is held (a trackpad pinch
@@ -134,12 +146,12 @@
         updateCount();
     }
 
-    async function applyDistrict(d) {
+    async function applyDistrict(d, fit = true) {
         build();
         if (overlay) map.removeLayer(overlay);
         overlay = null;
         if (!d) {
-            moveMap(() => map.setView(SOFIA, 12));
+            if (fit) moveMap(() => map.setView(SOFIA, 12));
             return;
         }
         const shape = (await SofiaDistrict.shapes())[d.index];
@@ -147,7 +159,7 @@
         overlay = MapStyle.districtOverlay(shape).addTo(map);
         // Leave room on the left for the layer panel when the map is wide enough
         const wide = box.clientWidth > 640;
-        moveMap(() => map.fitBounds(overlay.getBounds(), { paddingTopLeft: [wide ? 290 : 20, 20], paddingBottomRight: [20, 60] }));
+        if (fit) moveMap(() => map.fitBounds(overlay.getBounds(), { paddingTopLeft: [wide ? 290 : 20, 20], paddingBottomRight: [20, 60] }));
     }
 
     buildPanel();
@@ -156,7 +168,7 @@
         .then(json => {
             data = json.layers;
             applyDistrict(SofiaDistrict.get());
-            SofiaDistrict.onChange(applyDistrict);
+            SofiaDistrict.onChange(d => applyDistrict(d, !keepView));
         })
         .catch(() => { list.append(Object.assign(document.createElement('p'), { className: 'status-empty', textContent: t('Неуспешно зареждане на данните.') })); });
 })();
