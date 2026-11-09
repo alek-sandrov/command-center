@@ -53,6 +53,15 @@ function downloadImage() {
     }
 }
 
+// Wire up the thumbnails and modal buttons here rather than with inline onclick
+// attributes, so the Content-Security-Policy can forbid inline scripts
+document.querySelectorAll('.map-item[data-file]').forEach(item => {
+    item.addEventListener('click', () => openModal(item.dataset.file, item.dataset.caption, item.dataset.src));
+});
+document.getElementById('imageModal')?.addEventListener('click', closeModal);
+document.getElementById('modal-drive')?.addEventListener('click', event => { event.stopPropagation(); viewInDrive(); });
+document.getElementById('modal-download')?.addEventListener('click', event => { event.stopPropagation(); downloadImage(); });
+
 // Close modal on Escape key
 document.addEventListener('keydown', function(event) {
     if (event.key === 'Escape') {

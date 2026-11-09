@@ -10,12 +10,19 @@ Pulls every layer from its public source and writes one compact file:
 If a source can't be reached, that layer keeps its points from the previous
 data/karta.json so a flaky server never empties the map.
 
+A layer that changes suspiciously much since the last run (many points added,
+removed or moved) is also not published: it keeps its previous points and the
+run exits with an error, so the change gets a human look first. Anyone who can
+edit a source map could otherwise put false shelter locations on the site.
+Set ACCEPT_BIG_CHANGES=1 to publish such a change once it has been checked.
+
 Every point is tagged with the index of its district (data/rayoni.json, built
 from the municipality's official district boundaries), or -1 if outside all.
 
 Usage: python3 scripts/build_karta.py
 """
 import json
+import os
 import re
 import sys
 import time
@@ -294,6 +301,27 @@ def tag(rows, full):
                  next((i for i, polys in enumerate(full) if in_polygons(r[1], r[0], polys)), -1)]
 
 
+# Thresholds for a suspicious change, checked only for layers with enough points to compare
+MIN_POINTS_TO_CHECK = 20
+MAX_COUNT_CHANGE = 0.30   # count may grow or shrink by at most 30%
+MAX_MOVED = 0.25          # at most 25% of the previous points may disappear or move by more than ~10 m
+
+
+def suspicious_change(key, old_rows, new_rows):
+    """Reason the new points for a layer look tampered with or broken, or None if they look fine."""
+    if len(old_rows) < MIN_POINTS_TO_CHECK:
+        return None
+    change = (len(new_rows) - len(old_rows)) / len(old_rows)
+    if abs(change) > MAX_COUNT_CHANGE:
+        return f'{key}: {len(old_rows)} -> {len(new_rows)} points ({change:+.0%})'
+    spot = lambda r: (round(r[0], 4), round(r[1], 4))
+    new_spots = {spot(r) for r in new_rows}
+    gone = sum(spot(r) not in new_spots for r in old_rows) / len(old_rows)
+    if gone > MAX_MOVED:
+        return f'{key}: {gone:.0%} of the previous points were removed or moved'
+    return None
+
+
 def main():
     old = json.loads(OUT.read_text(encoding='utf-8')) if OUT.exists() else {'layers': {}, 'updated': {}}
     layers, updated = dict(old.get('layers', {})), dict(old.get('updated', {}))
@@ -306,7 +334,8 @@ def main():
         (('fountains',), lambda: {'fountains': fountains()}),
         (('hospitals', 'pharmacies'), osm),
     ]
-    failed = []
+    failed, rejected = [], []
+    accept_big = os.environ.get('ACCEPT_BIG_CHANGES') == '1'
     try:
         full, light = districts()
         DISTRICTS_OUT.write_text(json.dumps(light, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
@@ -320,6 +349,13 @@ def main():
             for k in keys:
                 if not result[k]:
                     raise RuntimeError(f'{k}: no points returned')
+            reasons = [r for k in keys if (r := suspicious_change(k, layers.get(k, []), result[k]))]
+            if reasons and not accept_big:
+                rejected.extend(reasons)
+                kept = ', '.join(f'{k}={len(layers.get(k, []))}' for k in keys)
+                print(f'HOLD {"; ".join(reasons)} (keeping previous: {kept}; '
+                      'check the source and rerun with ACCEPT_BIG_CHANGES=1 if it is genuine)', file=sys.stderr)
+                continue
             for k in keys:
                 layers[k] = result[k]
                 updated[k] = today
@@ -337,7 +373,10 @@ def main():
     OUT.write_text(json.dumps({'updated': updated, 'layers': layers}, ensure_ascii=False,
                               separators=(',', ':')), encoding='utf-8')
     print(f'wrote {OUT} ({OUT.stat().st_size // 1024} KB)')
-    # Only fail the run when nothing at all could be refreshed
+    # Fail the run when nothing at all could be refreshed, or a change is waiting for review
+    if rejected:
+        print(f'Held back for review: {"; ".join(rejected)}', file=sys.stderr)
+        return 2
     return 1 if len(failed) == len(builders) else 0
 
 
