@@ -1,18 +1,5 @@
-// Map layers in display order. Keys match data/karta.json; rows are
-// [lat, lng, name, info, extra, districtIndex] (districtIndex matches district.js, -1 = outside)
-const LAYERS = [
-    { key: 'shelters', icon: '🛡️', label: 'Бомбоубежища', colour: '#6366f1', radius: 8 },
-    { key: 'evac', icon: '🏫', label: 'Сгради за настаняване', colour: '#3b82f6' },
-    { key: 'iodine', icon: '💊', label: 'Йодни таблетки', colour: '#f59e0b' },
-    { key: 'tents', icon: '⛺', label: 'Палатки', colour: '#22c55e' },
-    { key: 'fountains', icon: '💧', label: 'Чешмите', colour: '#06b6d4' },
-    { key: 'springs', icon: '♨️', label: 'Минерални извори', colour: '#14b8a6' },
-    { key: 'metro', icon: '🚇', label: 'Метро', colour: '#a855f7' },
-    { key: 'hospitals', icon: '🏥', label: 'Болници', colour: '#ef4444' },
-    { key: 'pharmacies', icon: '⚕️', label: 'Аптеки', colour: '#ec4899', radius: 4, off: true }
-];
-
-const SOFIA = [42.6977, 23.3219];
+// The layer list, marker shapes and basemap are shared with the home page (map-style.js)
+const { LAYERS, SOFIA, marker, swatch, popupFor, directionsLink } = MapStyle;
 const layerByKey = Object.fromEntries(LAYERS.map(l => [l.key, l]));
 const groups = {};
 const visible = new Set();
@@ -23,38 +10,9 @@ let outline = null;
 let userPos = null;
 let userMarker = null;
 
-const map = L.map('map', { preferCanvas: true }).setView(SOFIA, 12);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-}).addTo(map);
-
-function directionsLink(lat, lng) {
-    const a = document.createElement('a');
-    a.href = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
-    a.target = '_blank';
-    a.rel = 'noopener';
-    a.textContent = I18N.t('🧭 Маршрут');
-    return a;
-}
-
-// Popups are built from DOM nodes so text from the data sources is never parsed as HTML
-function popupFor(layer, [lat, lng, name, info, extra]) {
-    const div = document.createElement('div');
-    const kind = document.createElement('div');
-    kind.className = 'popup-kind';
-    kind.textContent = `${layer.icon} ${I18N.t(layer.label)}`;
-    const title = document.createElement('strong');
-    title.textContent = I18N.text(name) || I18N.t(layer.label);
-    div.append(kind, title);
-    [info !== name ? info : '', extra === 'вход' ? '' : extra].filter(Boolean).forEach(text => {
-        div.appendChild(document.createElement('br'));
-        div.appendChild(document.createTextNode(I18N.text(text)));
-    });
-    div.appendChild(document.createElement('br'));
-    div.appendChild(directionsLink(lat, lng));
-    return div;
-}
+const map = L.map('map', { renderer: MapStyle.renderer() }).setView(SOFIA, 12);
+MapStyle.basemap(map);
+MapStyle.autoScale(map);
 
 // Rows of a layer limited to the district picked in the navbar (all of Sofia if none)
 function rowsFor(key) {
@@ -66,18 +24,11 @@ function buildLayer(layer) {
     if (groups[layer.key]) map.removeLayer(groups[layer.key]);
     const group = L.layerGroup();
     rowsFor(layer.key).forEach(p => {
-        const small = p[4] === 'вход';
-        L.circleMarker([p[0], p[1]], {
-            radius: small ? 4 : (layer.radius || 6),
-            color: '#0f172a',
-            weight: 1,
-            fillColor: layer.colour,
-            fillOpacity: 0.9
-        }).bindPopup(() => popupFor(layer, p)).addTo(group);
+        marker(layer, p).bindPopup(() => popupFor(layer, p)).addTo(group);
     });
     groups[layer.key] = group;
     if (visible.has(layer.key)) group.addTo(map);
-    if (chipCounts[layer.key]) chipCounts[layer.key].textContent = `${layer.icon} ${I18N.t(layer.label)} (${rowsFor(layer.key).length})`;
+    if (chipCounts[layer.key]) chipCounts[layer.key].textContent = String(rowsFor(layer.key).length);
 }
 
 async function applyDistrict(d, fit = true) {
@@ -93,9 +44,7 @@ async function applyDistrict(d, fit = true) {
     }
     const shape = (await SofiaDistrict.shapes())[d.index];
     if (SofiaDistrict.get() !== d) return;  // changed again while loading
-    outline = L.polygon(shape.polygons.map(poly => poly.map(ring => ring.map(([lng, lat]) => [lat, lng]))), {
-        color: '#6366f1', weight: 3, fill: true, fillOpacity: 0.04, interactive: false
-    }).addTo(map);
+    outline = MapStyle.districtOverlay(shape).addTo(map);
     if (fit) map.fitBounds(outline.getBounds(), { padding: [20, 20] });
 }
 
@@ -108,6 +57,7 @@ function setVisible(key, on) {
         map.removeLayer(groups[key]);
     }
     chips[key].classList.toggle('active', on);
+    chips[key].setAttribute('aria-pressed', String(on));
     if (userPos) showNearest();
 }
 
@@ -117,11 +67,14 @@ function buildFilters() {
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'type-chip';
-        const dot = document.createElement('span');
-        dot.className = 'type-dot';
-        dot.style.background = layer.colour;
-        chipCounts[layer.key] = document.createTextNode(`${layer.icon} ${I18N.t(layer.label)} (${rowsFor(layer.key).length})`);
-        btn.append(dot, chipCounts[layer.key]);
+        btn.setAttribute('aria-pressed', 'false');
+        const name = document.createElement('span');
+        name.className = 'type-name';
+        name.textContent = I18N.t(layer.label);
+        chipCounts[layer.key] = document.createElement('span');
+        chipCounts[layer.key].className = 'type-count';
+        chipCounts[layer.key].textContent = String(rowsFor(layer.key).length);
+        btn.append(swatch(layer), name, chipCounts[layer.key]);
         btn.addEventListener('click', () => setVisible(layer.key, !visible.has(layer.key)));
         chips[layer.key] = btn;
         box.appendChild(btn);
@@ -165,10 +118,9 @@ function showNearest() {
 
         const item = document.createElement('div');
         item.className = 'nearest-item';
-        item.style.borderLeftColor = layer.colour;
         const type = document.createElement('div');
         type.className = 'nearest-type';
-        type.textContent = `${layer.icon} ${I18N.t(layer.label)}`;
+        type.append(swatch(layer), I18N.t(layer.label));
         const title = document.createElement('div');
         title.className = 'nearest-name';
         title.textContent = I18N.text(name) || I18N.t(layer.label);
@@ -193,19 +145,19 @@ document.getElementById('locate-btn').addEventListener('click', () => {
         alert(I18N.t('Браузърът ви не поддържа определяне на местоположение.'));
         return;
     }
-    btn.textContent = I18N.t('⏳ Търсене...');
+    btn.textContent = I18N.t('Търсене...');
     navigator.geolocation.getCurrentPosition(pos => {
         userPos = [pos.coords.latitude, pos.coords.longitude];
         if (userMarker) map.removeLayer(userMarker);
         userMarker = L.circleMarker(userPos, {
-            radius: 9, color: '#fff', weight: 3, fillColor: '#0ea5e9', fillOpacity: 1
+            radius: 8, color: '#0A0C0F', weight: 3, fillColor: '#F2A93B', fillOpacity: 1
         }).bindPopup(I18N.t('Вие сте тук')).addTo(map);
         map.setView(userPos, 15);
         showNearest();
-        btn.textContent = I18N.t('📍 Намери най-близкия');
+        btn.textContent = I18N.t('Намери най-близкия');
     }, () => {
         alert(I18N.t('Не успяхме да определим местоположението ви. Проверете дали сте разрешили достъп до локацията.'));
-        btn.textContent = I18N.t('📍 Намери най-близкия');
+        btn.textContent = I18N.t('Намери най-близкия');
     }, { enableHighAccuracy: true, timeout: 15000 });
 });
 

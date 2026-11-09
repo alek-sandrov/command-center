@@ -4,12 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>sofia-prepping.com</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <a href="index.html" class="nav-brand">sofia-prepping.com</a>
+            <a href="index.html" class="nav-brand" aria-label="sofia-prepping.com">
+                <svg class="brand-mark" width="26" height="26" viewBox="0 0 28 28" fill="none" aria-hidden="true"><rect x="2" y="2" width="24" height="24"/><circle cx="14" cy="14" r="6"/><path d="M14 2v6M14 20v6M2 14h6M20 14h6"/></svg>
+                <span class="brand-text">SOFIA<span class="brand-slash">/</span>PREP</span>
+            </a>
             <div class="nav-links">
                 <a href="index.html" class="nav-link active">Начало</a>
                 <a href="karti.html" class="nav-link">Карти</a>
@@ -19,104 +23,157 @@
         </div>
     </nav>
 
-    <div class="container home">
-        <!-- 1. What's happening now -->
-        <section class="card status-card">
-            <h2 id="status-title">📡 Състояние – цяла София</h2>
-            <div id="status-tiles" class="status-tiles">
-                <div class="loading">Зареждане...</div>
+    <!-- 1. Map + situation assessment -->
+    <section class="hero" aria-label="Карта и обстановка">
+        <div class="hero-inner">
+            <div class="hero-map">
+                <div id="home-map" class="home-map"></div>
+                <div id="map-layers" class="map-layers">
+                    <button type="button" id="map-layers-toggle" class="map-layers-head" aria-expanded="true" aria-controls="map-layers-body">
+                        <span class="map-layers-title">Слоеве</span>
+                        <span id="home-layers-count" class="map-layers-count"></span>
+                        <svg class="map-layers-chevron" width="10" height="6" viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+                    </button>
+                    <div id="map-layers-body" class="map-layers-body">
+                        <div id="home-layers" class="map-layers-list"></div>
+                    </div>
+                </div>
+                <div id="map-scroll-hint" class="map-scroll-hint" aria-hidden="true"></div>
+                <div class="map-foot">
+                    <span class="map-credit">© OpenStreetMap · Столична община – отворени данни</span>
+                    <a href="karta.html" class="btn-primary">Отвори картата</a>
+                </div>
             </div>
-            <div id="status-detail" class="status-detail" hidden></div>
-            <p id="status-updated" class="status-updated"></p>
-        </section>
 
-        <div class="home-row">
-            <!-- 2a. News: BTA latest + official announcements -->
-            <section class="card news-feed-card">
-                <h2>📢 Новини и съобщения</h2>
-                <div class="news-tabs" role="tablist">
-                    <button type="button" class="news-tab active" data-tab="latest">Последни новини</button>
-                    <button type="button" class="news-tab" data-tab="official">Официални съобщения</button>
+            <aside class="hero-status">
+                <div class="assessment">
+                    <div id="status-place" class="kicker">Оценка</div>
+                    <h1 id="status-title" class="assessment-title">Зареждане...</h1>
+                    <p id="status-summary" class="assessment-summary"></p>
+                    <div id="readiness" class="readiness" role="img" aria-label="">
+                        <span></span><span></span><span></span><span></span>
+                    </div>
+                    <div class="readiness-scale"><span>Ниво 1 – норма</span><span>Ниво 4 – тревога</span></div>
                 </div>
-                <div id="news-list" class="news-list"></div>
-                <div class="news-actions">
-                    <button type="button" id="news-more" class="link-button" hidden>Покажи още</button>
+                <div id="status-tiles" class="status-tiles">
+                    <div class="loading">Зареждане...</div>
                 </div>
-                <p id="news-source" class="status-source"></p>
-            </section>
-
-            <!-- 2b. The site's own tools -->
-            <section class="card actions-card">
-                <h2>🧭 Бърз достъп</h2>
-                <nav class="action-list">
-                    <a href="karta.html" class="action-item">
-                        <span class="action-icon">🗺️</span>
-                        <span class="action-text"><strong>Интерактивна карта</strong><small>Убежища, вода, евакуация, йод, болници</small></span>
-                    </a>
-                    <a href="ubezhishta.html" class="action-item">
-                        <span class="action-icon">🛡️</span>
-                        <span class="action-text"><strong>Бомбоубежища</strong><small>Скривалища и противорадиационни укрития</small></span>
-                    </a>
-                    <a href="cheshmi.html" class="action-item">
-                        <span class="action-icon">💧</span>
-                        <span class="action-text"><strong>Чешмите</strong><small>Питейна вода в града</small></span>
-                    </a>
-                    <a href="signali.html" class="action-item">
-                        <span class="action-icon">🔊</span>
-                        <span class="action-text"><strong>Сигнали за тревога</strong><small>Как звучат сирените, BG-ALERT</small></span>
-                    </a>
-                    <a href="dokumenti.html" class="action-item">
-                        <span class="action-icon">📄</span>
-                        <span class="action-text"><strong>Планове за защита</strong><small>Земетресение, наводнение, радиация</small></span>
-                    </a>
-                </nav>
-            </section>
+                <div id="status-detail" class="status-detail" role="region" hidden></div>
+                <p id="status-updated" class="status-updated"></p>
+            </aside>
         </div>
+    </section>
 
-        <!-- 3. Everything else: external links -->
-        <section class="card links-card">
-            <h2>🔗 Полезни връзки</h2>
-            <div class="link-groups">
-                <div class="link-group">
-                    <h3>📰 Медии</h3>
-                    <div class="chips">
-                        <a class="chip" href="https://www.bta.bg/bg" target="_blank" rel="noopener">БТА</a>
-                        <a class="chip" href="https://nova.bg/news" target="_blank" rel="noopener">Nova</a>
-                        <a class="chip" href="https://news.google.com" target="_blank" rel="noopener">Google News</a>
-                        <a class="chip" href="https://www.bbc.com/news" target="_blank" rel="noopener">BBC</a>
-                        <a class="chip" href="https://www.reuters.com" target="_blank" rel="noopener">Reuters</a>
-                        <a class="chip" href="https://apnews.com" target="_blank" rel="noopener">AP</a>
-                        <a class="chip" href="https://www.reddit.com/r/news" target="_blank" rel="noopener">Reddit</a>
-                    </div>
-                </div>
-                <div class="link-group">
-                    <h3>⚠️ Аварии и мониторинг</h3>
-                    <div class="chips">
-                        <a class="chip" href="https://www.sofiyskavoda.bg/water-stops" target="_blank" rel="noopener">🚰 Софийска вода</a>
-                        <a class="chip" href="https://ermzapad.bg/bg/za-klienta/prekusvania/" target="_blank" rel="noopener">⚡ ЕРМ Запад</a>
-                        <a class="chip" href="https://www.toplo.bg/accidents-and-maintenance" target="_blank" rel="noopener">🔥 Топлофикация</a>
-                        <a class="chip" href="https://remap.jrc.ec.europa.eu/Advanced.aspx" target="_blank" rel="noopener">☢️ Радиация (EURDEP)</a>
-                        <a class="chip" href="https://www.flightradar24.com/43.02,24.38/6" target="_blank" rel="noopener">✈️ FlightRadar</a>
-                    </div>
-                </div>
-                <div class="link-group">
-                    <h3>📹 Камери и други</h3>
-                    <div class="chips">
-                        <a class="chip" href="https://weather-webcam.eu/sofia-orlov-most-na-jivo/" target="_blank" rel="noopener">📷 Орлов Мост</a>
-                        <a class="chip" href="https://weather-webcam.eu/kamera-na-jivo-sofia-kvartal-lagera-panorama-vitosha/" target="_blank" rel="noopener">📷 ж.к. Лагера</a>
-                        <a class="chip" href="https://drive.google.com/drive/u/1/folders/1hSqaeqcsC-OYU15GVzz0Ut5DP9XdDMdu" target="_blank" rel="noopener">💾 Drive</a>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <footer>
-            <p>sofia-prepping.com - София</p>
-        </footer>
+    <!-- 2. Latest headline -->
+    <div class="ticker">
+        <div class="ticker-inner">
+            <span id="ticker-stamp" class="ticker-stamp">БТА</span>
+            <a id="ticker-link" class="ticker-text" href="#news" target="_blank" rel="noopener"></a>
+        </div>
     </div>
 
+    <div class="container home">
+        <!-- 3. The site's own tools -->
+        <nav class="protocols" aria-label="Бърз достъп">
+            <a href="karta.html" class="protocol" style="--c: #F2A93B">
+                <span class="protocol-icon"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></span>
+                <span class="protocol-text"><strong>Интерактивна карта</strong><small>Убежища, вода, евакуация, йод, болници</small></span>
+                <span class="protocol-arrow" aria-hidden="true">→</span>
+            </a>
+            <a href="ubezhishta.html" class="protocol" style="--c: #E6E9ED">
+                <span class="protocol-icon"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></span>
+                <span class="protocol-text"><strong>Бомбоубежища</strong><small>Скривалища и противорадиационни укрития</small></span>
+                <span class="protocol-arrow" aria-hidden="true">→</span>
+            </a>
+            <a href="cheshmi.html" class="protocol" style="--c: #5FD4E6">
+                <span class="protocol-icon"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c3.5 4.5 6 7.8 6 11a6 6 0 0 1-12 0c0-3.2 2.5-6.5 6-11z"/></svg></span>
+                <span class="protocol-text"><strong>Чешмите</strong><small>Питейна вода в града</small></span>
+                <span class="protocol-arrow" aria-hidden="true">→</span>
+            </a>
+            <a href="signali.html" class="protocol" style="--c: #FF6B6B">
+                <span class="protocol-icon"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 9a4 4 0 0 1 0 6M19 6.5a8 8 0 0 1 0 11"/></svg></span>
+                <span class="protocol-text"><strong>Сигнали за тревога</strong><small>Как звучат сирените, BG-ALERT</small></span>
+                <span class="protocol-arrow" aria-hidden="true">→</span>
+            </a>
+            <a href="dokumenti.html" class="protocol" style="--c: #7FB2FF">
+                <span class="protocol-icon"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 12h7M9 16h7"/></svg></span>
+                <span class="protocol-text"><strong>Планове за защита</strong><small>Земетресение, наводнение, радиация</small></span>
+                <span class="protocol-arrow" aria-hidden="true">→</span>
+            </a>
+            <a href="materiali.html" class="protocol" style="--c: #D29BFF">
+                <span class="protocol-icon"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8V3h10v5"/><rect x="3" y="8" width="18" height="9"/><path d="M7 14h10v7H7z"/></svg></span>
+                <span class="protocol-text"><strong>Материали за печат</strong><small>Листовка A4 за всеки район</small></span>
+                <span class="protocol-arrow" aria-hidden="true">→</span>
+            </a>
+        </nav>
+
+        <div class="home-row">
+            <!-- 4. News: BTA latest + official announcements -->
+            <section id="news" class="panel news-feed-card">
+                <div class="panel-head">
+                    <h2>Информационен поток</h2>
+                    <div class="news-tabs" role="tablist">
+                        <button type="button" class="news-tab active" data-tab="latest">Последни новини</button>
+                        <button type="button" class="news-tab" data-tab="official">Официални съобщения</button>
+                    </div>
+                </div>
+                <div id="news-list" class="news-list"></div>
+                <div class="panel-foot">
+                    <p id="news-source" class="status-source"></p>
+                    <button type="button" id="news-more" class="link-button" hidden>Покажи още</button>
+                </div>
+            </section>
+
+            <!-- 5. External links -->
+            <aside class="panel links-card">
+                <div class="panel-head"><h2>Източници</h2></div>
+                <div class="link-groups">
+                    <div class="link-group">
+                        <h3>Медии</h3>
+                        <div class="chips">
+                            <a class="chip" href="https://www.bta.bg/bg" target="_blank" rel="noopener">БТА</a>
+                            <a class="chip" href="https://nova.bg/news" target="_blank" rel="noopener">Nova</a>
+                            <a class="chip" href="https://news.google.com" target="_blank" rel="noopener">Google News</a>
+                            <a class="chip" href="https://www.bbc.com/news" target="_blank" rel="noopener">BBC</a>
+                            <a class="chip" href="https://www.reuters.com" target="_blank" rel="noopener">Reuters</a>
+                            <a class="chip" href="https://apnews.com" target="_blank" rel="noopener">AP</a>
+                            <a class="chip" href="https://www.reddit.com/r/news" target="_blank" rel="noopener">Reddit</a>
+                        </div>
+                    </div>
+                    <div class="link-group">
+                        <h3>Аварии и мониторинг</h3>
+                        <div class="chips">
+                            <a class="chip" href="https://www.sofiyskavoda.bg/water-stops" target="_blank" rel="noopener">Софийска вода</a>
+                            <a class="chip" href="https://ermzapad.bg/bg/za-klienta/prekusvania/" target="_blank" rel="noopener">ЕРМ Запад</a>
+                            <a class="chip" href="https://www.toplo.bg/accidents-and-maintenance" target="_blank" rel="noopener">Топлофикация</a>
+                            <a class="chip" href="https://remap.jrc.ec.europa.eu/Advanced.aspx" target="_blank" rel="noopener">Радиация (EURDEP)</a>
+                            <a class="chip" href="https://www.flightradar24.com/43.02,24.38/6" target="_blank" rel="noopener">FlightRadar</a>
+                        </div>
+                    </div>
+                    <div class="link-group">
+                        <h3>Камери и други</h3>
+                        <div class="chips">
+                            <a class="chip" href="https://weather-webcam.eu/sofia-orlov-most-na-jivo/" target="_blank" rel="noopener">Орлов Мост</a>
+                            <a class="chip" href="https://weather-webcam.eu/kamera-na-jivo-sofia-kvartal-lagera-panorama-vitosha/" target="_blank" rel="noopener">ж.к. Лагера</a>
+                            <a class="chip" href="https://drive.google.com/drive/u/1/folders/1hSqaeqcsC-OYU15GVzz0Ut5DP9XdDMdu" target="_blank" rel="noopener">Drive</a>
+                        </div>
+                    </div>
+                    <p class="emergency">При опасност за живота <strong>112</strong></p>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <footer>
+        <p>sofia-prepping.com - София</p>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
     <script src="i18n.js"></script>
     <script src="district.js"></script>
+    <script src="chrome.js"></script>
+    <script src="map-style.js"></script>
+    <script src="home-map.js"></script>
     <script src="status.js"></script>
     <script src="news.js"></script>
 </body>

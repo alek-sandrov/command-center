@@ -68,7 +68,7 @@
         const select = document.createElement('select');
         select.className = 'district-select';
         select.setAttribute('aria-label', I18N.t('Изберете район'));
-        select.add(new Option(I18N.t('📍 Цяла София'), ''));
+        select.add(new Option(I18N.t('Цяла София'), ''));
         LIST.forEach(d => select.add(new Option(I18N.district(d.name), d.slug)));
         select.value = current?.slug || '';
         select.addEventListener('change', () => set(select.value));
