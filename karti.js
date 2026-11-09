@@ -9,6 +9,7 @@ function openModal(fileId, caption) {
 
     currentFileId = fileId;
     modalCaption.textContent = I18N.text(caption);
+    modalImg.alt = I18N.text(caption);
 
     // Hide image initially to prevent broken icon
     modalImg.style.display = 'none';

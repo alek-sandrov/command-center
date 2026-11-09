@@ -8,6 +8,18 @@
     strip.textContent = t('Отворени източници // публична информация');
     document.body.prepend(strip);
 
+    // "Skip to content": the first Tab stop, so keyboard users don't tab through the menu every time
+    const main = document.querySelector('.hero, .container');
+    if (main) {
+        if (!main.id) main.id = 'main';
+        main.setAttribute('tabindex', '-1');
+        const skip = document.createElement('a');
+        skip.className = 'skip-link';
+        skip.href = '#' + main.id;
+        skip.textContent = t('Към съдържанието');
+        document.body.prepend(skip);
+    }
+
     const nav = document.querySelector('.nav-container');
     if (nav) {
         const clock = document.createElement('span');
