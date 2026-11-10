@@ -43,11 +43,10 @@
         </header>
 
         <div class="grid">
-            <!-- How many documents are saved on this device (pwa.js) -->
-            <section class="card full-width offline-status" id="offline-status" hidden>
+            <!-- Save the street map and the documents for use without internet (pwa.js) -->
+            <section class="card full-width offline-packs" data-packs="map docs" hidden>
                 <h2>Без интернет</h2>
-                <p class="offline-status-text">Проверяваме кои документи са запазени...</p>
-                <button type="button" class="link-button">Провери за нови версии</button>
+                <div class="offline-pack-list"></div>
             </section>
 
             <!-- Emergency Protection Plans -->

@@ -1,30 +1,33 @@
 // Service worker: keeps a copy of the site on the phone so it works without internet.
 //
-// What is saved (offline.json lists the pages and documents; scripts/build_offline.py builds it):
-//   sp-core     every page, plus the scripts, styles and images each page uses, the map data
-//               and the libraries from cdnjs. Saved at install, refreshed at most every 6 hours.
-//   sp-docs     the protection plans and printable PDFs (~19 MB), downloaded in the background
-//               once the site is installed. A document is downloaded again only when it changes.
-//   sp-runtime  the newest copy of anything fetched while online (pages, live status, fonts,
-//               district map images that were opened), so offline shows the last values seen.
-//   sp-tiles    map background tiles that were viewed (at most MAX_TILES). OpenStreetMap does
-//               not allow bulk downloading, so only tiles the visitor has looked at are kept.
+// Saved automatically (small, so the site opens offline at all):
+//   sp-core     every page, plus the scripts, styles and images each page uses, the map points
+//               and the last homepage status (offline.json "pages" and "data"). Saved at install,
+//               refreshed at most every 6 hours.
+//   sp-runtime  the newest copy of anything fetched while online, so offline shows the last
+//               values seen (pages, live status, fonts, district map images that were opened).
+//
+// Saved only when the visitor asks (the "Без интернет" card, pwa.js), as packs from offline.json:
+//   map   sp-map    the street map of Sofia (maps/sofia.pmtiles, ~11 MB)
+//   docs  sp-docs   the protection plans and printable PDFs (~19 MB) and the in-app PDF viewer
+// Once saved, a pack's files are downloaded again only when they change (fingerprints in
+// offline.json). The visitor can remove a pack again.
 //
 // While online everything still comes fresh from the network (so updates reach people at once);
 // the saved copy is used when the network fails or takes longer than NETWORK_TIMEOUT_MS.
 
 const CORE = 'sp-core';
-const DOCS = 'sp-docs';
 const RUNTIME = 'sp-runtime';
-const TILES = 'sp-tiles';
-const STATE = '/__offline/state';          // what is saved, kept in the core cache
+const PACK_CACHES = { map: 'sp-map', docs: 'sp-docs' };
+const STATE = '/__offline/state';          // { coreAt, packs: { map: bool, docs: bool } }, in sp-core
+const SAVED = '/__offline/saved';          // { url: fingerprint } of the pack files saved, in sp-core
 const CORE_REFRESH_MS = 6 * 3600e3;
 const NETWORK_TIMEOUT_MS = 4000;
-const MAX_TILES = 800;
 const CDN = 'https://cdnjs.cloudflare.com';
-const TILE_HOST = /^[abc]?\.?tile\.openstreetmap\.org$/;
 const FONT_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com'];
 const WEATHER_HOST = 'api.open-meteo.com';
+// Big files that belong to a pack and are never saved automatically
+const PACK_ONLY = /^\/(vendor\/pdfjs\/|maps\/)/;
 
 // A page's address without .html or a query: /karta.html?rayon=x and /karta are the same page
 function pageKey(url) {
@@ -33,6 +36,8 @@ function pageKey(url) {
     if (!path) path = '/';
     return new URL(path, self.location.origin).href;
 }
+
+const abs = path => new URL(path, self.location.origin).href;
 
 // Responses that came through a redirect can't answer a page load, so store a clean copy.
 // Takes its own clone, so the response passed in can still be returned to the page.
@@ -46,19 +51,26 @@ async function storable(res) {
 // stylesheet, whose status the browser hides)
 const keepable = res => res.ok || res.type === 'opaque';
 
-async function readState() {
-    const hit = await (await caches.open(CORE)).match(STATE);
-    return hit ? hit.json() : { coreAt: 0, docs: {} };
+async function readJson(key, fallback) {
+    const hit = await (await caches.open(CORE)).match(key);
+    return hit ? hit.json() : fallback;
 }
 
-async function writeState(state) {
-    await (await caches.open(CORE)).put(STATE, new Response(JSON.stringify(state), { headers: { 'Content-Type': 'application/json' } }));
+async function writeJson(key, value) {
+    await (await caches.open(CORE)).put(key, new Response(JSON.stringify(value), { headers: { 'Content-Type': 'application/json' } }));
 }
+
+async function readState() {
+    const state = await readJson(STATE, {});
+    return { coreAt: state.coreAt || 0, packs: state.packs || {} };
+}
+
+const writeState = state => writeJson(STATE, state);
 
 async function list() {
     const res = await fetch('/offline.json', { cache: 'no-store' });
     if (!res.ok) throw new Error(`offline.json: ${res.status}`);
-    await (await caches.open(CORE)).put('/offline.json', res.clone());  // the documents page reads it offline too
+    await (await caches.open(CORE)).put('/offline.json', res.clone());  // the offline card reads it offline too
     return res.json();
 }
 
@@ -68,13 +80,17 @@ function assetsOf(html, pageUrl) {
     for (const [, ref] of html.matchAll(/\s(?:src|href)="([^"#]+)"/g)) {
         const u = new URL(ref, pageUrl);
         const local = u.origin === self.location.origin && /\.(js|css|svg|png|jpg|jpeg|webp|json|webmanifest)$/.test(u.pathname);
-        if (local || u.origin === CDN) urls.add(u.href);
+        if ((local && !PACK_ONLY.test(u.pathname.slice(1))) || u.origin === CDN) urls.add(u.href);
     }
     return urls;
 }
 
 async function inBatches(items, size, fn) {
     for (let i = 0; i < items.length; i += size) await Promise.allSettled(items.slice(i, i + size).map(fn));
+}
+
+async function broadcast(msg) {
+    for (const client of await self.clients.matchAll()) client.postMessage(msg);
 }
 
 // Save every page and everything it uses. cache: 'no-cache' revalidates with the server, so files
@@ -84,7 +100,7 @@ async function saveCore(force = false) {
     if (!force && Date.now() - state.coreAt < CORE_REFRESH_MS) return;
     const { pages, data } = await list();
     const cache = await caches.open(CORE);
-    const assets = new Set(data.map(d => new URL(d, self.location.origin).href));
+    const assets = new Set(data.map(abs));
     await inBatches(pages, 3, async page => {
         const res = await fetch(page, { cache: 'no-cache' });
         if (!res.ok) return;
@@ -96,42 +112,65 @@ async function saveCore(force = false) {
         const res = await fetch(url, { cache: 'no-cache', mode: url.startsWith(CDN) ? 'cors' : 'same-origin' });
         if (res.ok) await cache.put(url, res);
     });
-    state.coreAt = Date.now();
-    await writeState(state);
+    const fresh = await readState();  // a pack may have been chosen meanwhile
+    fresh.coreAt = Date.now();
+    await writeState(fresh);
 }
 
-// Download the documents that are missing or have changed, and drop ones no longer listed
-let docsRunning = null;
-function saveDocs() {
-    docsRunning ||= (async () => {
-        const { docs } = await list();
-        const cache = await caches.open(DOCS);
-        const state = await readState();
-        const wanted = new Set(docs.map(d => new URL(d.url, self.location.origin).href));
+// --- Packs the visitor asked for -----------------------------------------------------------------
+const running = {};
+const cancelled = {};
+
+// Download a pack's files that are missing or have changed, and drop ones no longer listed
+function savePack(name) {
+    running[name] ||= (async () => {
+        cancelled[name] = false;
+        const files = (await list()).packs[name] || [];
+        const cache = await caches.open(PACK_CACHES[name]);
+        const wanted = new Set(files.map(f => abs(f.url)));
+        let saved = await readJson(SAVED, {});
         for (const req of await cache.keys()) {
-            if (!wanted.has(req.url)) { await cache.delete(req); delete state.docs[req.url]; }
+            if (!wanted.has(req.url)) { await cache.delete(req); delete saved[req.url]; }
         }
         const todo = [];
-        for (const d of docs) {
-            const url = new URL(d.url, self.location.origin).href;
-            if (state.docs[url] !== d.hash || !(await cache.match(url))) todo.push({ url, hash: d.hash });
+        for (const f of files) {
+            const url = abs(f.url);
+            if (saved[url] !== f.hash || !(await cache.match(url))) todo.push({ url, hash: f.hash });
         }
         await inBatches(todo, 2, async ({ url, hash }) => {
+            if (cancelled[name]) return;
             const res = await fetch(url, { cache: 'no-cache' });
-            if (!res.ok) return;
+            if (!res.ok || cancelled[name]) return;
             await cache.put(url, await storable(res));
-            state.docs[url] = hash;
-            await writeState(state);
-            broadcast({ type: 'docs-progress' });
+            if (name === 'map') mapBlob = null;  // read the new file on the next request
+            saved = await readJson(SAVED, {});
+            saved[url] = hash;
+            await writeJson(SAVED, saved);
+            broadcast({ type: 'pack-progress', pack: name });
         });
-        await writeState(state);
-        broadcast({ type: 'docs-progress' });
-    })().finally(() => { docsRunning = null; });
-    return docsRunning;
+        broadcast({ type: 'pack-progress', pack: name });
+    })().finally(() => { running[name] = null; });
+    return running[name];
 }
 
-async function broadcast(msg) {
-    for (const client of await self.clients.matchAll()) client.postMessage(msg);
+async function removePack(name) {
+    cancelled[name] = true;
+    await running[name]?.catch(() => {});
+    const cache = await caches.open(PACK_CACHES[name]);
+    const saved = await readJson(SAVED, {});
+    for (const req of await cache.keys()) delete saved[req.url];
+    await writeJson(SAVED, saved);
+    await caches.delete(PACK_CACHES[name]);
+    mapBlob = null;
+    broadcast({ type: 'pack-progress', pack: name });
+}
+
+async function setPack(name, wanted) {
+    if (!PACK_CACHES[name]) return;
+    const state = await readState();
+    state.packs[name] = wanted;
+    await writeState(state);
+    return wanted ? savePack(name) : removePack(name);
 }
 
 self.addEventListener('install', event => {
@@ -140,19 +179,33 @@ self.addEventListener('install', event => {
 
 self.addEventListener('activate', event => {
     event.waitUntil((async () => {
-        const keep = [CORE, DOCS, RUNTIME, TILES];
+        const keep = [CORE, RUNTIME, ...Object.values(PACK_CACHES)];
         for (const name of await caches.keys()) if (!keep.includes(name)) await caches.delete(name);
+        // A pack the visitor hasn't asked for is removed (the first version saved the documents
+        // without asking)
+        const { packs } = await readState();
+        for (const name of Object.keys(PACK_CACHES)) if (!packs[name]) await removePack(name);
         await self.clients.claim();
     })());
-    saveDocs().catch(() => {});
 });
 
-// Pages ask for a refresh on each visit (chrome.js); the 6-hour limit keeps it cheap
+// From pwa.js: 'sync' on each visit (refresh the saved copy; the 6-hour limit keeps it cheap, and
+// saved packs get new versions); 'save-pack' / 'remove-pack' from the buttons on the offline card
 self.addEventListener('message', event => {
-    if (event.data?.type === 'sync') {
-        event.waitUntil(Promise.allSettled([saveCore(), saveDocs()]));
+    const { type, pack } = event.data || {};
+    if (type === 'sync') {
+        event.waitUntil(Promise.allSettled([
+            saveCore(),
+            readState().then(s => Promise.allSettled(Object.keys(PACK_CACHES).filter(n => s.packs[n]).map(savePack)))
+        ]));
+    } else if (type === 'save-pack') {
+        event.waitUntil(setPack(pack, true).catch(() => broadcast({ type: 'pack-progress', pack })));
+    } else if (type === 'remove-pack') {
+        event.waitUntil(setPack(pack, false));
     }
 });
+
+// --- Answering requests ------------------------------------------------------------------------
 
 // Network first: fresh while online, the saved copy if the network fails or is too slow
 async function networkFirst(request, { key = request, cacheName = RUNTIME, fallbacks = [] } = {}) {
@@ -190,11 +243,34 @@ async function cacheFirst(request, cacheName, { fallbacks = [] } = {}) {
     return res;
 }
 
-let tilePuts = 0;
-async function trimTiles() {
-    const cache = await caches.open(TILES);
-    const keys = await cache.keys();
-    for (const req of keys.slice(0, Math.max(0, keys.length - MAX_TILES))) await cache.delete(req);
+// A file of a pack: the saved copy if the visitor saved the pack, otherwise straight from the
+// network without keeping a copy
+async function fromPack(name, request, url) {
+    const saved = await (await caches.open(PACK_CACHES[name])).match(url.origin + url.pathname);
+    if (saved) return saved;
+    return fetch(request);
+}
+
+// The street map is read in small pieces (HTTP range requests); answer them from the saved file
+let mapBlob = null;
+async function mapRange(request, url) {
+    const range = /bytes=(\d+)-(\d*)/.exec(request.headers.get('Range') || '');
+    if (!mapBlob) {
+        const saved = await (await caches.open(PACK_CACHES.map)).match(url.origin + url.pathname);
+        if (!saved) return fetch(request);
+        mapBlob = await saved.blob();
+    }
+    if (!range) return new Response(mapBlob, { headers: { 'Content-Type': 'application/octet-stream', 'Content-Length': String(mapBlob.size) } });
+    const start = +range[1];
+    const end = Math.min(range[2] ? +range[2] : mapBlob.size - 1, mapBlob.size - 1);
+    return new Response(mapBlob.slice(start, end + 1), {
+        status: 206,
+        headers: {
+            'Content-Type': 'application/octet-stream',
+            'Content-Range': `bytes ${start}-${end}/${mapBlob.size}`,
+            'Content-Length': String(end - start + 1)
+        }
+    });
 }
 
 function offlinePage() {
@@ -214,9 +290,12 @@ self.addEventListener('fetch', event => {
     const url = new URL(request.url);
     const local = url.origin === self.location.origin;
 
-    // Documents, whether opened as a page or downloaded: the saved copy (kept up to date by saveDocs)
-    if (local && url.pathname.endsWith('.pdf')) {
-        event.respondWith(cacheFirst(new Request(url.origin + url.pathname), DOCS)
+    if (local && url.pathname === '/maps/sofia.pmtiles') {
+        event.respondWith(mapRange(request, url).catch(() => Response.error()));
+        return;
+    }
+    if (local && (url.pathname.endsWith('.pdf') || url.pathname.startsWith('/vendor/pdfjs/'))) {
+        event.respondWith(fromPack('docs', request, url)
             .catch(() => (request.mode === 'navigate' ? offlinePage() : Response.error())));
         return;
     }
@@ -237,10 +316,6 @@ self.addEventListener('fetch', event => {
     }
     if (url.origin === CDN) {
         event.respondWith(cacheFirst(request, CORE));  // exact versions with integrity hashes: never change
-    } else if (TILE_HOST.test(url.hostname)) {
-        event.respondWith(networkFirst(request, { cacheName: TILES }).finally(() => {
-            if (++tilePuts % 50 === 0) trimTiles();
-        }));
     } else if (FONT_HOSTS.includes(url.hostname)) {
         event.respondWith(cacheFirst(request, RUNTIME));
     } else if (url.hostname === WEATHER_HOST) {

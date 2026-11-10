@@ -86,52 +86,131 @@
         }
     }
 
-    // In the installed app a link with target="_blank" would leave the app (and its saved copy),
-    // so documents open inside the app instead
+    // In the installed app there are no browser buttons: a PDF opened directly would have no way
+    // back, so PDFs open in the site's own viewer (dokument.html), and other links to our own pages
+    // stay inside the app instead of opening a browser tab
     if (standalone) {
         document.addEventListener('click', e => {
             const a = e.target.closest?.('a[href]');
-            if (a && a.target === '_blank' && new URL(a.href, location.href).origin === location.origin) a.removeAttribute('target');
+            if (!a) return;
+            const url = new URL(a.href, location.href);
+            if (url.origin !== location.origin) return;
+            if (url.pathname.endsWith('.pdf')) {
+                e.preventDefault();
+                const label = a.querySelector('.map-label')?.textContent
+                    || a.closest('.sheet-card')?.querySelector('.sheet-card-name')?.firstChild?.textContent
+                    || '';
+                location.href = `/dokument?f=${encodeURIComponent(url.pathname)}&t=${encodeURIComponent(label.trim())}`;
+            } else if (a.target === '_blank') {
+                a.removeAttribute('target');
+            }
         }, true);
     }
 
-    // --- Saved documents (dokumenti.html) -----------------------------------------------------
-    const status = document.getElementById('offline-status');
-    if (!status) return;
-    const text = status.querySelector('.offline-status-text');
-    const button = status.querySelector('button');
-    status.hidden = false;
-
-    if (!('serviceWorker' in navigator) || !window.caches) {
-        text.textContent = t('Този браузър не може да запази сайта за ползване без интернет.');
-        button.hidden = true;
-        return;
-    }
-
-    const mb = bytes => (bytes / 1e6).toLocaleString(I18N.lang === 'en' ? 'en-GB' : 'bg-BG', { maximumFractionDigits: 1 });
-    async function render() {
-        try {
-            const { docs } = await (await fetch('/offline.json', { cache: 'no-store' })).json();
-            const cache = await caches.open('sp-docs');
-            const saved = new Set((await cache.keys()).map(r => new URL(r.url).pathname));
-            const done = docs.filter(d => saved.has(d.url));
-            const total = docs.reduce((n, d) => n + d.bytes, 0);
-            text.textContent = done.length === docs.length
-                ? t('Всички {n} документа ({mb} MB) са запазени на това устройство и се отварят и без интернет.', { n: docs.length, mb: mb(total) })
-                : t('Запазени за ползване без интернет: {done} от {n} документа ({mb} MB общо). Свалянето продължава, докато сайтът е отворен.', { done: done.length, n: docs.length, mb: mb(total) });
-            if (iOS && !standalone) {
-                text.append(' ', t('На iPhone добавете сайта към началния екран, иначе Safari може да изтрие запазеното копие.'));
-            }
-        } catch {
-            text.textContent = t('Не успяхме да проверим запазените документи.');
+    // --- Packs saved on request ("Без интернет" card) ---------------------------------------------
+    // Nothing large is downloaded without asking. A card (.offline-packs, data-packs="map docs")
+    // offers each pack with its size, shows progress, and can remove it again. Once saved, new
+    // versions are fetched on later visits (sw.js).
+    const PACKS = {
+        map: {
+            name: 'Карта на улиците',
+            about: 'Улиците, сградите и имената на картите на сайта, за да се виждат и без интернет.'
+        },
+        docs: {
+            name: 'Документи',
+            about: 'Плановете за защита и листовките за печат по райони, за да се отварят и без интернет.'
         }
+    };
+    const supported = 'serviceWorker' in navigator && !!window.caches;
+    const mb = bytes => (bytes / 1e6).toLocaleString(I18N.lang === 'en' ? 'en-GB' : 'bg-BG', { maximumFractionDigits: 1 });
+    const tell = async (type, pack) => (await navigator.serviceWorker.ready).active?.postMessage({ type, pack });
+
+    async function packStatus() {
+        const list = await (await fetch('/offline.json', { cache: 'no-store' })).json();
+        const stateHit = await (await caches.open('sp-core')).match('/__offline/state');
+        const chosen = (stateHit && (await stateHit.json()).packs) || {};
+        const out = {};
+        for (const [name, files] of Object.entries(list.packs || {})) {
+            const saved = new Set((await (await caches.open(`sp-${name}`)).keys()).map(r => new URL(r.url).pathname));
+            out[name] = {
+                wanted: !!chosen[name],
+                done: files.filter(f => saved.has(f.url)).length,
+                total: files.length,
+                pdfs: files.filter(f => f.url.endsWith('.pdf')).length,
+                bytes: files.reduce((n, f) => n + f.bytes, 0)
+            };
+        }
+        return out;
     }
-    button.addEventListener('click', async () => {
-        const reg = await navigator.serviceWorker.ready;
-        reg.active?.postMessage({ type: 'sync' });
-        text.textContent = t('Проверяваме за нови версии…');
-        setTimeout(render, 3000);
+
+    // Offline on a map page without the street map saved: say why the map is empty
+    if (document.querySelector('#map, #home-map, #sheet-map') && supported) {
+        const note = () => packStatus().then(st => {
+            if (st.map && !st.map.wanted && !offline.hidden) {
+                offline.textContent = t('Няма интернет · картата на улиците не е запазена на това устройство, затова части от нея може да липсват. При спешен случай: 112');
+            }
+        }).catch(() => {});
+        new MutationObserver(note).observe(offline, { attributes: true, attributeFilter: ['hidden'] });
+        note();  // the bar may already be showing
+    }
+
+    document.querySelectorAll('.offline-packs').forEach(card => {
+        card.hidden = false;
+        const box = card.querySelector('.offline-pack-list');
+        if (!supported) {
+            box.textContent = t('Този браузър не може да запази сайта за ползване без интернет.');
+            return;
+        }
+        const busy = {};
+        const rows = {};
+        for (const name of (card.dataset.packs || 'map docs').split(' ')) {
+            const row = document.createElement('div');
+            row.className = 'offline-pack';
+            const title = Object.assign(document.createElement('div'), { className: 'offline-pack-name' });
+            const text = Object.assign(document.createElement('p'), { className: 'offline-pack-text' });
+            const save = Object.assign(document.createElement('button'), { type: 'button', className: 'modal-nav-btn' });
+            const remove = Object.assign(document.createElement('button'), { type: 'button', className: 'link-button' });
+            save.addEventListener('click', () => { busy[name] = true; render(); tell('save-pack', name); });
+            remove.addEventListener('click', () => { busy[name] = true; render(); tell('remove-pack', name); });
+            row.append(title, text, save, remove);
+            box.append(row);
+            rows[name] = { title, text, save, remove };
+        }
+        if (iOS && !standalone) {
+            box.append(Object.assign(document.createElement('p'), {
+                className: 'offline-pack-text',
+                textContent: t('На iPhone добавете сайта към началния екран, иначе Safari може да изтрие запазеното копие.')
+            }));
+        }
+
+        async function render() {
+            let st;
+            try {
+                st = await packStatus();
+            } catch {
+                Object.values(rows).forEach(r => { r.text.textContent = t('Не успяхме да проверим какво е запазено.'); });
+                return;
+            }
+            for (const [name, r] of Object.entries(rows)) {
+                const p = st[name];
+                if (!p) continue;
+                const info = PACKS[name];
+                const size = mb(p.bytes);
+                const count = name === 'docs' ? t('{n} документа, {mb} MB', { n: p.pdfs, mb: size }) : `${size} MB`;
+                r.title.textContent = `${t(info.name)} · ${count}`;
+                r.save.textContent = t('Запази ({mb} MB)', { mb: size });
+                r.remove.textContent = p.wanted && p.done < p.total ? t('Спри свалянето') : t('Изтрий');
+                r.save.hidden = p.wanted;
+                r.remove.hidden = !p.wanted;
+                r.save.disabled = r.remove.disabled = !!busy[name];
+                r.text.textContent = !p.wanted ? t(info.about)
+                    : p.done < p.total ? t('Сваляне: {done} от {total} файла. Оставете страницата отворена.', { done: p.done, total: p.total })
+                    : t('Запазено на това устройство · работи без интернет. Новите версии се свалят автоматично.');
+            }
+        }
+        navigator.serviceWorker.addEventListener('message', e => {
+            if (e.data?.type === 'pack-progress') { busy[e.data.pack] = false; render(); }
+        });
+        render();
     });
-    navigator.serviceWorker.addEventListener('message', e => { if (e.data?.type === 'docs-progress') render(); });
-    render();
 })();

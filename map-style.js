@@ -103,12 +103,23 @@
         return svg;
     }
 
-    // OpenStreetMap tiles, darkened with a CSS filter (.tiles-dark in style.css)
-    function basemap(map) {
+    // Street map of Sofia from our own file (maps/sofia.pmtiles, scripts/build_basemap.py), drawn in
+    // the browser by protomaps-leaflet. One file on our site: no outside tile server, the same map
+    // online and offline (sw.js keeps the file once the visitor saves it), and labels in Bulgarian.
+    // Falls back to OpenStreetMap's own tiles if the plugin didn't load.
+    const BASEMAP_URL = '/maps/sofia.pmtiles';
+    const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · <a href="https://protomaps.com">Protomaps</a>';
+
+    function basemap(map, { flavor = 'dark' } = {}) {
+        if (window.protomapsL) {
+            return protomapsL.leafletLayer({
+                url: BASEMAP_URL, flavor, lang: I18N.lang === 'en' ? 'en' : 'bg',
+                maxDataZoom: 14, maxZoom: 19, attribution: ATTRIBUTION
+            }).addTo(map);
+        }
         return L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
-            className: 'tiles-dark',
-            crossOrigin: true,  // so the service worker (sw.js) can keep viewed tiles for offline use
+            className: flavor === 'dark' ? 'tiles-dark' : '',
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         }).addTo(map);
     }
