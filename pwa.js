@@ -96,29 +96,46 @@
     }
 
     // --- Saved documents (dokumenti.html) -----------------------------------------------------
+    // Nothing large is downloaded without asking: the visitor saves the documents (~19 MB) with a
+    // button here, sees the progress, and can remove them again. Once saved, new versions are
+    // fetched on later visits (sw.js).
     const status = document.getElementById('offline-status');
     if (!status) return;
     const text = status.querySelector('.offline-status-text');
-    const button = status.querySelector('button');
+    const saveBtn = status.querySelector('.offline-save');
+    const removeBtn = status.querySelector('.offline-remove');
     status.hidden = false;
 
     if (!('serviceWorker' in navigator) || !window.caches) {
         text.textContent = t('Този браузър не може да запази сайта за ползване без интернет.');
-        button.hidden = true;
+        saveBtn.hidden = removeBtn.hidden = true;
         return;
     }
 
     const mb = bytes => (bytes / 1e6).toLocaleString(I18N.lang === 'en' ? 'en-GB' : 'bg-BG', { maximumFractionDigits: 1 });
+    const tell = async type => (await navigator.serviceWorker.ready).active?.postMessage({ type });
+    let busy = false;  // a button was pressed and the worker hasn't reported back yet
+
     async function render() {
         try {
             const { docs } = await (await fetch('/offline.json', { cache: 'no-store' })).json();
-            const cache = await caches.open('sp-docs');
-            const saved = new Set((await cache.keys()).map(r => new URL(r.url).pathname));
-            const done = docs.filter(d => saved.has(d.url));
-            const total = docs.reduce((n, d) => n + d.bytes, 0);
-            text.textContent = done.length === docs.length
-                ? t('Всички {n} документа ({mb} MB) са запазени на това устройство и се отварят и без интернет.', { n: docs.length, mb: mb(total) })
-                : t('Запазени за ползване без интернет: {done} от {n} документа ({mb} MB общо). Свалянето продължава, докато сайтът е отворен.', { done: done.length, n: docs.length, mb: mb(total) });
+            const stateHit = await (await caches.open('sp-core')).match('/__offline/state');
+            const wanted = !!(stateHit && (await stateHit.json()).docsWanted);
+            const saved = new Set((await (await caches.open('sp-docs')).keys()).map(r => new URL(r.url).pathname));
+            const done = docs.filter(d => saved.has(d.url)).length;
+            const total = mb(docs.reduce((n, d) => n + d.bytes, 0));
+            saveBtn.textContent = t('Запази документите ({mb} MB)', { mb: total });
+            removeBtn.textContent = wanted && done < docs.length ? t('Спри свалянето') : t('Изтрий запазените документи');
+            saveBtn.hidden = wanted;
+            removeBtn.hidden = !wanted;
+            saveBtn.disabled = removeBtn.disabled = busy;
+            if (!wanted) {
+                text.textContent = t('Плановете за защита и листовките за печат ({n} документа, {mb} MB) могат да се запазят на това устройство, за да се отварят и без интернет.', { n: docs.length, mb: total });
+            } else if (done < docs.length) {
+                text.textContent = t('Сваляне: {done} от {n} документа ({mb} MB общо). Оставете страницата отворена.', { done, n: docs.length, mb: total });
+            } else {
+                text.textContent = t('Всички {n} документа ({mb} MB) са запазени на това устройство и се отварят и без интернет. Новите версии се свалят автоматично.', { n: docs.length, mb: total });
+            }
             if (iOS && !standalone) {
                 text.append(' ', t('На iPhone добавете сайта към началния екран, иначе Safari може да изтрие запазеното копие.'));
             }
@@ -126,12 +143,10 @@
             text.textContent = t('Не успяхме да проверим запазените документи.');
         }
     }
-    button.addEventListener('click', async () => {
-        const reg = await navigator.serviceWorker.ready;
-        reg.active?.postMessage({ type: 'sync' });
-        text.textContent = t('Проверяваме за нови версии…');
-        setTimeout(render, 3000);
+    saveBtn.addEventListener('click', () => { busy = true; render(); tell('save-docs'); });
+    removeBtn.addEventListener('click', () => { busy = true; render(); tell('remove-docs'); });
+    navigator.serviceWorker.addEventListener('message', e => {
+        if (e.data?.type === 'docs-progress') { busy = false; render(); }
     });
-    navigator.serviceWorker.addEventListener('message', e => { if (e.data?.type === 'docs-progress') render(); });
     render();
 })();

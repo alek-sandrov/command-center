@@ -188,6 +188,15 @@ input {
     line-height: 1.5;
 }
 
+.offline-status button[hidden] {
+    display: none;
+}
+
+.offline-status button:disabled {
+    opacity: 0.5;
+    cursor: wait;
+}
+
 .navbar {
     background: rgba(10, 12, 15, 0.94);
     border-bottom: 1px solid var(--line);
