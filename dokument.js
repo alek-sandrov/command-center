@@ -26,7 +26,7 @@
     }
     const title = params.get('t') || decodeURIComponent(file.pathname.split('/').pop());
     document.getElementById('doc-title').textContent = title;
-    document.title = `${title} - sofia-prepping.com`;
+    document.title = `${title} - Sofia Prepping`;
 
     // PDF.js comes with the saved documents: offline without them it can't load
     if (!window.pdfjsLib) {

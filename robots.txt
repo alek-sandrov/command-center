@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /dokument
+
+Sitemap: https://sofia-prepping.com/sitemap.xml
