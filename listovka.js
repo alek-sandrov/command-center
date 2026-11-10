@@ -92,7 +92,7 @@
         const inDistrict = key => (layers[key] || []).filter(p => p[5] === d.index);
 
         document.getElementById('sheet-title').textContent = I18N.district(d.name);
-        document.title = `${I18N.district(d.name)} – ${t('листовка')} - sofia-prepping.com`;
+        document.title = `${I18N.district(d.name)} – ${t('листовка')} - Sofia Prepping`;
 
         if (map) map.remove();
         // Map height follows the district's shape (Web Mercator), so tall districts aren't shrunk
