@@ -321,9 +321,9 @@ function render() {
         tile('warnings', '02', 'Опасно време', warnings(data.warnings)),
         tile('quakes', '03', 'Земетресения', earthquakes(data.earthquakes)),
         tile('air', '04', 'Въздух', air(data.air)),
-        tile('water', '05', 'Вода', water(data.water)),
-        tile('heating', '06', 'Топлофикация', heating(data.heating)),
-        tile('radiation', '07', 'Радиация', radiation(data.radiation))
+        tile('radiation', '05', 'Радиация', radiation(data.radiation)),
+        tile('water', '06', 'Вода', water(data.water)),
+        tile('heating', '07', 'Топлофикация', heating(data.heating))
     );
     assess([...tiles.children].map(x => x.dataset.tone), data.generated);
     if (openTile && details[openTile]) {
