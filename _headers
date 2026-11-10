@@ -17,8 +17,8 @@
   Cache-Control: public, max-age=0, must-revalidate
 /manifest.webmanifest
   Cache-Control: public, max-age=0, must-revalidate
-# The street map (replaced when rebuilt) and the PDF viewer: checked with the server at most hourly
+# The street map tiles (replaced when rebuilt) and the PDF viewer
 /maps/*
-  Cache-Control: public, max-age=3600
+  Cache-Control: public, max-age=86400
 /vendor/*
   Cache-Control: public, max-age=86400

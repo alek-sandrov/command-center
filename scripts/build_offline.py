@@ -6,7 +6,7 @@
   data:  files the scripts load themselves (map points, district shapes) and the homepage
          status, so offline it shows the last values seen.
   packs: larger downloads saved only when the visitor asks (the "Без интернет" card):
-           map   the street map of Sofia (maps/sofia.pmtiles, from scripts/build_basemap.py)
+           map   the street map of Sofia (maps/tiles, from scripts/build_basemap.py)
            docs  the protection plans and printable PDFs, plus the in-app PDF viewer (PDF.js)
          Each file has a fingerprint of its content, so a device downloads it again only when
          it has changed.
@@ -25,7 +25,7 @@ DATA = ['data/karta.json', 'data/rayoni.json']
 STATUS_PARTS = ['warnings', 'earthquakes', 'air', 'water', 'heating', 'radiation', 'news']
 STATUS_URL = '/api/status?part={}&v=3'
 PACKS = {
-    'map': ['maps/sofia.pmtiles'],
+    'map': ['maps/tiles/*/*/*.pbf'],
     'docs': ['planove/*.pdf', 'pechat/*.pdf', 'vendor/pdfjs/pdf.min.js', 'vendor/pdfjs/pdf.worker.min.js'],
 }
 

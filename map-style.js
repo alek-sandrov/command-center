@@ -103,18 +103,20 @@
         return svg;
     }
 
-    // Street map of Sofia from our own file (maps/sofia.pmtiles, scripts/build_basemap.py), drawn in
-    // the browser by protomaps-leaflet. One file on our site: no outside tile server, the same map
-    // online and offline (sw.js keeps the file once the visitor saves it), and labels in Bulgarian.
+    // Street map of Sofia from our own vector tiles (maps/tiles, scripts/build_basemap.py), drawn in
+    // the browser by protomaps-leaflet: no outside tile server, the same map online and offline
+    // (sw.js keeps the tiles once the visitor saves the map), and labels in Bulgarian.
+    // Tiles exist only for BASEMAP_BOUNDS and zoom 0-14 (drawn larger beyond that).
     // Falls back to OpenStreetMap's own tiles if the plugin didn't load.
-    const BASEMAP_URL = '/maps/sofia.pmtiles';
+    const BASEMAP_URL = '/maps/tiles/{z}/{x}/{y}.pbf';
+    const BASEMAP_BOUNDS = [[42.53, 23.08], [42.87, 23.62]];  // as BBOX in scripts/build_basemap.py
     const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · <a href="https://protomaps.com">Protomaps</a>';
 
     function basemap(map, { flavor = 'dark' } = {}) {
         if (window.protomapsL) {
             return protomapsL.leafletLayer({
                 url: BASEMAP_URL, flavor, lang: I18N.lang === 'en' ? 'en' : 'bg',
-                maxDataZoom: 14, maxZoom: 19, attribution: ATTRIBUTION
+                maxDataZoom: 14, maxZoom: 19, bounds: BASEMAP_BOUNDS, attribution: ATTRIBUTION
             }).addTo(map);
         }
         return L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
