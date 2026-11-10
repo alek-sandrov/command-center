@@ -1,8 +1,11 @@
 // Cloudflare Pages Function: GET /api/status?part=<earthquakes|warnings|air|water|heating|radiation|news>
 // Live city status for the homepage from sources a browser can't read directly
-// (no CORS). Each part is cached at the edge for 10 minutes.
+// (no CORS). Each part is cached at the edge for 10 minutes (radiation: 61 minutes).
 
 const CACHE_SECONDS = 600;
+// Parts fetched less often: the radiation bulletin changes once a day, so bnra.bg is asked
+// at most once every 61 minutes
+const CACHE_SECONDS_FOR = { radiation: 3660 };
 // Bump when a part's response format changes, so edge caches never serve the old shape
 const API_VERSION = '3';
 const BROWSER_HEADERS = {
@@ -375,7 +378,7 @@ export async function onRequestGet(context) {
         headers: {
             'Content-Type': 'application/json; charset=utf-8',
             // Failed lookups are cached briefly so a broken source is retried soon
-            'Cache-Control': `public, max-age=${body.ok ? CACHE_SECONDS : 60}`
+            'Cache-Control': `public, max-age=${body.ok ? CACHE_SECONDS_FOR[part] ?? CACHE_SECONDS : 60}`
         }
     });
     if (cache) context.waitUntil?.(cache.put(key, res.clone()));
