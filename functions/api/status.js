@@ -1,4 +1,4 @@
-// Cloudflare Pages Function: GET /api/status?part=<earthquakes|warnings|air|water|heating|news>
+// Cloudflare Pages Function: GET /api/status?part=<earthquakes|warnings|air|water|heating|radiation|news>
 // Live city status for the homepage from sources a browser can't read directly
 // (no CORS). Each part is cached at the edge for 10 minutes.
 
@@ -200,6 +200,60 @@ async function heating() {
     return { count: items.length, items };
 }
 
+// Gamma background radiation (µSv/h) from the Nuclear Regulatory Agency's daily bulletin.
+// The page has three tables, each after a heading: Sofia, the 30 km zone around Kozloduy
+// nuclear plant, and the whole country. Each ends with an "Актуални към: 11:00ч." row.
+const BNRA_URL = 'https://bnra.bg/bg/byuletin-za-gama-fona/';
+
+function bnraTable(html, headingText) {
+    const at = html.indexOf(headingText);
+    if (at < 0) return null;
+    const start = html.indexOf('<table', at);
+    if (start < 0) return null;
+    const table = html.slice(start, html.indexOf('</table>', start));
+    const rows = [...table.matchAll(/<tr id="table_\d+_row_\d+"[^>]*>([\s\S]*?)<\/tr>/g)]
+        .map(m => [...m[1].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)].map(c => plain(c[1])))
+        .filter(r => r.length >= 2);
+    const stations = [];
+    let updated = null;
+    for (const [name, cell] of rows) {
+        if (/^Актуални/.test(name)) {
+            const time = name.match(/(\d{1,2}):(\d{2})/);
+            const date = cell.match(/(\d{2})\.(\d{2})\.(\d{4})/);
+            if (time && date) updated = sofiaMs(+date[3], +date[2], +date[1], +time[1], +time[2]);
+            continue;
+        }
+        const v = cell.replace(',', '.');
+        const value = /^\d+(\.\d+)?$/.test(v) ? Number(v) : null;
+        // A reading is passed on only if plausible; anything else counts as "no data" with the page's note
+        const ok = value !== null && value > 0 && value < 1000;
+        stations.push({ name: name.replace(/,\s*Сф$/, ''), value: ok ? value : null, note: ok ? '' : cell });
+    }
+    return { stations, updated };
+}
+
+// Epoch ms of a wall-clock time in Sofia (EET/EEST)
+function sofiaMs(y, mo, d, h, mi) {
+    const guess = Date.UTC(y, mo - 1, d, h, mi);
+    const name = new Intl.DateTimeFormat('en-US', { timeZone: TZ, timeZoneName: 'shortOffset' })
+        .formatToParts(new Date(guess)).find(p => p.type === 'timeZoneName')?.value || 'GMT+2';
+    const [, sign, hh, mm] = name.match(/GMT([+-])(\d+)(?::(\d+))?/) || [, '+', '2', '0'];
+    return guess - (sign === '-' ? -1 : 1) * (+hh * 60 + +(mm || 0)) * 60000;
+}
+
+async function radiation() {
+    const html = await get(BNRA_URL, { type: 'text', headers: BROWSER_HEADERS, timeout: 15000 });
+    const sofia = bnraTable(html, 'на територията на София');
+    if (!sofia || !sofia.stations.some(st => st.value !== null)) throw new Error('no Sofia readings on the bulletin page');
+    const zone = bnraTable(html, 'зона за аварийно планиране');
+    const country = bnraTable(html, 'стойности на гама-фонa в страната') || bnraTable(html, 'стойности на гама-фона в страната');
+    const max = t => {
+        const values = (t?.stations || []).map(st => st.value).filter(v => v !== null);
+        return values.length ? { max: Math.max(...values), n: values.length } : null;
+    };
+    return { sofia: sofia.stations, updated: sofia.updated, zone: max(zone), country: max(country), url: BNRA_URL };
+}
+
 const MONTHS = ['януари', 'февруари', 'март', 'април', 'май', 'юни', 'юли', 'август',
     'септември', 'октомври', 'ноември', 'декември'];
 
@@ -300,7 +354,7 @@ async function settle(fn) {
 
 // Each source is its own request (/api/status?part=air) so one call stays within
 // the Workers CPU limit and a slow source doesn't hold up the others.
-const PARTS = { earthquakes, warnings, air, water, heating, news };
+const PARTS = { earthquakes, warnings, air, water, heating, radiation, news };
 
 export async function onRequestGet(context) {
     const url = new URL(context.request.url);

@@ -1,10 +1,17 @@
 // Live city status panel on the homepage. Weather comes straight from Open-Meteo; everything
 // else from /api/status (functions/api/status.js).
 // Water, heating and air follow the district chosen in the navbar (district.js);
-// weather, earthquakes and weather warnings are city-wide.
+// weather, earthquakes, weather warnings and radiation are city-wide.
 
 const REFRESH_MS = 10 * 60 * 1000;
-const PARTS = ['warnings', 'earthquakes', 'air', 'water', 'heating'];
+const PARTS = ['warnings', 'earthquakes', 'air', 'water', 'heating', 'radiation'];
+// Gamma background (µSv/h). The Nuclear Regulatory Agency gives 0.06–0.40 as the natural range in
+// Bulgaria; above it the tile asks visitors to follow official announcements. The 1 µSv/h step to
+// orange is this site's own, to separate a slight rise from a clear one.
+const RADIATION_NATURAL = [0.06, 0.40];
+const RADIATION_HIGH = 1.0;
+// The bulletin is daily; an older one is flagged as possibly out of date
+const RADIATION_STALE_MS = 48 * 3600e3;
 const LEVELS = { 2: ['yellow', 'Жълт код'], 3: ['orange', 'Оранжев код'], 4: ['red', 'Червен код'] };
 // European Air Quality Index bands for PM2.5 (µg/m³)
 const AIR_BANDS = [
@@ -63,7 +70,8 @@ function ago(ms) {
 }
 
 function when(ms) {
-    return new Date(ms).toLocaleString(LOCALE, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    // Always Sofia time, whatever the visitor's own time zone
+    return new Date(ms).toLocaleString(LOCALE, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Sofia' });
 }
 
 function median(values) {
@@ -132,7 +140,8 @@ function toggle(key, tileEl) {
     openTile = key;
     tileEl.classList.add('open');
     tileEl.setAttribute('aria-expanded', 'true');
-    detailPanel.replaceChildren(...details[key]);
+    // A source that didn't answer has no details; say so rather than failing on the tap
+    detailPanel.replaceChildren(...(details[key] || [el('p', 'status-empty', t('Източникът не отговаря в момента. Ще опитаме отново след няколко минути.'))]));
     detailPanel.scrollTop = 0;
     tileEl.after(detailPanel);
     detailPanel.hidden = false;
@@ -270,6 +279,36 @@ function heating(h) {
     };
 }
 
+function radiation(r) {
+    if (!r.ok) return failed();
+    const readings = r.sofia.filter(st => st.value !== null);
+    const top = readings.reduce((a, b) => (b.value > a.value ? b : a));
+    const fmt = v => `${v.toFixed(2)} µSv/h`;
+    const [low, high] = RADIATION_NATURAL;
+    const tone = top.value > RADIATION_HIGH ? 'orange' : top.value > high ? 'yellow' : 'green';
+    const stale = r.updated && Date.now() - r.updated > RADIATION_STALE_MS;
+    const d = SofiaDistrict.get();
+    const mine = st => d && st.name.includes(d.name);
+    details.radiation = [
+        el('h3', null, t('Радиационен гама-фон – София ({n} станции)', { n: r.sofia.length })),
+        ...(stale ? [el('p', 'status-empty', t('Бюлетинът не е обновяван от {date} – стойностите може да не са актуални.', { date: when(r.updated) }))] : []),
+        ...r.sofia.map(st => detailRow(
+            `${I18N.text(st.name)}${mine(st) ? ' · ' + t('вашият район') : ''}`,
+            st.value === null ? t('няма данни ({note})', { note: I18N.text(st.note) || '–' })
+                : `${fmt(st.value)}${st.value > high ? ' – ' + t('над естествения фон') : ''}`)),
+        el('p', 'status-empty', t('Естественият гама-фон в България е между {low} и {high} µSv/h. Стойностите са средни за последните 24 часа.', { low, high: high.toFixed(2) })),
+        ...(r.zone ? [detailRow(t('30-км зона на АЕЦ „Козлодуй“'), t('най-висока стойност {v} ({n} станции)', { v: fmt(r.zone.max), n: r.zone.n }))] : []),
+        ...(r.country ? [detailRow(t('Цяла България'), t('най-висока стойност {v} ({n} станции)', { v: fmt(r.country.max), n: r.country.n }))] : []),
+        source(t('Източник: Агенция за ядрено регулиране, система „Катрин“{at} · ', { at: r.updated ? t(', към {time}', { time: when(r.updated) }) : '' }),
+            r.url, t('Бюлетин за гама-фона'))
+    ];
+    return {
+        tone,
+        value: fmt(top.value),
+        note: tone === 'green' ? t('в границите на естествения фон') : t('над естествения фон – следете официалните съобщения')
+    };
+}
+
 function render() {
     if (!lastData) return;
     const data = lastData;
@@ -283,7 +322,8 @@ function render() {
         tile('quakes', '03', 'Земетресения', earthquakes(data.earthquakes)),
         tile('air', '04', 'Въздух', air(data.air)),
         tile('water', '05', 'Вода', water(data.water)),
-        tile('heating', '06', 'Топлофикация', heating(data.heating))
+        tile('heating', '06', 'Топлофикация', heating(data.heating)),
+        tile('radiation', '07', 'Радиация', radiation(data.radiation))
     );
     assess([...tiles.children].map(x => x.dataset.tone), data.generated);
     if (openTile && details[openTile]) {
