@@ -105,7 +105,7 @@
             zoomControl: false, attributionControl: false, dragging: false, scrollWheelZoom: false,
             doubleClickZoom: false, boxZoom: false, keyboard: false, touchZoom: false, zoomSnap: 0.1
         });
-        const tiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(map);
+        const tiles = MapStyle.basemap(map, { flavor: 'light' });
         const rings = shape.polygons.map(poly => poly.map(ring => ring.map(([lng, lat]) => [lat, lng])));
         // Fade everything outside the district: a large rectangle with the district's outer rings as holes
         L.polygon([[[s - 1, w - 1], [s - 1, e + 1], [n + 1, e + 1], [n + 1, w - 1]], ...rings.map(poly => poly[0])], {

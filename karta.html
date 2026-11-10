@@ -71,6 +71,12 @@
                     Местоположението ви се използва само в браузъра и не се изпраща никъде.
                 </p>
             </section>
+
+            <!-- Save the street map for use without internet (pwa.js) -->
+            <section class="card full-width offline-packs" data-packs="map" hidden>
+                <h2>Без интернет</h2>
+                <div class="offline-pack-list"></div>
+            </section>
         </div>
 
         <footer>
@@ -79,6 +85,7 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" integrity="sha512-puJW3E/qXDqYp9IfhAI54BJEaWIfloJ7JWs7OeD5i6ruC9JZL1gERT1wjtwXFlh7CjE7ZJ+/vcRZRkIYIb6p4g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="vendor/protomaps-leaflet/protomaps-leaflet.js?v=5.1.0"></script>
     <script src="i18n.js?v=20261109a"></script>
     <script src="district.js?v=20261109a"></script>
     <script src="chrome.js?v=20261109a"></script>
