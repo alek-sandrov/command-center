@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""Build maps/sofia.pmtiles: the street map of Sofia that the site's maps draw (map-style.js).
+"""Build maps/tiles/{z}/{x}/{y}.pbf: the street map of Sofia that the site's maps draw (map-style.js).
 
 Cuts the Sofia area out of a Protomaps daily build of OpenStreetMap (vector tiles)
-(zoom 0-14) by reading only the parts of the remote archive it needs (HTTP range requests). One file on our
-own site means the map needs no outside tile server, and visitors can save it for offline use.
+(zoom 0-14) by reading only the parts of the remote archive it needs (HTTP range requests). Each tile is
+written as its own small file (uncompressed vector tile): ordinary static files that any server and
+cache handles, so the map needs no outside tile server, and visitors can save it for offline use.
+(A single .pmtiles file would need HTTP range requests, which Cloudflare Pages doesn't honour for it.)
 
 Map data © OpenStreetMap contributors (ODbL); basemap tiles by Protomaps.
 
@@ -12,8 +14,8 @@ Usage: python3 scripts/build_basemap.py [YYYYMMDD]   (default: yesterday's build
 After rebuilding, run scripts/build_offline.py so phones that saved the map get the new one.
 """
 import gzip
-import json
 import math
+import shutil
 import sys
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
@@ -23,9 +25,8 @@ from pathlib import Path
 
 from pmtiles.reader import deserialize_directory, deserialize_header
 from pmtiles.tile import Compression, zxy_to_tileid
-from pmtiles.writer import Writer
 
-OUT = Path(__file__).resolve().parent.parent / 'maps' / 'sofia.pmtiles'
+OUT = Path(__file__).resolve().parent.parent / 'maps' / 'tiles'
 UA = 'sofia-prepping.com basemap builder'
 # Stolichna municipality with a small margin: south, west, north, east
 BBOX = (42.53, 23.08, 42.87, 23.62)
@@ -103,24 +104,21 @@ def main():
         tiles = {zxy: data for zxy, data in pool.map(fetch, wanted) if data}
     print(f'fetched {len(tiles)} tiles, {sum(map(len, tiles.values())) / 1e6:.1f} MB')
 
-    meta_raw = get(header['metadata_offset'], header['metadata_length'])
-    metadata = json.loads(gzip.decompress(meta_raw) if gz else meta_raw)
-    metadata['description'] = f'Sofia area from Protomaps build {build}'
-
-    s, w, n, e = BBOX
-    out_header = {
-        'tile_type': header['tile_type'], 'tile_compression': header['tile_compression'],
-        'min_zoom': 0, 'max_zoom': MAX_ZOOM,
-        'min_lon_e7': int(w * 1e7), 'min_lat_e7': int(s * 1e7), 'max_lon_e7': int(e * 1e7), 'max_lat_e7': int(n * 1e7),
-        'center_zoom': 12, 'center_lon_e7': int(23.3219 * 1e7), 'center_lat_e7': int(42.6977 * 1e7),
-    }
-    OUT.parent.mkdir(exist_ok=True)
-    with open(OUT, 'wb') as f:
-        writer = Writer(f)
-        for zxy in sorted(tiles, key=lambda t: zxy_to_tileid(*t)):
-            writer.write_tile(zxy_to_tileid(*zxy), tiles[zxy])
-        writer.finalize(out_header, metadata)
-    print(f'wrote {OUT} ({OUT.stat().st_size / 1e6:.1f} MB)')
+    compressed = header['tile_compression'] == Compression.GZIP
+    if OUT.exists():
+        shutil.rmtree(OUT)
+    total = 0
+    for (z, x, y), data in tiles.items():
+        path = OUT / str(z) / str(x) / f'{y}.pbf'
+        path.parent.mkdir(parents=True, exist_ok=True)
+        raw = gzip.decompress(data) if compressed else data
+        path.write_bytes(raw)
+        total += len(raw)
+    (OUT / 'ABOUT.txt').write_text(
+        f'Vector tiles (zoom 0-{MAX_ZOOM}) of the Sofia area, bbox {BBOX} (south, west, north, east),\n'
+        f'from Protomaps build {build}. Map data (c) OpenStreetMap contributors (ODbL). '
+        'Built by scripts/build_basemap.py.\n', encoding='utf-8')
+    print(f'wrote {len(tiles)} tiles to {OUT} ({total / 1e6:.1f} MB)')
 
 
 if __name__ == '__main__':

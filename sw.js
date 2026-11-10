@@ -8,7 +8,7 @@
 //               values seen (pages, live status, fonts, district map images that were opened).
 //
 // Saved only when the visitor asks (the "Без интернет" card, pwa.js), as packs from offline.json:
-//   map   sp-map    the street map of Sofia (maps/sofia.pmtiles, ~11 MB)
+//   map   sp-map    the street map of Sofia (maps/tiles, ~770 small files, ~15 MB)
 //   docs  sp-docs   the protection plans and printable PDFs (~19 MB) and the in-app PDF viewer
 // Once saved, a pack's files are downloaded again only when they change (fingerprints in
 // offline.json). The visitor can remove a pack again.
@@ -137,12 +137,11 @@ function savePack(name) {
             const url = abs(f.url);
             if (saved[url] !== f.hash || !(await cache.match(url))) todo.push({ url, hash: f.hash });
         }
-        await inBatches(todo, 2, async ({ url, hash }) => {
+        await inBatches(todo, name === 'map' ? 8 : 2, async ({ url, hash }) => {  // map tiles are small
             if (cancelled[name]) return;
             const res = await fetch(url, { cache: 'no-cache' });
             if (!res.ok || cancelled[name]) return;
             await cache.put(url, await storable(res));
-            if (name === 'map') mapBlob = null;  // read the new file on the next request
             saved = await readJson(SAVED, {});
             saved[url] = hash;
             await writeJson(SAVED, saved);
@@ -161,7 +160,6 @@ async function removePack(name) {
     for (const req of await cache.keys()) delete saved[req.url];
     await writeJson(SAVED, saved);
     await caches.delete(PACK_CACHES[name]);
-    mapBlob = null;
     broadcast({ type: 'pack-progress', pack: name });
 }
 
@@ -251,28 +249,6 @@ async function fromPack(name, request, url) {
     return fetch(request);
 }
 
-// The street map is read in small pieces (HTTP range requests); answer them from the saved file
-let mapBlob = null;
-async function mapRange(request, url) {
-    const range = /bytes=(\d+)-(\d*)/.exec(request.headers.get('Range') || '');
-    if (!mapBlob) {
-        const saved = await (await caches.open(PACK_CACHES.map)).match(url.origin + url.pathname);
-        if (!saved) return fetch(request);
-        mapBlob = await saved.blob();
-    }
-    if (!range) return new Response(mapBlob, { headers: { 'Content-Type': 'application/octet-stream', 'Content-Length': String(mapBlob.size) } });
-    const start = +range[1];
-    const end = Math.min(range[2] ? +range[2] : mapBlob.size - 1, mapBlob.size - 1);
-    return new Response(mapBlob.slice(start, end + 1), {
-        status: 206,
-        headers: {
-            'Content-Type': 'application/octet-stream',
-            'Content-Range': `bytes ${start}-${end}/${mapBlob.size}`,
-            'Content-Length': String(end - start + 1)
-        }
-    });
-}
-
 function offlinePage() {
     const html = `<!DOCTYPE html><html lang="bg"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Няма интернет – sofia-prepping.com</title></head>
@@ -290,8 +266,8 @@ self.addEventListener('fetch', event => {
     const url = new URL(request.url);
     const local = url.origin === self.location.origin;
 
-    if (local && url.pathname === '/maps/sofia.pmtiles') {
-        event.respondWith(mapRange(request, url).catch(() => Response.error()));
+    if (local && url.pathname.startsWith('/maps/tiles/')) {
+        event.respondWith(fromPack('map', request, url).catch(() => Response.error()));
         return;
     }
     if (local && (url.pathname.endsWith('.pdf') || url.pathname.startsWith('/vendor/pdfjs/'))) {

@@ -1,0 +1,2 @@
+Vector tiles (zoom 0-14) of the Sofia area, bbox (42.53, 23.08, 42.87, 23.62) (south, west, north, east),
+from Protomaps build 20261110. Map data (c) OpenStreetMap contributors (ODbL). Built by scripts/build_basemap.py.
