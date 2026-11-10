@@ -108,6 +108,7 @@
         return L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             className: 'tiles-dark',
+            crossOrigin: true,  // so the service worker (sw.js) can keep viewed tiles for offline use
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         }).addTo(map);
     }

@@ -1,0 +1,161 @@
+{
+ "pages": [
+  "/",
+  "/cheshmi",
+  "/dokumenti",
+  "/karta",
+  "/karti",
+  "/listovka",
+  "/materiali",
+  "/rayoni",
+  "/ubezhishta"
+ ],
+ "data": [
+  "/data/karta.json",
+  "/data/rayoni.json",
+  "/api/status?part=warnings&v=3",
+  "/api/status?part=earthquakes&v=3",
+  "/api/status?part=air&v=3",
+  "/api/status?part=water&v=3",
+  "/api/status?part=heating&v=3",
+  "/api/status?part=radiation&v=3",
+  "/api/status?part=news&v=3"
+ ],
+ "docs": [
+  {
+   "url": "/planove/plan-navodnenia.pdf",
+   "hash": "ad49bf9c3f8f",
+   "bytes": 2038818
+  },
+  {
+   "url": "/planove/plan-radiacia.pdf",
+   "hash": "230500d57225",
+   "bytes": 1366947
+  },
+  {
+   "url": "/planove/plan-zemetresenia.pdf",
+   "hash": "d5850393bf23",
+   "bytes": 1292757
+  },
+  {
+   "url": "/pechat/rayon-bankya.pdf",
+   "hash": "29aea40294bc",
+   "bytes": 442255
+  },
+  {
+   "url": "/pechat/rayon-ilinden.pdf",
+   "hash": "4087d0c3c0f2",
+   "bytes": 623640
+  },
+  {
+   "url": "/pechat/rayon-iskar.pdf",
+   "hash": "ca7f2d145086",
+   "bytes": 658319
+  },
+  {
+   "url": "/pechat/rayon-izgrev.pdf",
+   "hash": "197f0ff41bcf",
+   "bytes": 885184
+  },
+  {
+   "url": "/pechat/rayon-krasna-polyana.pdf",
+   "hash": "65978f7b936f",
+   "bytes": 610732
+  },
+  {
+   "url": "/pechat/rayon-krasno-selo.pdf",
+   "hash": "8aeffad79c06",
+   "bytes": 909863
+  },
+  {
+   "url": "/pechat/rayon-kremikovtsi.pdf",
+   "hash": "9d6c87f1c119",
+   "bytes": 585207
+  },
+  {
+   "url": "/pechat/rayon-lozenets.pdf",
+   "hash": "da4486975842",
+   "bytes": 843729
+  },
+  {
+   "url": "/pechat/rayon-lyulin.pdf",
+   "hash": "346c2bdd6aab",
+   "bytes": 677585
+  },
+  {
+   "url": "/pechat/rayon-mladost.pdf",
+   "hash": "71e2ff7fb343",
+   "bytes": 746566
+  },
+  {
+   "url": "/pechat/rayon-nadezhda.pdf",
+   "hash": "9938b315bf2f",
+   "bytes": 488433
+  },
+  {
+   "url": "/pechat/rayon-novi-iskar.pdf",
+   "hash": "1dce36e1aa9f",
+   "bytes": 501511
+  },
+  {
+   "url": "/pechat/rayon-oborishte.pdf",
+   "hash": "acdec4ab36bb",
+   "bytes": 567940
+  },
+  {
+   "url": "/pechat/rayon-ovcha-kupel.pdf",
+   "hash": "94b227453e6a",
+   "bytes": 650365
+  },
+  {
+   "url": "/pechat/rayon-pancharevo.pdf",
+   "hash": "87b400aba8f2",
+   "bytes": 476829
+  },
+  {
+   "url": "/pechat/rayon-poduyane.pdf",
+   "hash": "6e52b75334fa",
+   "bytes": 510457
+  },
+  {
+   "url": "/pechat/rayon-serdika.pdf",
+   "hash": "9d9c3cdf8782",
+   "bytes": 709239
+  },
+  {
+   "url": "/pechat/rayon-slatina.pdf",
+   "hash": "0c1b3e041cca",
+   "bytes": 469123
+  },
+  {
+   "url": "/pechat/rayon-sredets.pdf",
+   "hash": "8b7f876f5c7e",
+   "bytes": 704857
+  },
+  {
+   "url": "/pechat/rayon-studentski.pdf",
+   "hash": "2cd62c5c95b3",
+   "bytes": 520514
+  },
+  {
+   "url": "/pechat/rayon-triaditsa.pdf",
+   "hash": "5e9dc1b4e499",
+   "bytes": 221810
+  },
+  {
+   "url": "/pechat/rayon-vazrazhdane.pdf",
+   "hash": "9d3b5508e935",
+   "bytes": 539688
+  },
+  {
+   "url": "/pechat/rayon-vitosha.pdf",
+   "hash": "853bfa03dcba",
+   "bytes": 556562
+  },
+  {
+   "url": "/pechat/rayon-vrabnitsa.pdf",
+   "hash": "4ecea5bfa96a",
+   "bytes": 460364
+  }
+ ]
+}
