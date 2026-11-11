@@ -58,21 +58,26 @@
             if (controller) controller.abort();
             controller = new AbortController();
             asked = q;
+            // A first lookup of an address can take a few seconds: say so instead of showing nothing
+            const waiting = setTimeout(() => { if (q === asked) say(t('Търсене на адреса...')); }, 300);
             try {
                 const res = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`, { signal: controller.signal });
                 const data = await res.json();
                 if (q !== asked) return results;
-                results = data.ok ? data.results : [];
+                if (!data.ok) throw new Error(data.error || 'search failed');
+                results = data.results;
                 active = -1;
-                say(data.ok && !results.length ? t('Не намерихме „{q}“ в София. Опитайте с улица и номер или блок и квартал.', { q }) : '');
+                say(results.length ? '' : t('Не намерихме „{q}“ в София. Опитайте с улица и номер или блок и квартал.', { q }));
                 render();
             } catch (err) {
-                if (err.name === 'AbortError') return results;
+                if (err.name === 'AbortError' || q !== asked) return results;
                 results = [];
                 render();
                 say(navigator.onLine === false
                     ? t('Търсенето на адрес изисква интернет. Без интернет използвайте бутона за местоположение.')
                     : t('Търсенето не отговаря в момента. Опитайте отново или използвайте местоположението си.'));
+            } finally {
+                clearTimeout(waiting);
             }
             return results;
         }

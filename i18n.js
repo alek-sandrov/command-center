@@ -89,7 +89,7 @@
             '. Your location is only used in your browser and is never sent anywhere.',
         'Сгради за настаняване': 'Shelter buildings', 'Йодни таблетки': 'Iodine tablets', 'Палатки': 'Tent camps',
         'Минерални извори': 'Mineral springs', 'Метро': 'Metro', 'Болници': 'Hospitals', 'Аптеки': 'Pharmacies',
-        'Маршрут': 'Directions', 'Най-близо до вас': 'Nearest to you', 'Търсене...': 'Locating...',
+        'Маршрут': 'Directions', 'Най-близо до вас': 'Nearest to you', 'Търсене...': 'Locating...', 'Търсене на адреса...': 'Searching...',
         'Вие сте тук': 'You are here',
         'Районът е сменен на {district} според местоположението ви.': 'Switched to {district}, where you are now.',
         'Покажи местоположението ми': 'Show my location',
