@@ -239,18 +239,73 @@
         });
     };
 
+    const FIT = { paddingTopLeft: [60, 120], paddingBottomRight: [60, 150] };
+
     function fit(map, outline, extra) {
         const b = outline.getBounds();
         extra.forEach(p => b.extend(p));
-        map.fitBounds(b, { paddingTopLeft: [60, 120], paddingBottomRight: [60, 150] });
+        map.fitBounds(b, FIT);
+    }
+
+    // Once the boxes on a map page are placed: if the legend or another box covers part of the
+    // district or its markers, fit the map again with room for the legend on the left or below
+    // (whichever covers least and keeps the map largest)
+    function clearOverlays(m, extra, markers) {
+        const { map, outline, body } = m;
+        const box = map.getContainer();
+        const legend = body.querySelector('.dp-legend');
+        if (!legend) return;
+        const rects = [...body.querySelectorAll('.dp-overlay')].map(o => ({
+            l: o.offsetLeft - box.offsetLeft - 6, t: o.offsetTop - box.offsetTop - 6,
+            r: o.offsetLeft - box.offsetLeft + o.offsetWidth + 6, b: o.offsetTop - box.offsetTop + o.offsetHeight + 6
+        }));
+        // the district's edge (corners and the middle of each side) and the markers
+        const edge = [];
+        const walk = ll => {
+            if (!Array.isArray(ll[0])) {
+                ll.forEach((a, i) => { const b = ll[(i + 1) % ll.length]; edge.push(a, L.latLng((a.lat + b.lat) / 2, (a.lng + b.lng) / 2)); });
+            } else ll.forEach(walk);
+        };
+        walk(outline.getLatLngs());
+        const points = [...edge, ...markers.map(p => L.latLng(p[0], p[1]))];
+        // How many points the boxes would cover with the map centred at c, zoom z (worked out
+        // without moving the map: moving it several times at once stops the street map loading)
+        const size = map.getSize();
+        const covered = (c, z) => {
+            const mid = map.project(c, z);
+            return points.filter(ll => {
+                const pt = map.project(ll, z).subtract(mid).add(size.divideBy(2));
+                return rects.some(r => pt.x >= r.l && pt.x <= r.r && pt.y >= r.t && pt.y <= r.b);
+            }).length;
+        };
+        if (!covered(map.getCenter(), map.getZoom())) return;
+        const b = outline.getBounds();
+        extra.forEach(p => b.extend(p));
+        const left = legend.offsetLeft - box.offsetLeft + legend.offsetWidth + 16;
+        const below = box.offsetHeight - (legend.offsetTop - box.offsetTop) + 16;
+        const options = [
+            FIT,
+            { paddingTopLeft: [left, FIT.paddingTopLeft[1]], paddingBottomRight: FIT.paddingBottomRight },
+            { paddingTopLeft: FIT.paddingTopLeft, paddingBottomRight: [FIT.paddingBottomRight[0], below] },
+            { paddingTopLeft: [left, FIT.paddingTopLeft[1]], paddingBottomRight: [FIT.paddingBottomRight[0], below] }
+        ];
+        let best = null;
+        options.forEach(o => {
+            const v = map._getBoundsCenterZoom(b, o);  // where fitBounds would put the map
+            const c = covered(v.center, v.zoom);
+            if (!best || c < best.c || (c === best.c && v.zoom > best.v.zoom)) best = { v, c };
+        });
+        map.setView(best.v.center, best.v.zoom, { animate: false });
     }
 
     function resourcesMap(ctx) {
         const m = mapPage(ctx, 'Карта 1 · Ресурси за защита', t('Карта 1'), t('Ресурси за защита на населението'));
         const extra = [];
+        const markers = [];
         // Draw the less important layers first, so shelters and hospitals end up on top
         [...ctx.assets].reverse().forEach(a => a.items.forEach(it => {
             L.marker([it.p[0], it.p[1]], { icon: markerIcon(a.colour, it.id), interactive: false, zIndexOffset: a.key === 'shelter' ? 1000 : 0 }).addTo(m.map);
+            markers.push(it.p);
             if (it.near !== undefined) extra.push([it.p[0], it.p[1]]);
         }));
         fit(m.map, m.outline, extra);
@@ -273,6 +328,7 @@
         outlineKey.append(el('span', 'dp-line'), el('span', '', t('граница на района')));
         legend.append(outlineKey);
         m.body.append(legend);
+        clearOverlays(m, extra, markers);
         return m.loaded;
     }
 
@@ -298,7 +354,8 @@
             L.circle([p[0], p[1]], { radius: ctx.pillars[0].km * 1000, color: '#111827', weight: 1.2, dashArray: '4 4', fillColor: '#111827', fillOpacity: 0.04, interactive: false }).addTo(m.map);
             L.marker([p[0], p[1]], { icon: markerIcon('#111827', own.get(p) || ''), interactive: false, zIndexOffset: 1000 }).addTo(m.map);
         });
-        fit(m.map, m.outline, shelters.items.filter(it => it.near !== undefined).map(it => [it.p[0], it.p[1]]));
+        const extra = shelters.items.filter(it => it.near !== undefined).map(it => [it.p[0], it.p[1]]);
+        fit(m.map, m.outline, extra);
 
         const { row, city } = ctx;
         const stat = el('div', 'dp-overlay dp-stat');
@@ -331,6 +388,7 @@
         ring.append(el('span', 'dp-ring'), el('span', '', t('укритие и кръг с радиус {km}', { km: km(ctx.pillars[0].km) })));
         legend.append(ring, el('div', 'dp-legend-note', t('Разпределението на жителите е по модела Kontur Population, приведено към преброяване 2021. Разстоянията са по права линия.')));
         m.body.append(legend);
+        clearOverlays(m, extra, shelters.items.map(it => it.p));
         return m.loaded;
     }
 
