@@ -21,7 +21,7 @@
     <meta name="robots" content="noindex">
     <link rel="canonical" href="https://sofia-prepping.com/okolo">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha512-h9FcoyWjHcOcmEVkxOfTLnmZFWIH0iZhZT1H2TbOq55xssQGEJHEaIm+PgoUaZbRvQTNTluNOEfb1ZRy6D3BOw==" crossorigin="anonymous" referrerpolicy="no-referrer">
-    <link rel="stylesheet" href="style.css?v=20261111n">
+    <link rel="stylesheet" href="style.css?v=20261111t">
 </head>
 <body>
     <nav class="navbar">
@@ -62,7 +62,7 @@
             <p class="ok-sub" id="ok-sub"></p>
         </header>
 
-        <p class="ok-empty" id="ok-empty" hidden>Докоснете картата там, където сте или където искате да проверите. После можете да плъзнете маркера, за да уточните.</p>
+        <p class="ok-empty" id="ok-empty" hidden>Докоснете картата там, където сте или където искате да проверите, и потвърдете.</p>
 
         <div class="ok-grid" id="ok-grid">
             <section class="panel ok-map-panel">
@@ -70,6 +70,11 @@
                     <h2>Карта</h2>
                 </div>
                 <div id="ok-map" class="ok-map"></div>
+                <!-- Picking a place: shown once the pin is down (okolo.js startPicking) -->
+                <div class="ok-confirm" id="ok-confirm" hidden>
+                    <span>Това ли е мястото? Можете да преместите маркера.</span>
+                    <button type="button" class="btn-primary" id="ok-confirm-go">Покажи какво има наоколо</button>
+                </div>
                 <p class="ok-note">Не е точно? Плъзнете маркера „Тук“ до точното място. Пунктираните линии водят до най-близкия обект от всеки вид, кръгът е 1 км.</p>
             </section>
 
@@ -111,14 +116,14 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" integrity="sha512-puJW3E/qXDqYp9IfhAI54BJEaWIfloJ7JWs7OeD5i6ruC9JZL1gERT1wjtwXFlh7CjE7ZJ+/vcRZRkIYIb6p4g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="vendor/protomaps-leaflet/protomaps-leaflet.js?v=5.1.0"></script>
-    <script src="i18n.js?v=20261111q"></script>
+    <script src="i18n.js?v=20261111t"></script>
     <script src="district.js?v=20261109a"></script>
     <script src="chrome.js?v=20261111h"></script>
     <script src="pwa.js?v=20261111n"></script>
     <script src="map-style.js?v=20261109a"></script>
     <script src="status-rules.js?v=20261111e"></script>
     <script src="search.js?v=20261111j"></script>
-    <script src="okolo.js?v=20261111k"></script>
+    <script src="okolo.js?v=20261111t"></script>
     <script src="status.js?v=20261111e"></script>
 </body>
 </html>
