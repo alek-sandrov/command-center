@@ -271,9 +271,22 @@ input {
     font-weight: 600;
 }
 
+/* Small: a hint, not a headline */
 .install-bar {
+    gap: 10px;
+    padding: 5px 12px;
+    font-size: 12px;
     background: var(--surface);
-    color: var(--text);
+    color: var(--text-2);
+}
+
+.install-bar .site-bar-action {
+    padding: 4px 10px;
+    font-size: 11px;
+}
+
+.install-bar .site-bar-close {
+    font-size: 18px;
 }
 
 .site-bar-action {
@@ -3974,6 +3987,11 @@ body.ow-wall .ow-map {
     color: var(--dim);
 }
 
+/* Examples, status, quick links: part of the hero on wide screens, a separate group on phones */
+.home-more {
+    display: contents;
+}
+
 /* ===== Place page (okolo.html) ===== */
 .ok-search {
     max-width: 640px;
@@ -4258,8 +4276,19 @@ body.ow-wall .ow-map {
         min-height: 0;
         justify-content: flex-start;
         padding-top: 28px;
-        padding-bottom: 40px;
+        padding-bottom: 28px;
         gap: 14px;
+    }
+
+    .home-more {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+        width: 100%;
+        /* well below the search, so on the first screen the search stands on its own */
+        padding-top: max(64px, 24vh);
+        padding-top: max(64px, 24svh);
     }
 
     .home-lede {
