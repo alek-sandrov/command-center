@@ -89,6 +89,7 @@
             return { ...k, layer, best, within, limit: pillar ? pillar.km : null };
         });
 
+        $('ok-report').href = `kontakt.html?kind=error&ref=${encodeURIComponent(location.pathname + location.search)}`;
         const map = buildMap(nearest);
         renderList(nearest, map);
         renderReadiness(nearest, district, analizi);

@@ -38,6 +38,14 @@
     if (footer) {
         const left = document.createElement('span');
         left.textContent = t('sofia-prepping.com · независим граждански ресурс');
+        // Feedback form, told which page the visitor was on
+        if (!location.pathname.startsWith('/kontakt')) {
+            const contact = document.createElement('a');
+            contact.className = 'footer-contact';
+            contact.href = `kontakt.html?ref=${encodeURIComponent(location.pathname + location.search)}`;
+            contact.textContent = t('Обратна връзка');
+            left.append(' · ', contact);
+        }
         const right = document.createElement('span');
         right.textContent = t('Данни от отворени източници · без гаранция за точност · спешни случаи 112');
         const inner = document.createElement('div');
