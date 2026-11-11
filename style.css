@@ -653,220 +653,10 @@ header h1::before {
     content: '↗';
 }
 
-/* ---------- Home: map + assessment ---------- */
-
-.hero {
-    border-bottom: 1px solid var(--line);
-}
-
-.hero-inner {
-    max-width: var(--max);
-    margin: 0 auto;
-    padding: 24px var(--gutter);
-    display: flex;
-    flex-wrap: wrap;
-    gap: 24px;
-    align-items: stretch;
-}
-
-.hero-map {
-    isolation: isolate;  /* keep Leaflet's z-indexes inside the map, under the sticky navbar */
-    flex: 999 1 560px;
-    min-width: 0;
-    position: relative;
-    min-height: 620px;
-    border: 1px solid var(--line);
-    background: #0D1014;
-    overflow: hidden;
-}
-
-.home-map {
-    position: absolute;
-    inset: 0;
-    background: #0D1014;
-}
-
-.map-layers {
-    position: absolute;
-    top: 16px;
-    left: 16px;
-    z-index: 500;
-    width: 260px;
-    max-width: calc(100% - 32px);
-    background: rgba(10, 12, 15, 0.94);
-    border: 1px solid var(--line-strong);
-}
-
-.map-layers-head {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    min-height: 40px;
-    padding: 0 14px;
-    background: transparent;
-    border: none;
-    border-bottom: 1px solid var(--line);
-    color: var(--text);
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    text-align: left;
-    cursor: pointer;
-}
-
-.map-layers-head:hover {
-    background: var(--surface-2);
-}
-
-.map-layers-title {
-    font-weight: 600;
-    margin-right: auto;
-}
-
-.map-layers-count {
-    color: var(--muted);
-}
-
-.map-layers-chevron {
-    color: var(--muted);
-    transform: rotate(180deg);
-    transition: transform 0.15s;
-}
-
-.map-layers.collapsed .map-layers-chevron {
-    transform: none;
-}
-
-.map-layers.collapsed .map-layers-head {
-    border-bottom: none;
-}
-
-.map-layers.collapsed .map-layers-body {
-    display: none;
-}
-
-.map-layers.collapsed {
-    width: auto;
-}
-
-.map-layers-list {
-    padding: 4px 14px 6px;
-}
-
-.map-layers-actions {
-    display: flex;
-    border-top: 1px solid var(--line);
-}
-
-.map-layers-actions button {
-    flex: 1 1 0;
-    min-height: 38px;
-    background: transparent;
-    border: none;
-    color: var(--accent);
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    cursor: pointer;
-}
-
-.map-layers-actions button + button {
-    border-left: 1px solid var(--line);
-}
-
-.map-layers-actions button:hover {
-    background: var(--surface-2);
-    color: var(--text);
-}
-
-.layer-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    min-height: 34px;
-    font-size: 13px;
-    cursor: pointer;
-}
-
-.layer-row input {
-    width: 16px;
-    height: 16px;
-    margin: 0;
-    accent-color: var(--accent);
-    flex-shrink: 0;
-}
-
-.layer-row.empty {
-    color: var(--dim);
-}
-
-.layer-name {
-    flex: 1 1 auto;
-}
-
-.layer-count {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--muted);
-    font-variant-numeric: tabular-nums;
-}
+/* ---------- Live status panel (okolo.html, status.js) ---------- */
 
 .swatch {
     flex-shrink: 0;
-}
-
-.map-foot {
-    position: absolute;
-    left: 16px;
-    right: 16px;
-    bottom: 16px;
-    z-index: 500;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: flex-end;
-    gap: 12px;
-    pointer-events: none;
-}
-
-.map-foot > * {
-    pointer-events: auto;
-}
-
-.map-scroll-hint {
-    position: absolute;
-    inset: 0;
-    z-index: 600;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(5, 7, 10, 0.55);
-    font-family: var(--mono);
-    font-size: 13px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--text);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.25s;
-}
-
-.map-scroll-hint.show {
-    opacity: 1;
-}
-
-.map-credit {
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--muted);
-    background: rgba(10, 12, 15, 0.9);
-    border: 1px solid var(--line);
-    padding: 4px 8px;
 }
 
 .hero-status {
@@ -2084,8 +1874,6 @@ footer > p {
     .lang-toggle,
     .news-tab,
     .chip,
-    .map-layers-head,
-    .map-layers-actions button,
     .type-chip,
     .quick-nav-btn {
         min-height: 44px;
@@ -2104,10 +1892,6 @@ footer > p {
 
     .chips {
         gap: 8px;
-    }
-
-    .layer-row {
-        min-height: 44px;
     }
 
     .nav-brand,
@@ -2163,43 +1947,6 @@ footer > p {
         max-width: 170px;
     }
 
-    /* Map on top, layer list and button below it */
-    .hero-map {
-        min-height: 0;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .home-map {
-        position: relative;
-        height: 380px;
-    }
-
-    .map-layers {
-        position: static;
-        width: auto;
-        max-width: none;
-        border: none;
-        border-top: 1px solid var(--line);
-        background: var(--bg);
-    }
-
-    .map-layers-list {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-        column-gap: 16px;
-    }
-
-    .map-foot {
-        position: static;
-        padding: 0 14px 14px;
-        background: var(--bg);
-    }
-
-    .map-credit {
-        display: none;
-    }
-
     .assessment-title {
         font-size: 26px;
     }
@@ -2247,14 +1994,6 @@ footer > p {
         background-position: right 10px center;
     }
 
-    .map-foot {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .map-credit {
-        display: none;
-    }
 }
 
 @media print {
@@ -3855,5 +3594,518 @@ body.ow-wall .ow-map {
     .ow-layers button,
     .ow-cell {
         min-height: 44px;
+    }
+}
+
+/* ===== Homepage: address search ===== */
+.home-hero {
+    border-bottom: 1px solid var(--line);
+}
+
+.home-hero-inner {
+    max-width: 760px;
+    margin: 0 auto;
+    min-height: calc(100vh - 120px);
+    min-height: calc(100svh - 120px);
+    padding: 48px var(--gutter) 56px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 18px;
+}
+
+.home-kicker {
+    color: var(--accent);
+}
+
+.home-title {
+    font-size: clamp(34px, 6vw, 56px);
+    line-height: 1.05;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+
+.home-lede {
+    max-width: 560px;
+    font-size: 17px;
+    color: var(--text-2);
+}
+
+/* Search box (search.js) */
+.place-search {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 10px;
+    padding: 6px 6px 6px 18px;
+    background: var(--surface);
+    border: 1px solid var(--line-strong);
+    text-align: left;
+}
+
+.place-search:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(242, 169, 59, 0.15);
+}
+
+.place-search svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+}
+
+.ps-icon {
+    flex: 0 0 auto;
+    color: var(--muted);
+}
+
+.place-search input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 52px;
+    padding: 0 8px;
+    background: transparent;
+    border: 0;
+    outline: none;
+    color: var(--text);
+    font: inherit;
+    font-size: 18px;
+}
+
+.place-search input::placeholder {
+    color: var(--dim);
+}
+
+.ps-locate,
+.ps-go {
+    flex: 0 0 auto;
+    width: 48px;
+    height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    cursor: pointer;
+}
+
+.ps-locate {
+    background: transparent;
+    color: var(--text-2);
+}
+
+.ps-locate:hover {
+    color: var(--accent);
+}
+
+.ps-locate.busy svg {
+    animation: ow-blink 1s ease-in-out infinite;
+}
+
+.ps-go {
+    background: var(--accent);
+    color: var(--bg);
+}
+
+.ps-go:hover {
+    background: var(--text);
+}
+
+.ps-results {
+    position: absolute;
+    left: -1px;
+    right: -1px;
+    top: calc(100% + 1px);
+    z-index: 1200;
+    list-style: none;
+    background: var(--surface);
+    border: 1px solid var(--line-strong);
+    max-height: 360px;
+    overflow-y: auto;
+}
+
+.ps-results li {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 18px;
+    border-bottom: 1px solid var(--line-soft);
+    cursor: pointer;
+}
+
+.ps-results li strong {
+    font-weight: 500;
+    color: var(--text);
+}
+
+.ps-results li span {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.ps-results li:hover,
+.ps-results li.on {
+    background: var(--surface-2);
+    box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.ps-msg {
+    font-size: 14px;
+    color: var(--warn);
+}
+
+.home-examples {
+    font-size: 14px;
+    color: var(--muted);
+}
+
+.home-examples a {
+    white-space: nowrap;
+    color: var(--text-2);
+    border-bottom: 1px dotted var(--dim);
+    margin: 0 4px;
+}
+
+.home-examples a:hover {
+    color: var(--accent);
+}
+
+.home-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+    padding: 8px 14px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    font-size: 14px;
+    color: var(--text-2);
+    max-width: 100%;
+}
+
+.home-status-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.home-status-dot {
+    flex: 0 0 auto;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--tone, var(--muted));
+}
+
+.home-status-arrow {
+    font-family: var(--mono);
+    color: var(--dim);
+}
+
+.home-status:hover .home-status-arrow {
+    color: var(--accent);
+}
+
+.home-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.home-links a {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-2);
+    border: 1px solid var(--line-strong);
+    padding: 8px 12px;
+}
+
+.home-links a:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+.home-privacy {
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--dim);
+}
+
+/* ===== Place page (okolo.html) ===== */
+.ok-search {
+    max-width: 640px;
+    margin-bottom: 24px;
+}
+
+.place-search.compact {
+    margin-top: 0;
+    padding: 4px 4px 4px 14px;
+}
+
+.place-search.compact input {
+    height: 42px;
+    font-size: 16px;
+}
+
+.place-search.compact .ps-locate,
+.place-search.compact .ps-go {
+    width: 42px;
+    height: 42px;
+}
+
+.ok-search .ps-msg {
+    margin-top: 8px;
+}
+
+.ok-head {
+    margin-bottom: 20px;
+}
+
+.ok-head .kicker {
+    margin-bottom: 8px;
+}
+
+.ok-sub {
+    margin-top: 8px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+}
+
+.ok-empty {
+    color: var(--text-2);
+}
+
+.ok-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 400px;
+    gap: 24px;
+    align-items: start;
+}
+
+.ok-grid .panel-head h2 {
+    margin: 0;
+}
+
+.ok-map {
+    height: 560px;
+    background: var(--bg);
+}
+
+.ok-note {
+    padding: 10px 20px;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.ok-list {
+    list-style: none;
+}
+
+.ok-list .loading,
+.ok-list .error {
+    padding: 16px 20px;
+}
+
+.ok-item {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--line-soft);
+    cursor: pointer;
+}
+
+.ok-item:hover,
+.ok-item:focus-visible {
+    background: var(--surface-2);
+}
+
+.ok-item-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ok-kind {
+    flex: 1 1 auto;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.ok-dist {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.ok-dist.far {
+    color: var(--danger);
+}
+
+.ok-name {
+    margin-top: 2px;
+    font-size: 15px;
+    color: var(--text);
+}
+
+.ok-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 12px;
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.ok-route {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+}
+
+.ok-none {
+    font-size: 14px;
+    color: var(--muted);
+}
+
+.ok-status {
+    grid-column: 1;
+}
+
+.ok-ready-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.ok-score {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.ok-h3 {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.ok-checks {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.ok-checks li {
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.ok-mark {
+    font-weight: 700;
+    text-align: center;
+}
+
+.ok-checks .yes .ok-mark { color: var(--ok); }
+.ok-checks .no .ok-mark { color: var(--danger); }
+
+.ok-check-note {
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.ok-ready .ok-note {
+    padding: 0;
+}
+
+.ok-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+}
+
+.ok-links .ri-link {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+@media (max-width: 1100px) {
+    .ok-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .ok-status {
+        grid-column: auto;
+    }
+
+    /* On a narrow screen the answer comes first: the nearest places, then the map */
+    .ok-near {
+        order: -1;
+    }
+}
+
+@media (max-width: 760px) {
+    /* Phones: the search box near the top, where the thumb and the keyboard can reach it */
+    .home-hero-inner {
+        min-height: 0;
+        justify-content: flex-start;
+        padding-top: 28px;
+        padding-bottom: 40px;
+        gap: 14px;
+    }
+
+    .home-lede {
+        font-size: 15px;
+    }
+
+    .place-search {
+        padding-left: 12px;
+    }
+
+    .place-search input {
+        font-size: 16px;
+        height: 48px;
+    }
+
+    .ps-locate,
+    .ps-go {
+        width: 44px;
+        height: 44px;
+    }
+
+    .home-status {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .home-links a {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .ok-map {
+        height: 380px;
     }
 }

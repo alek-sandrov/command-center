@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Около вас - Sofia Prepping</title>
+    <meta name="description" content="Най-близкото укритие, болница, питейна вода и пункт за йодни таблетки до адрес в София, готовността на района и обстановката в момента.">
+    <meta name="theme-color" content="#0A0C0F">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="apple-touch-icon" href="img/app/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-title" content="Sofia Prepping">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="sofia-prepping.com">
+    <meta property="og:title" content="Около вас - Sofia Prepping">
+    <meta property="og:description" content="Най-близкото укритие, болница, питейна вода и пункт за йодни таблетки до адрес в София, готовността на района и обстановката в момента.">
+    <meta name="twitter:card" content="summary">
+    <meta name="robots" content="noindex">
+    <link rel="canonical" href="https://sofia-prepping.com/okolo">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha512-h9FcoyWjHcOcmEVkxOfTLnmZFWIH0iZhZT1H2TbOq55xssQGEJHEaIm+PgoUaZbRvQTNTluNOEfb1ZRy6D3BOw==" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="style.css?v=20261111e">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-brand" aria-label="sofia-prepping.com">
+                <svg class="brand-mark" width="26" height="26" viewBox="0 0 28 28" fill="none" aria-hidden="true"><rect x="2" y="2" width="24" height="24"/><circle cx="14" cy="14" r="6"/><path d="M14 2v6M14 20v6M2 14h6M20 14h6"/></svg>
+                <span class="brand-text">SOFIA<span class="brand-slash">/</span>PREPPING</span>
+            </a>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link active">Начало</a>
+                <a href="karti.html" class="nav-link">Карти</a>
+                <a href="dokumenti.html" class="nav-link">Документи</a>
+                <a href="analizi.html" class="nav-link">Анализи</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container ok">
+        <div class="ok-search">
+            <form class="place-search compact" role="search" autocomplete="off">
+                <svg class="ps-icon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg>
+                <input type="text" name="q" placeholder="Друг адрес, блок или място" aria-label="Друг адрес, блок или място" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="ps-okolo" enterkeyhint="search" spellcheck="false">
+                <button type="button" class="ps-locate" title="Използвай местоположението ми" aria-label="Използвай местоположението ми">
+                    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+                </button>
+                <button type="submit" class="ps-go" aria-label="Търси">
+                    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                </button>
+                <ul id="ps-okolo" class="ps-results" role="listbox" hidden></ul>
+            </form>
+            <p class="ps-msg" role="status" hidden></p>
+        </div>
+
+        <header class="ok-head">
+            <div class="kicker" id="ok-kicker">Справка за място</div>
+            <h1 id="ok-title">Зареждане...</h1>
+            <p class="ok-sub" id="ok-sub"></p>
+        </header>
+
+        <p class="ok-empty" id="ok-empty" hidden>Въведете адрес или използвайте местоположението си.</p>
+
+        <div class="ok-grid" id="ok-grid">
+            <section class="panel ok-map-panel">
+                <div class="panel-head">
+                    <h2>Карта</h2>
+                    <a class="ri-link" id="ok-full-map" href="karta.html">Пълната карта →</a>
+                </div>
+                <div id="ok-map" class="ok-map"></div>
+                <p class="ok-note">Пунктираните линии водят до най-близкия обект от всеки вид. Кръгът е 1 км.</p>
+            </section>
+
+            <section class="panel ok-near">
+                <div class="panel-head"><h2>Най-близо до вас</h2><span class="kicker">по права линия</span></div>
+                <ol class="ok-list" id="ok-list"><li class="loading">Зареждане...</li></ol>
+            </section>
+
+            <!-- Live status for the place's district (status.js, the same panel the homepage had) -->
+            <aside class="panel hero-status ok-status">
+                <div class="assessment">
+                    <div id="status-place" class="kicker">Оценка</div>
+                    <h2 id="status-title" class="assessment-title">Зареждане...</h2>
+                    <p id="status-summary" class="assessment-summary"></p>
+                    <div id="readiness" class="readiness" role="img" aria-label="">
+                        <span></span><span></span><span></span><span></span>
+                    </div>
+                    <div class="readiness-scale"><span>Ниво 1 – норма</span><span>Ниво 4 – тревога</span></div>
+                </div>
+                <div id="status-tiles" class="status-tiles">
+                    <div class="loading">Зареждане...</div>
+                </div>
+                <div id="status-detail" class="status-detail" role="region" hidden></div>
+                <p id="status-updated" class="status-updated"></p>
+                <a href="obstanovka.html" class="status-wall-link">Оперативен екран →</a>
+            </aside>
+
+            <section class="panel ok-ready" id="ok-ready">
+                <div class="panel-head"><h2>Готовност на района</h2></div>
+                <div class="ok-ready-body" id="ok-ready-body"><div class="loading">Зареждане...</div></div>
+            </section>
+        </div>
+
+        <footer>
+            <p>sofia-prepping.com - София</p>
+        </footer>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" integrity="sha512-puJW3E/qXDqYp9IfhAI54BJEaWIfloJ7JWs7OeD5i6ruC9JZL1gERT1wjtwXFlh7CjE7ZJ+/vcRZRkIYIb6p4g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="vendor/protomaps-leaflet/protomaps-leaflet.js?v=5.1.0"></script>
+    <script src="i18n.js?v=20261111e"></script>
+    <script src="district.js?v=20261109a"></script>
+    <script src="chrome.js?v=20261109a"></script>
+    <script src="pwa.js?v=20261111d"></script>
+    <script src="map-style.js?v=20261109a"></script>
+    <script src="status-rules.js?v=20261111e"></script>
+    <script src="search.js?v=20261111e"></script>
+    <script src="okolo.js?v=20261111e"></script>
+    <script src="status.js?v=20261111e"></script>
+</body>
+</html>
