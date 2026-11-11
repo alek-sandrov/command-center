@@ -139,6 +139,80 @@
         // Letters of the district index (Bulgarian initials → Latin)
         'В': 'V', 'И': 'I', 'К': 'K', 'Л': 'L', 'М': 'M', 'Н': 'N', 'О': 'O', 'П': 'P', 'С': 'S', 'Т': 'T',
 
+        // Analyses and the readiness index (analizi.html, gotovnost.html)
+        'Анализи': 'Analyses', '← Анализи': '← Analyses', 'Анализи - Sofia Prepping': 'Analyses - Sofia Prepping',
+        'Индекс на готовност - Sofia Prepping': 'Readiness index - Sofia Prepping',
+        'Индекс на готовност': 'Readiness index', 'Анализ на защитата по райони': 'Civil protection by district',
+        'Обобщения от отворените данни на сайта: къде в София хората са добре защитени и къде има пропуски.':
+            'Summaries of the open data on this site: where in Sofia people are well covered and where the gaps are.',
+        'Колко жители имат укритие, болница, вода и йод наблизо – по райони':
+            'How many residents have a shelter, hospital, water and iodine nearby – by district',
+        'Анализ 01 · отворени данни': 'Analysis 01 · open data',
+        'Колко от жителите на всеки район живеят на пешеходно разстояние от укритие, сграда за временно настаняване, болница, питейна вода и пункт за йодни таблетки.':
+            'How many residents of each district live within walking distance of a shelter, a temporary housing building, a hospital, drinking water and an iodine tablet point.',
+        'Основни показатели': 'Key figures', 'Карта': 'Map', 'Изглед': 'View', 'Райони': 'Districts', 'Жители': 'Residents',
+        'Показател': 'Measure', 'Класиране по райони': 'District ranking',
+        '% от жителите в обхват · цвят спрямо средното за София': '% of residents within reach · colour against the Sofia average',
+        'Къде са укритията': 'Where the shelters are',
+        'Дял от жителите на София': 'Share of Sofia\'s residents', 'Дял от укритията': 'Share of shelters',
+        'Методика и източници': 'Method and sources', 'Как се изчислява': 'How it is calculated',
+        'Населението на всеки район е разпределено върху мрежа от шестоъгълници с площ около 0,7 км² според модела Kontur Population и е приведено към броя жители от преброяването през 2021 г. За всяко място се измерва разстоянието по права линия до най-близкия обект от всеки вид.':
+            'Each district\'s population is spread over a grid of hexagons of about 0.7 km² following the Kontur Population model, and scaled to the number of residents in the 2021 census. For every place, the straight-line distance to the nearest point of each kind is measured.',
+        'Оценката на района по всеки стълб е делът от жителите му в обхват. Индексът е средното от петте стълба, с еднаква тежест. 100 означава, че всички жители имат такъв обект наблизо.':
+            'A district\'s score on each pillar is the share of its residents within reach. The index is the average of the five pillars, weighted equally. 100 means every resident has such a place nearby.',
+        'Ограничения': 'Limitations',
+        'Разстоянието е по права линия; пешеходният път обикновено е с 20–40% по-дълъг.':
+            'Distances are in a straight line; the walking route is usually 20–40% longer.',
+        'Не се отчита капацитетът: едно укритие се брои като обхват за всички жители около него.':
+            'Capacity is not taken into account: one shelter counts as cover for all residents around it.',
+        'Списъкът с укрития е от публична карта и вероятно е непълен. Официален регистър на укритията не е публикуван.':
+            'The shelter list comes from a public map and is probably incomplete. No official shelter register has been published.',
+        '„Болници“ включва болници и здравни центрове от OpenStreetMap.': '“Hospitals” includes hospitals and health centres from OpenStreetMap.',
+        'Разпределението на жителите в района е по модел (сгради и сателитни снимки), не по адресна регистрация.':
+            'Where residents live within a district is modelled (from buildings and satellite images), not taken from address registrations.',
+        'Индексът е независима оценка от отворени данни и не е официална позиция на институциите.':
+            'The index is an independent assessment from open data, not an official position of any institution.',
+        'Източници': 'Sources', 'НСИ – Преброяване 2021': 'National Statistical Institute – Census 2021',
+        '(население по райони)': '(population by district)',
+        '(разпределение на населението, CC BY 4.0)': '(population distribution, CC BY 4.0)',
+        'Интерактивната карта': 'The interactive map',
+        'на сайта: Столична община – отворени данни, Google My Maps, OpenStreetMap': 'on this site: Sofia Municipality open data, Google My Maps, OpenStreetMap',
+        'Индекс': 'Index', 'Укритие': 'Shelter', 'Настаняване': 'Housing', 'Медицина': 'Medical', 'Вода': 'Water', 'Йод': 'Iodine',
+        'Аптека': 'Pharmacy', 'Палатков лагер': 'Tent camp', 'Район': 'District', '№': '#',
+        'Противорадиационно укритие или скривалище': 'Anti-radiation shelter or bomb shelter',
+        'Сграда за временно настаняване при бедствие': 'Building for temporary housing in a disaster',
+        'Болница или здравен център': 'Hospital or health centre',
+        'Работеща чешма или минерален извор': 'Working drinking fountain or mineral spring',
+        'Пункт за йодни таблетки': 'Iodine tablet point',
+        '{n} жители на над {km} от укритие': '{n} residents more than {km} from a shelter',
+        '{n} жители на над {km} от сграда за настаняване': '{n} residents more than {km} from a housing building',
+        '{n} жители на над {km} от болница': '{n} residents more than {km} from a hospital',
+        '{n} жители на над {km} от работеща чешма': '{n} residents more than {km} from a working fountain',
+        '{n} жители на над {km} от пункт за йодни таблетки': '{n} residents more than {km} from an iodine tablet point',
+        '−20 и по-малко': '−20 or less', '−20 до −7': '−20 to −7', '±7': '±7', '+7 до +20': '+7 to +20', '+20 и повече': '+20 or more',
+        '{d} има {p}% от жителите на София и {s}% от укритията. {n} района с {people} жители нямат нито едно укритие на своя територия.':
+            '{d} has {p}% of Sofia\'s residents and {s}% of its shelters. {n} districts with {people} residents have no shelter at all.',
+        '{d}: {p}% от жителите · {s}% от укритията ({n} от {total})': '{d}: {p}% of residents · {s}% of shelters ({n} of {total})',
+        '{m} спрямо София ({v})': '{m} against all of Sofia ({v})',
+        '{n} обекта': '{n} places', '{n} района · {p} жители': '{n} districts · {p} residents',
+        '{n}+ на шестоъгълник': '{n}+ per hexagon', '{p}% от жителите на София': '{p}% of Sofia\'s residents',
+        '{what} до {km}': '{what} within {km}', 'Без укритие до {km}': 'No shelter within {km}',
+        'Всички жители имат всеки вид обект наблизо.': 'Every resident has each kind of place nearby.',
+        'Гъстота': 'Density', 'Досие · цяла София': 'Profile · all of Sofia', 'Досие на района': 'District profile',
+        'Жители без {what} до {km}': 'Residents with no {what} within {km}',
+        'Жители извън обхват, средно за петте стълба': 'Residents out of reach, averaged over the five pillars',
+        'Индекс · цяла София': 'Index · all of Sofia', 'Най-нисък индекс': 'Lowest index', 'Най-слаби райони': 'Weakest districts',
+        'Население: преброяване {c} · модел Kontur {g}': 'Population: census {c} · Kontur model {g}',
+        'Обекти към {date}': 'Places as of {date}', 'Основни пропуски': 'Main gaps', 'Площ': 'Area',
+        'Райони без нито едно укритие': 'Districts with no shelter', 'София: {v}%': 'Sofia: {v}%',
+        'Средно покритие': 'Average coverage', 'Столична община': 'Sofia Municipality',
+        'Точките са обектите от този вид.': 'The points are the places of this kind.',
+        'в обхват: до {km}': 'within reach: up to {km}', 'всички в обхват': 'all within reach', 'до {km}': 'within {km}',
+        'жители': 'residents', 'км²': 'km²', 'на км²': 'per km²',
+        'половината жители са до {km}': 'half of residents within {km}', 'спрямо София': 'vs Sofia',
+        'средно за София': 'Sofia average', 'средно от {n} стълба': 'average of {n} pillars',
+        '№ {r} от {n} района': 'No. {r} of {n} districts',
+
         // Weather
         'София': 'Sofia', 'България': 'Bulgaria',
         'Влажност: {v}%': 'Humidity: {v}%', 'Усеща се: {v}°C': 'Feels like: {v}°C',
