@@ -210,23 +210,36 @@
         buildLegend();
     }
 
-    // The resource points of the chosen pillar, shown over the population view
+    // The places of the chosen pillar, in both views, each with a circle of the distance the
+    // score counts (data/analizi.json pillars[].km): inside a circle people are covered
     async function showPoints() {
         if (pointLayer) { map.removeLayer(pointLayer); pointLayer = null; }
-        if (view !== 'people' || measure === 'index') return;
+        if (measure === 'index') return;
         if (!karta) {
             try { karta = await fetch('data/karta.json').then(r => r.json()); } catch { return; }
         }
-        if (view !== 'people' || measure === 'index' || pointLayer) return;
-        const group = L.layerGroup();
+        if (measure === 'index' || pointLayer) return;
+        const radius = data.pillars.find(p => p.key === measure).km * 1000;
+        const rings = L.layerGroup();
+        const dots = L.layerGroup();
         MEASURES[measure].layers.forEach(key => {
             const layer = MapStyle.LAYERS.find(l => l.key === key);
             (karta.layers[key] || [])
                 .filter(p => key !== 'fountains' || !p[3].includes('Не работи'))
-                .forEach(p => MapStyle.marker(layer, p).bindPopup(() => MapStyle.popupFor(layer, p)).addTo(group));
+                .forEach(p => {
+                    L.circle([p[0], p[1]], {
+                        // outline only: filled circles stack up and wash out the district colours
+                        radius, interactive: false, weight: 1, color: '#E6E9ED', opacity: 0.4,
+                        dashArray: '3 4', fill: false
+                    }).addTo(rings);
+                    MapStyle.marker(layer, p).bindPopup(() => MapStyle.popupFor(layer, p)).addTo(dots);
+                });
         });
-        pointLayer = group.addTo(map);
+        pointLayer = L.layerGroup([rings, dots]).addTo(map);
     }
+
+    const pointsNote = () => el('span', 'ri-legend-note',
+        t('Точките са обектите от този вид, кръгът около всеки е {km}.', { km: km(data.pillars.find(p => p.key === measure).km) }));
 
     function buildLegend() {
         const box = $('ri-legend');
@@ -242,6 +255,7 @@
                 scale.append(item);
             });
             box.append(scale);
+            if (measure !== 'index') box.append(pointsNote());
         } else {
             box.append(el('span', 'ri-legend-title', measure === 'index'
                 ? t('Жители извън обхват, средно за петте стълба')
@@ -261,7 +275,7 @@
                 scale.append(item);
             });
             box.append(scale);
-            if (measure !== 'index') box.append(el('span', 'ri-legend-note', t('Точките са обектите от този вид.')));
+            if (measure !== 'index') box.append(pointsNote());
         }
     }
 
