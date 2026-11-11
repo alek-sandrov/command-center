@@ -69,7 +69,10 @@
         foot.append(el('span', '', `${ctx.docId} · ${ctx.today}`), el('span', 'dp-foot-section', t(section)), el('span', 'dp-pno'));
         page.append(strip, body, foot);
         page.dataset.section = section;
-        $('doc').append(page);
+        // On screen the page is scaled to fit narrow windows inside this holder (fitPages)
+        const holder = el('div', `dp-fit${land ? ' land' : ''}`);
+        holder.append(page);
+        $('doc').append(holder);
         return { page, body };
     }
 
@@ -535,6 +538,22 @@
         body.append(el('p', 'dp-text dp-muted', t('Онлайн: интерактивна карта – sofia-prepping.com/karta · индекс на готовност – sofia-prepping.com/gotovnost · оперативна обстановка – sofia-prepping.com/obstanovka')));
     }
 
+    // Phones and narrow windows: shrink each A4 page to the window's width. A transform, not CSS
+    // zoom (Safari misplaces the maps' layers inside zoomed elements); the holder takes the
+    // shrunk size so the pages still stack without gaps.
+    function fitPages() {
+        const room = document.documentElement.clientWidth - 24;
+        document.querySelectorAll('#doc .dp-fit').forEach(holder => {
+            const page = holder.firstElementChild;
+            const s = Math.min(1, room / page.offsetWidth);
+            page.style.transform = s < 1 ? `scale(${s})` : '';
+            holder.style.width = s < 1 ? `${page.offsetWidth * s}px` : '';
+            holder.style.height = s < 1 ? `${page.offsetHeight * s}px` : '';
+        });
+    }
+    let fitTimer;
+    window.addEventListener('resize', () => { clearTimeout(fitTimer); fitTimer = setTimeout(fitPages, 100); });
+
     // --- Assemble ----------------------------------------------------------------------------
     async function render(d) {
         const run = ++build;
@@ -588,6 +607,7 @@
             toc.append(li);
         });
         $('dossier-pages').textContent = t('{n} страници A4', { n: pages.length });
+        fitPages();
         $('dossier-print').disabled = false;
 
         await Promise.all(ready);
