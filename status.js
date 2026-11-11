@@ -4,35 +4,12 @@
 // weather, earthquakes, weather warnings and radiation are city-wide.
 
 const REFRESH_MS = 10 * 60 * 1000;
-const PARTS = ['warnings', 'earthquakes', 'air', 'water', 'heating', 'radiation'];
-// Gamma background (µSv/h). The Nuclear Regulatory Agency gives 0.06–0.40 as the natural range in
-// Bulgaria; above it the tile asks visitors to follow official announcements. The 1 µSv/h step to
-// orange is this site's own, to separate a slight rise from a clear one.
-const RADIATION_NATURAL = [0.06, 0.40];
-const RADIATION_HIGH = 1.0;
-// The bulletin is daily; an older one is flagged as possibly out of date
-const RADIATION_STALE_MS = 48 * 3600e3;
-const LEVELS = { 2: ['yellow', 'Жълт код'], 3: ['orange', 'Оранжев код'], 4: ['red', 'Червен код'] };
-// European Air Quality Index bands for PM2.5 (µg/m³)
-const AIR_BANDS = [
-    [10, 'green', 'Добро'], [20, 'green', 'Задоволително'], [25, 'yellow', 'Умерено'],
-    [50, 'orange', 'Лошо'], [75, 'red', 'Много лошо'], [Infinity, 'red', 'Изключително лошо']
-];
 const MIN_DISTRICT_SENSORS = 3;
-const WEATHER_URL = 'https://api.open-meteo.com/v1/forecast?latitude=42.6977&longitude=23.3219' +
-    '&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m' +
-    '&wind_speed_unit=kmh&timezone=auto';
-// WMO weather codes
-const WEATHER_CODES = {
-    0: 'Ясно', 1: 'Предимно ясно', 2: 'Разкъсана облачност', 3: 'Облачно',
-    45: 'Мъгла', 48: 'Мъгла', 51: 'Слаб ръмеж', 53: 'Ръмеж', 55: 'Силен ръмеж',
-    61: 'Слаб дъжд', 63: 'Дъжд', 65: 'Силен дъжд', 71: 'Слаб сняг', 73: 'Сняг',
-    75: 'Силен снеговалеж', 77: 'Снежни зърна', 80: 'Слаби превалявания', 81: 'Превалявания',
-    82: 'Пороен дъжд', 85: 'Слаби снежни превалявания', 86: 'Силни снежни превалявания',
-    95: 'Гръмотевична буря', 96: 'Буря с градушка', 99: 'Буря с градушка'
-};
+const {
+    LOCALE, PARTS, RADIATION_NATURAL, RADIATION_STALE_MS, LEVELS, WEATHER_CODES, TAGS, SEVERITY, ASSESSMENT, LEVEL_TONES,
+    median, ago, when, airBand, quakeTone, warningTone, radiationTone, levelOf, loadPart, loadWeather
+} = StatusRules;
 const { t } = I18N;
-const LOCALE = I18N.lang === 'en' ? 'en-GB' : 'bg-BG';
 
 let openTile = null;
 let details = {};
@@ -59,28 +36,6 @@ function link(href, text) {
     return a;
 }
 
-function ago(ms) {
-    const min = Math.round((Date.now() - ms) / 60000);
-    if (min < 1) return t('току-що');
-    if (min < 60) return t('преди {n} мин', { n: min });
-    const h = Math.round(min / 60);
-    if (h < 24) return t('преди {n} ч', { n: h });
-    const d = Math.round(h / 24);
-    return d === 1 ? t('преди 1 ден') : t('преди {n} дни', { n: d });
-}
-
-function when(ms) {
-    // Always Sofia time, whatever the visitor's own time zone
-    return new Date(ms).toLocaleString(LOCALE, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Sofia' });
-}
-
-function median(values) {
-    if (!values.length) return null;
-    const a = [...values].sort((x, y) => x - y);
-    const m = a.length >> 1;
-    return Math.round((a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2) * 10) / 10;
-}
-
 function detailRow(title, sub, extra) {
     const row = el('div', 'status-row');
     row.append(el('div', 'status-row-title', title));
@@ -94,12 +49,6 @@ function source(text, href, linkText) {
     if (href) p.append(link(href, linkText));
     return p;
 }
-
-// Tag shown on each indicator row, and how much each tone counts towards the overall assessment
-const TAGS = { green: 'Норма', yellow: 'Внимание', orange: 'Опасност', red: 'Тревога', active: 'Активно', neutral: 'Инфо', na: 'Няма данни' };
-const SEVERITY = { yellow: 2, orange: 3, red: 4 };
-const ASSESSMENT = ['стабилна', 'стабилна', 'повишено внимание', 'опасност', 'тревога'];
-const LEVEL_TONES = ['', 'green', 'yellow', 'orange', 'red'];
 
 function tile(key, code, label, { tone = 'neutral', value, note, href }) {
     const t = el(href ? 'a' : 'button', `status-tile tone-${tone}`);
@@ -177,8 +126,6 @@ function weather(w) {
 function earthquakes(q) {
     if (!q.ok) return failed();
     const radius = q.radiusKm || 50, days = q.days || 30;
-    const dayAgo = Date.now() - 86400e3;
-    const recent = q.items.filter(e => e.time > dayAgo);
     const last = q.items[0];
     details.quakes = [
         el('h3', null, t('Земетресения до {radius} км от София, последните {days} дни', { radius, days })),
@@ -190,7 +137,7 @@ function earthquakes(q) {
     ];
     if (!last) return { tone: 'green', value: t('Няма'), note: t('до {radius} км, {days} дни', { radius, days }) };
     return {
-        tone: recent.some(e => e.mag >= 4.5) ? 'red' : recent.some(e => e.mag >= 3.5) ? 'yellow' : 'green',
+        tone: quakeTone(q.items),
         value: `M${last.mag.toFixed(1)}`,
         note: t('{ago} · {km} км', { ago: ago(last.time), km: last.km })
     };
@@ -212,7 +159,7 @@ function warnings(w) {
     ];
     if (!w.items.length) return { tone: 'green', value: t('Няма'), note: t('зелен код') };
     const top = w.items[0];
-    return { tone: LEVELS[top.level][0], value: t(LEVELS[top.level][1]), note: top.event };
+    return { tone: warningTone(w.items), value: t(LEVELS[top.level][1]), note: top.event };
 }
 
 function air(a) {
@@ -227,7 +174,7 @@ function air(a) {
     }
     const pm25 = median(sensors.map(s => s[2]));
     const pm10 = median(sensors.map(s => s[3]).filter(v => v !== null));
-    const [, tone, band] = AIR_BANDS.find(([max]) => pm25 < max);
+    const [, tone, band] = airBand(pm25);
     const label = t(band);
     details.air = [
         el('h3', null, t('Качество на въздуха – {place}', { place: note ? t('София') : districtLabel() })),
@@ -285,7 +232,7 @@ function radiation(r) {
     const top = readings.reduce((a, b) => (b.value > a.value ? b : a));
     const fmt = v => `${v.toFixed(2)} µSv/h`;
     const [low, high] = RADIATION_NATURAL;
-    const tone = top.value > RADIATION_HIGH ? 'orange' : top.value > high ? 'yellow' : 'green';
+    const tone = radiationTone(top.value);
     const stale = r.updated && Date.now() - r.updated > RADIATION_STALE_MS;
     const d = SofiaDistrict.get();
     const mine = st => d && st.name.includes(d.name);
@@ -336,7 +283,7 @@ function render() {
 
 // Overall assessment above the indicators: the level follows the most severe indicator
 function assess(tones, generated) {
-    const level = Math.max(1, ...tones.map(x => SEVERITY[x] || 1));
+    const level = levelOf(tones);
     const n = tone => tones.filter(x => x === tone).length;
     const warned = tones.filter(x => SEVERITY[x]).length;
     const title = document.getElementById('status-title');
@@ -355,28 +302,6 @@ function assess(tones, generated) {
 
     const time = new Date(generated).toLocaleTimeString(LOCALE, { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Sofia' });
     document.getElementById('status-place').textContent = `${SofiaDistrict.get() ? districtLabel() : t('Цяла София')} · ${t('оценка')} ${time}`;
-}
-
-async function loadPart(part) {
-    try {
-        const res = await fetch(`/api/status?part=${part}&v=3`);
-        if (!res.ok) throw new Error(res.status);
-        return await res.json();
-    } catch {
-        return { ok: false, generated: Date.now() };
-    }
-}
-
-async function loadWeather() {
-    try {
-        const c = (await (await fetch(WEATHER_URL)).json()).current;
-        return {
-            ok: true, temp: Math.round(c.temperature_2m), feels: Math.round(c.apparent_temperature),
-            humidity: c.relative_humidity_2m, wind: Math.round(c.wind_speed_10m), precip: c.precipitation, code: c.weather_code
-        };
-    } catch {
-        return { ok: false };
-    }
 }
 
 async function loadStatus() {
