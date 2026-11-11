@@ -1994,6 +1994,32 @@ footer > p {
         background-position: right 10px center;
     }
 
+    /* All five menu tabs on one row */
+    .nav-links {
+        flex-wrap: nowrap;
+        justify-content: space-between;
+        gap: 0;
+        margin: 0 -8px;
+    }
+
+    .nav-link {
+        padding: 12px 8px;
+        font-size: 11px;
+        letter-spacing: 0.04em;
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 360px) {
+    .nav-link {
+        padding: 12px 5px;
+        font-size: 10.5px;
+        letter-spacing: 0.02em;
+    }
+
+    .nav-links {
+        margin: 0 -5px;
+    }
 }
 
 @media print {

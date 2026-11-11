@@ -286,6 +286,7 @@
         // Feedback form (kontakt.html)
         'Обратна връзка - Sofia Prepping': 'Feedback - Sofia Prepping',
         'Обратна връзка': 'Feedback',
+        'Контакти': 'Contact', 'Контакти - Sofia Prepping': 'Contact - Sofia Prepping',
         'Видяхте грешка – затворено укритие, чешма, която не работи, грешен адрес? Или имате идея какво да добавим? Пишете ни. Всяко съобщение се чете.': 'Spotted a mistake – a closed shelter, a fountain that doesn\'t work, a wrong address? Or have an idea for something to add? Write to us. Every message is read.',
         'За какво пишете': 'What is it about',
         'Грешка в данните': 'Mistake in the data',
