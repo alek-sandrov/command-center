@@ -1,6 +1,8 @@
-// Place page (okolo.html?lat=&lng=&a=<label>&w=<where>, or &me=1 for the device's location):
-// the nearest place of each kind with distance and directions, a map with the way to each, the
-// district's readiness and, through status.js, the live status of that district.
+// Place page (okolo.html?lat=&lng=&a=<label>&w=<where>, &me=1 for the device's location, &p=1 for a
+// point placed on the map, or ?pick=1 to start by placing one): the nearest place of each kind with
+// distance and directions, a map with the way to each, the district's readiness and, through
+// status.js, the live status of that district. The "Here" pin can be dragged (or the map tapped
+// while picking) to set the exact spot when the address search only found the street.
 // Everything is worked out in the browser; the coordinates are never sent anywhere.
 (function () {
     const { t } = I18N;
@@ -38,24 +40,23 @@
     const walk = km => t('~{n} мин пеша', { n: Math.max(1, Math.round(km * DETOUR / WALK_KMH * 60)) });
 
     const params = new URLSearchParams(location.search);
-    const lat = parseFloat(params.get('lat'));
-    const lng = parseFloat(params.get('lng'));
-    const here = [lat, lng];
+    const SOFIA = [42.6977, 23.3219];
+    const valid = (la, ln) => la > 41 && la < 44.5 && ln > 22 && ln < 29;
+    let lat = parseFloat(params.get('lat'));
+    let lng = parseFloat(params.get('lng'));
+    let placed = valid(lat, lng);
+    let pinned = params.get('p') === '1';  // moved by hand on the map
+    let karta, analizi, map, pin, drawn;
 
     async function init() {
-        if (!(lat > 41 && lat < 44.5 && lng > 22 && lng < 29)) {
-            $('ok-grid').hidden = true;
+        const picking = !placed;
+        if (picking) {
+            $('ok-grid').classList.add('picking');
             $('ok-empty').hidden = false;
-            $('ok-title').textContent = t('Около вас');
-            return;
+            $('ok-kicker').textContent = t('Посочете място');
+            $('ok-title').textContent = t('Къде сте?');
+            document.title = `${t('Около вас')} - Sofia Prepping`;
         }
-        const me = params.get('me') === '1';
-        const label = me ? t('Вашето местоположение') : (params.get('a') || t('Избрано място'));
-        $('ok-kicker').textContent = me ? t('Справка за вашето местоположение') : t('Справка за адрес');
-        $('ok-title').textContent = label;
-        document.title = `${label} - Sofia Prepping`;
-
-        let karta, analizi;
         try {
             [karta, analizi] = await Promise.all([
                 fetch('data/karta.json').then(r => r.json()),
@@ -65,15 +66,52 @@
             $('ok-list').replaceChildren(el('li', 'error', t('Неуспешно зареждане на данните.')));
             return;
         }
+        map = L.map('ok-map', { renderer: MapStyle.renderer(), scrollWheelZoom: false, zoomSnap: 0.25 });
+        MapStyle.basemap(map);
+        MapStyle.autoScale(map);
+        drawn = L.layerGroup().addTo(map);
+        if (picking) {
+            map.setView(SOFIA, 12);
+            map.on('click', e => { if (!placed) moveTo(e.latlng.lat, e.latlng.lng, true); });
+        } else {
+            await render(true);
+        }
+    }
+
+    // The visitor put the pin somewhere: work everything out again for that point
+    async function moveTo(la, ln, first) {
+        lat = Math.round(la * 1e5) / 1e5;
+        lng = Math.round(ln * 1e5) / 1e5;
+        placed = true;
+        pinned = true;
+        const url = new URL(location.href);
+        ['pick', 'a', 'w', 'me'].forEach(k => url.searchParams.delete(k));
+        url.searchParams.set('lat', lat);
+        url.searchParams.set('lng', lng);
+        url.searchParams.set('p', '1');
+        history.replaceState(null, '', url);
+        $('ok-grid').classList.remove('picking');
+        $('ok-empty').hidden = true;
+        await render(first);
+    }
+
+    async function render(fit) {
+        const here = [lat, lng];
+        const me = params.get('me') === '1' && !pinned;
+        const label = pinned ? t('Посочено място') : me ? t('Вашето местоположение') : (params.get('a') || t('Избрано място'));
+        $('ok-kicker').textContent = pinned ? t('Справка за място на картата') : me ? t('Справка за вашето местоположение') : t('Справка за адрес');
+        $('ok-title').textContent = label;
+        document.title = `${label} - Sofia Prepping`;
+
         const district = await SofiaDistrict.at(lat, lng);
         // The live status panel (status.js) follows the navbar district: make it this place's
         if (district && SofiaDistrict.get() !== district) SofiaDistrict.set(district.slug);
 
-        const where = [params.get('w'), district ? I18N.district(district.name) : t('извън Столична община'),
+        const where = [pinned ? '' : params.get('w'), district ? I18N.district(district.name) : t('извън Столична община'),
             `${lat.toFixed(5)}°N ${lng.toFixed(5)}°E`].filter(Boolean)
             .filter((x, i, a) => a.findIndex(y => y.includes(x) || x.includes(y)) === i);
         $('ok-sub').textContent = where.join(' · ');
-        if (district) $('ok-full-map').href = `karta.html?rayon=${district.slug}`;
+        $('ok-full-map').href = district ? `karta.html?rayon=${district.slug}` : 'karta.html';
 
         const nearest = KINDS.map(k => {
             const layer = MapStyle.LAYERS.find(l => l.key === k.layers[0]);
@@ -90,33 +128,38 @@
         });
 
         $('ok-report').href = `kontakt.html?kind=error&ref=${encodeURIComponent(location.pathname + location.search)}`;
-        const map = buildMap(nearest);
+        draw(nearest, here, fit);
         renderList(nearest, map);
         renderReadiness(nearest, district, analizi);
     }
 
-    function buildMap(nearest) {
-        const map = L.map('ok-map', { renderer: MapStyle.renderer(), scrollWheelZoom: false, zoomSnap: 0.25 });
-        MapStyle.basemap(map);
-        MapStyle.autoScale(map);
-        L.circle(here, { radius: 1000, color: '#F2A93B', weight: 1, dashArray: '4 6', fill: false, interactive: false }).addTo(map);
+    function draw(nearest, here, fit) {
+        drawn.clearLayers();
+        L.circle(here, { radius: 1000, color: '#F2A93B', weight: 1, dashArray: '4 6', fill: false, interactive: false }).addTo(drawn);
         const bounds = L.latLngBounds([here]);
         nearest.forEach(n => {
             if (!n.best) return;
             const to = [n.best.p[0], n.best.p[1]];
-            L.polyline([here, to], { color: n.layer.colour === '#0D1014' ? (n.layer.stroke || '#E6E9ED') : n.layer.colour, weight: 1.5, dashArray: '3 5', opacity: 0.8, interactive: false }).addTo(map);
+            L.polyline([here, to], { color: n.layer.colour === '#0D1014' ? (n.layer.stroke || '#E6E9ED') : n.layer.colour, weight: 1.5, dashArray: '3 5', opacity: 0.8, interactive: false }).addTo(drawn);
             n.marker = MapStyle.marker(n.layer, n.best.p).bindPopup(() => {
                 const div = MapStyle.popupFor(n.layer, n.best.p);
                 div.insertBefore(el('div', 'popup-kind', `${t(n.label)} · ${dist(n.best.km)}`), div.firstChild);
                 div.children[1].remove();  // the layer name, replaced by the line above
                 return div;
-            }).addTo(map);
+            }).addTo(drawn);
             if (n.best.km < 3 || n.pillar === 'shelter') bounds.extend(to);
         });
-        L.circleMarker(here, { radius: 9, color: '#0A0C0F', weight: 3, fillColor: '#F2A93B', fillOpacity: 1 })
-            .bindTooltip(t('Тук'), { permanent: true, direction: 'top', offset: [0, -10], className: 'ri-leaflet-tip' }).addTo(map);
-        map.fitBounds(bounds.pad(0.12), { maxZoom: 16 });
-        return map;
+        if (!pin) {
+            pin = L.marker(here, {
+                draggable: true, autoPan: true, zIndexOffset: 1000, keyboard: true,
+                title: t('Плъзнете, за да уточните мястото'),
+                icon: L.divIcon({ className: 'ok-pin', html: '<span></span>', iconSize: [26, 26], iconAnchor: [13, 13] })
+            }).bindTooltip(t('Тук'), { permanent: true, direction: 'top', offset: [0, -14], className: 'ri-leaflet-tip' }).addTo(map);
+            pin.on('dragend', () => { const p = pin.getLatLng(); moveTo(p.lat, p.lng, false); });
+        } else {
+            pin.setLatLng(here);
+        }
+        if (fit) map.fitBounds(bounds.pad(0.12), { maxZoom: 16 });
     }
 
     function renderList(nearest, map) {

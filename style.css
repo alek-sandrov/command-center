@@ -3889,7 +3889,58 @@ body.ow-wall .ow-map {
 }
 
 .ok-empty {
+    margin-bottom: 16px;
     color: var(--text-2);
+}
+
+/* Picking a place on the map (okolo.html?pick=1): only the map until the pin is down */
+.ok-grid.picking {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.ok-grid.picking > :not(.ok-map-panel) {
+    display: none;
+}
+
+.ok-grid.picking .ok-map {
+    cursor: crosshair;
+}
+
+.ok-grid.picking .ok-note {
+    display: none;
+}
+
+/* The "Here" pin: draggable to set the exact spot */
+.ok-pin span {
+    display: block;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 4px solid #0A0C0F;
+    box-shadow: 0 0 0 2px var(--accent), 0 2px 8px rgba(0, 0, 0, 0.6);
+    cursor: grab;
+}
+
+.leaflet-dragging .ok-pin span {
+    cursor: grabbing;
+}
+
+.home-pick {
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.home-pick a,
+.ps-msg a {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(242, 169, 59, 0.4);
+}
+
+.home-pick a:hover,
+.ps-msg a:hover {
+    border-bottom-color: var(--accent);
 }
 
 .ok-grid {

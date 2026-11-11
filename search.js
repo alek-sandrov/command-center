@@ -25,7 +25,17 @@
         let asked = '';
         let controller = null;
 
-        const say = text => { if (msg) { msg.textContent = text || ''; msg.hidden = !text; } };
+        const say = (text, pick) => {
+            if (!msg) return;
+            msg.textContent = text || '';
+            msg.hidden = !text;
+            if (text && pick) {
+                const a = document.createElement('a');
+                a.href = target({ pick: 1 });
+                a.textContent = t('Посочете мястото на картата →');
+                msg.append(' ', a);
+            }
+        };
 
         function close() {
             list.hidden = true;
@@ -67,7 +77,7 @@
                 if (!data.ok) throw new Error(data.error || 'search failed');
                 results = data.results;
                 active = -1;
-                say(results.length ? '' : t('Не намерихме „{q}“ в София. Опитайте с улица и номер или блок и квартал.', { q }));
+                say(results.length ? '' : t('Не намерихме „{q}“ в София. Опитайте с улица и номер или блок и квартал.', { q }), true);
                 render();
             } catch (err) {
                 if (err.name === 'AbortError' || q !== asked) return results;
@@ -75,7 +85,7 @@
                 render();
                 say(navigator.onLine === false
                     ? t('Търсенето на адрес изисква интернет. Без интернет използвайте бутона за местоположение.')
-                    : t('Търсенето не отговаря в момента. Опитайте отново или използвайте местоположението си.'));
+                    : t('Търсенето не отговаря в момента. Опитайте отново или използвайте местоположението си.'), true);
             } finally {
                 clearTimeout(waiting);
             }
