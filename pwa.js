@@ -97,9 +97,7 @@
             if (url.origin !== location.origin) return;
             if (url.pathname.endsWith('.pdf')) {
                 e.preventDefault();
-                const label = a.querySelector('.map-label')?.textContent
-                    || a.closest('.sheet-card')?.querySelector('.sheet-card-name')?.firstChild?.textContent
-                    || '';
+                const label = a.querySelector('.map-label')?.textContent || '';
                 location.href = `/dokument?f=${encodeURIComponent(url.pathname)}&t=${encodeURIComponent(label.trim())}`;
             } else if (a.target === '_blank') {
                 a.removeAttribute('target');
@@ -118,7 +116,7 @@
         },
         docs: {
             name: 'Документи',
-            about: 'Плановете за защита и листовките за печат по райони.'
+            about: 'Плановете за защита на Столична община.'
         }
     };
     const supported = 'serviceWorker' in navigator && !!window.caches;
@@ -144,7 +142,7 @@
     }
 
     // Offline on a map page without the street map saved: say why the map is empty
-    if (document.querySelector('#map, #home-map, #sheet-map') && supported) {
+    if (document.querySelector('#map, #home-map, #ri-map, #ow-map, #doc') && supported) {
         const note = () => packStatus().then(st => {
             if (st.map && !st.map.wanted && !offline.hidden) {
                 offline.textContent = t('Няма интернет · картата на улиците не е запазена на това устройство, затова части от нея може да липсват. При спешен случай: 112');

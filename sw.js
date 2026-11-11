@@ -9,7 +9,7 @@
 //
 // Saved only when the visitor asks (the "Без интернет" card, pwa.js), as packs from offline.json:
 //   map   sp-map    the street map of Sofia (maps/tiles, ~770 small files, ~15 MB)
-//   docs  sp-docs   the protection plans and printable PDFs (~19 MB) and the in-app PDF viewer
+//   docs  sp-docs   the protection plans and the in-app PDF viewer
 // Once saved, a pack's files are downloaded again only when they change (fingerprints in
 // offline.json). The visitor can remove a pack again.
 //

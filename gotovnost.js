@@ -303,7 +303,7 @@
         const city = data.city;
         const r = row || city;
         const head = el('div', 'panel-head');
-        head.append(el('h2', '', row ? t('Досие на района') : t('Досие · цяла София')));
+        head.append(el('h2', '', row ? t('Профил на района') : t('Профил · цяла София')));
         if (row) {
             const close = el('button', 'ri-link', t('Цяла София'));
             close.type = 'button';
