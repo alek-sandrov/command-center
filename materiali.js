@@ -25,7 +25,10 @@
         const print = document.createElement('a');
         print.href = `listovka.html?rayon=${d.slug}`;
         print.textContent = t('Отвори за печат');
-        actions.append(pdf, print);
+        const dossier = document.createElement('a');
+        dossier.href = `dosie.html?rayon=${d.slug}`;
+        dossier.textContent = t('Досие');
+        actions.append(pdf, print, dossier);
         div.append(name, actions);
         return div;
     }

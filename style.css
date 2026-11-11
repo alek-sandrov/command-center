@@ -2061,7 +2061,7 @@ header h1::before {
 
 .sheet-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
     gap: 1px;
     padding: 1px;
 }
@@ -2093,7 +2093,9 @@ header h1::before {
 }
 
 .sheet-card-actions a {
-    flex: 1;
+    flex: 1 1 auto;
+    padding: 0 10px;
+    white-space: nowrap;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -2814,6 +2816,18 @@ button.ri-kpi:hover {
 .ri-note {
     font-size: 14px;
     color: var(--text-2);
+}
+
+.ri-dossier-link {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+}
+
+.ri-dossier-link:hover {
+    color: var(--text);
 }
 
 /* Ranking table */

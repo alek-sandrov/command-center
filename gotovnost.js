@@ -410,6 +410,13 @@
         });
         body.append(extra);
 
+        if (row) {
+            const slug = SofiaDistrict.list[data.districts.indexOf(row)].slug;
+            const full = el('a', 'ri-dossier-link', t('Пълно досие за печат →'));
+            full.href = `dosie.html?rayon=${slug}`;
+            body.append(full);
+        }
+
         box.replaceChildren(head, body);
     }
 
