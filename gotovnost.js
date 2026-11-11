@@ -210,24 +210,46 @@
         buildLegend();
     }
 
-    // The places of the chosen pillar, in both views, each with a circle of the distance the
-    // score counts (data/analizi.json pillars[].km): inside a circle people are covered
+    // Metres from a point to a district: 0 inside it, otherwise to the nearest edge
+    function metresTo(lat, lng, shape) {
+        const kx = 111320 * Math.cos(lat * Math.PI / 180), ky = 110574;
+        let inside = false, best = Infinity;
+        shape.polygons.forEach(poly => poly.forEach(ring => {
+            for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+                const [x1, y1] = [(ring[j][0] - lng) * kx, (ring[j][1] - lat) * ky];
+                const [x2, y2] = [(ring[i][0] - lng) * kx, (ring[i][1] - lat) * ky];
+                if ((y1 > 0) !== (y2 > 0) && 0 < x1 + (0 - y1) * (x2 - x1) / (y2 - y1)) inside = !inside;
+                const dx = x2 - x1, dy = y2 - y1;
+                const tt = Math.max(0, Math.min(1, -(x1 * dx + y1 * dy) / (dx * dx + dy * dy || 1)));
+                best = Math.min(best, Math.hypot(x1 + tt * dx, y1 + tt * dy));
+            }
+        }));
+        return inside ? 0 : best;
+    }
+
+    // The places of the chosen pillar that serve the selected district (inside it, or near enough
+    // that their circle reaches into it), each with a circle of the distance the score counts
+    // (data/analizi.json pillars[].km). Without a district: none on the district map, all of
+    // them over the population view.
     async function showPoints() {
         if (pointLayer) { map.removeLayer(pointLayer); pointLayer = null; }
-        if (measure === 'index') return;
+        const d = SofiaDistrict.get();
+        if (measure === 'index' || (!d && view !== 'people')) return;
         if (!karta) {
             try { karta = await fetch('data/karta.json').then(r => r.json()); } catch { return; }
+            if (pointLayer) return;
+            return showPoints();
         }
-        if (measure === 'index' || pointLayer) return;
         const radius = data.pillars.find(p => p.key === measure).km * 1000;
+        const serves = p => !d || metresTo(p[0], p[1], shapes[d.index]) <= radius;
         const rings = L.layerGroup();
         const dots = L.layerGroup();
         MEASURES[measure].layers.forEach(key => {
             const layer = MapStyle.LAYERS.find(l => l.key === key);
             (karta.layers[key] || [])
-                .filter(p => key !== 'fountains' || !p[3].includes('Не работи'))
+                .filter(p => (key !== 'fountains' || !p[3].includes('Не работи')) && serves(p))
                 .forEach(p => {
-                    L.circle([p[0], p[1]], {
+                    if (d) L.circle([p[0], p[1]], {
                         // outline only: filled circles stack up and wash out the district colours
                         radius, interactive: false, weight: 1, color: '#E6E9ED', opacity: 0.4,
                         dashArray: '3 4', fill: false
@@ -238,8 +260,11 @@
         pointLayer = L.layerGroup([rings, dots]).addTo(map);
     }
 
-    const pointsNote = () => el('span', 'ri-legend-note',
-        t('Точките са обектите от този вид, кръгът около всеки е {km}.', { km: km(data.pillars.find(p => p.key === measure).km) }));
+    const pointsNote = () => {
+        const d = SofiaDistrict.get();
+        if (!d) return el('span', 'ri-legend-note', view === 'people' ? t('Точките са обектите от този вид.') : t('Изберете район, за да видите обектите и обхвата им.'));
+        return el('span', 'ri-legend-note', t('Точките са обектите от този вид, които обслужват района, кръгът около всеки е {km}.', { km: km(data.pillars.find(p => p.key === measure).km) }));
+    };
 
     function buildLegend() {
         const box = $('ri-legend');
@@ -308,6 +333,7 @@
             map.fitBounds(cityBounds, { padding: [8, 8] });
         }
         buildDossier(d ? data.districts[d.index] : null);
+        if (map) { showPoints(); buildLegend(); }
         document.querySelectorAll('#ri-table tbody tr').forEach(tr => tr.classList.toggle('on', !!d && tr.dataset.slug === d.slug));
     }
 

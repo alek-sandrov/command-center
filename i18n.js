@@ -206,7 +206,7 @@
         'Обекти към {date}': 'Places as of {date}', 'Основни пропуски': 'Main gaps', 'Площ': 'Area',
         'Райони без нито едно укритие': 'Districts with no shelter', 'София: {v}%': 'Sofia: {v}%',
         'Средно покритие': 'Average coverage', 'Столична община': 'Sofia Municipality',
-        'Точките са обектите от този вид, кръгът около всеки е {km}.': 'The points are the places of this kind; the circle around each is {km}.',
+        'Точките са обектите от този вид.': 'The points are the places of this kind.', 'Точките са обектите от този вид, които обслужват района, кръгът около всеки е {km}.': 'The points are the places of this kind that serve the district; the circle around each is {km}.', 'Изберете район, за да видите обектите и обхвата им.': 'Choose a district to see its places and their reach.',
         'в обхват: до {km}': 'within reach: up to {km}', 'всички в обхват': 'all within reach', 'до {km}': 'within {km}',
         'жители': 'residents', 'км²': 'km²', 'на км²': 'per km²',
         'половината жители са до {km}': 'half of residents within {km}', 'спрямо София': 'vs Sofia',
