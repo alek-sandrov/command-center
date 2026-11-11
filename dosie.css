@@ -85,6 +85,17 @@
     overflow: hidden;
     box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
     font-feature-settings: 'locl' 0;
+    transform-origin: 0 0;
+}
+
+.dp-fit {
+    flex: none;
+}
+
+/* Safari on phones enlarges small text by itself, which breaks the fixed A4 layout */
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
 }
 
 .dp.land {
@@ -867,15 +878,22 @@
         padding: 0;
     }
 
-    .dp {
-        box-shadow: none;
+    .dp-fit {
+        width: auto !important;
+        height: auto !important;
         break-after: page;
     }
 
-    .dp:last-child {
+    .dp-fit:last-child {
         break-after: auto;
     }
 
+    .dp {
+        box-shadow: none;
+        transform: none !important;
+    }
+
+    .dp-fit.land,
     .dp.land {
         page: land;
     }
@@ -883,22 +901,5 @@
     * {
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
-    }
-}
-
-/* Phones and small screens: pages scaled down to fit */
-@media screen and (max-width: 1150px) {
-    .dp.land {
-        zoom: 0.7;
-    }
-}
-
-@media screen and (max-width: 820px) {
-    .dp {
-        zoom: 0.44;
-    }
-
-    .dp.land {
-        zoom: 0.31;
     }
 }
