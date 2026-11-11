@@ -303,7 +303,7 @@
         const city = data.city;
         const r = row || city;
         const head = el('div', 'panel-head');
-        head.append(el('h2', '', row ? t('Досие на района') : t('Досие · цяла София')));
+        head.append(el('h2', '', row ? t('Профил на района') : t('Профил · цяла София')));
         if (row) {
             const close = el('button', 'ri-link', t('Цяла София'));
             close.type = 'button';
@@ -409,13 +409,6 @@
             extra.append(el('span', '', `${t(MEASURES[p.key].label)} ${t('до {km}', { km: km(p.km) })}: ${Math.round(r.cover[p.key])}%`));
         });
         body.append(extra);
-
-        if (row) {
-            const slug = SofiaDistrict.list[data.districts.indexOf(row)].slug;
-            const full = el('a', 'ri-dossier-link', t('Пълно досие за печат →'));
-            full.href = `dosie.html?rayon=${slug}`;
-            body.append(full);
-        }
 
         box.replaceChildren(head, body);
     }

@@ -39,13 +39,6 @@
     --sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
     --gutter: 24px;
     --max: 1400px;
-
-    /* Older names, still read by listovka.css */
-    --text-primary: var(--text);
-    --text-secondary: var(--text-2);
-    --primary-color: var(--accent);
-    --background: var(--bg);
-    --border: var(--line);
 }
 
 html {
@@ -1455,8 +1448,7 @@ header h1::before {
 .map-item,
 .protocol,
 .nearest-item,
-.siren-item,
-.sheet-card {
+.siren-item {
     box-shadow: 0 0 0 1px var(--line);
 }
 
@@ -2053,66 +2045,6 @@ header h1::before {
     display: none;
 }
 
-/* ---------- Printable materials ---------- */
-
-.print-intro {
-    margin-bottom: 20px;
-}
-
-.sheet-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-    gap: 1px;
-    padding: 1px;
-}
-
-.sheet-card {
-    background: var(--bg);
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.sheet-card.mine {
-    background: var(--accent-bg);
-    box-shadow: 0 0 0 1px var(--line), inset 0 0 0 1px var(--accent);
-}
-
-.sheet-card-name {
-    font-weight: 600;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-}
-
-.sheet-card-actions {
-    display: flex;
-    gap: 6px;
-}
-
-.sheet-card-actions a {
-    flex: 1 1 auto;
-    padding: 0 10px;
-    white-space: nowrap;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 36px;
-    border: 1px solid var(--line-strong);
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--text-2);
-}
-
-.sheet-card-actions a:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-}
-
 /* ---------- Footer ---------- */
 
 footer {
@@ -2154,7 +2086,6 @@ footer > p {
     .chip,
     .map-layers-head,
     .map-layers-actions button,
-    .sheet-card-actions a,
     .type-chip,
     .quick-nav-btn {
         min-height: 44px;
@@ -2816,18 +2747,6 @@ button.ri-kpi:hover {
 .ri-note {
     font-size: 14px;
     color: var(--text-2);
-}
-
-.ri-dossier-link {
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--accent);
-}
-
-.ri-dossier-link:hover {
-    color: var(--text);
 }
 
 /* Ranking table */
