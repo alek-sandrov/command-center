@@ -1,9 +1,11 @@
 {
  "pages": [
   "/",
+  "/analizi",
   "/cheshmi",
   "/dokument",
   "/dokumenti",
+  "/gotovnost",
   "/karta",
   "/karti",
   "/listovka",
@@ -14,6 +16,7 @@
  "data": [
   "/data/karta.json",
   "/data/rayoni.json",
+  "/data/analizi.json",
   "/api/status?part=warnings&v=3",
   "/api/status?part=earthquakes&v=3",
   "/api/status?part=air&v=3",

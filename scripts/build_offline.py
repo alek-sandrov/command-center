@@ -20,7 +20,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / 'offline.json'
-DATA = ['data/karta.json', 'data/rayoni.json']
+DATA = ['data/karta.json', 'data/rayoni.json', 'data/analizi.json']
 # The homepage status as status.js and news.js request it (keep the part names and v= in step)
 STATUS_PARTS = ['warnings', 'earthquakes', 'air', 'water', 'heating', 'radiation', 'news']
 STATUS_URL = '/api/status?part={}&v=3'
@@ -35,7 +35,8 @@ def fingerprint(path):
 
 
 def main():
-    pages = sorted('/' if p.stem == 'index' else f'/{p.stem}' for p in ROOT.glob('*.html'))
+    # Every page except the error page, which the host serves on its own for unknown addresses
+    pages = sorted('/' if p.stem == 'index' else f'/{p.stem}' for p in ROOT.glob('*.html') if p.stem != '404')
     for f in DATA:
         assert (ROOT / f).exists(), f
     data = [f'/{f}' for f in DATA] + [STATUS_URL.format(p) for p in STATUS_PARTS]
