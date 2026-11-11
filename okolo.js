@@ -66,7 +66,7 @@
             $('ok-list').replaceChildren(el('li', 'error', t('Неуспешно зареждане на данните.')));
             return;
         }
-        map = L.map('ok-map', { renderer: MapStyle.renderer(), scrollWheelZoom: false, zoomSnap: 0.25 });
+        map = L.map('ok-map', { renderer: MapStyle.renderer(), zoomSnap: 0.25, wheelPxPerZoomLevel: 90 });
         MapStyle.basemap(map);
         MapStyle.autoScale(map);
         drawn = L.layerGroup().addTo(map);
@@ -111,7 +111,6 @@
             `${lat.toFixed(5)}°N ${lng.toFixed(5)}°E`].filter(Boolean)
             .filter((x, i, a) => a.findIndex(y => y.includes(x) || x.includes(y)) === i);
         $('ok-sub').textContent = where.join(' · ');
-        $('ok-full-map').href = district ? `karta.html?rayon=${district.slug}` : 'karta.html';
 
         const nearest = KINDS.map(k => {
             const layer = MapStyle.LAYERS.find(l => l.key === k.layers[0]);
