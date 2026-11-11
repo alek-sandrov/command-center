@@ -1217,20 +1217,6 @@ header h1::before {
     color: var(--text);
 }
 
-.emergency {
-    border-top: 1px solid var(--line);
-    padding-top: 14px;
-    font-size: 13px;
-    color: var(--text-2);
-}
-
-.emergency strong {
-    font-family: var(--mono);
-    font-size: 18px;
-    color: var(--text);
-    padding-left: 6px;
-}
-
 /* ---------- Galleries (Карти, Документи, Райони) ---------- */
 
 /* Hairline grids: every cell draws its own 1px outline over the 1px gap, so a short last row
@@ -3640,10 +3626,6 @@ body.ow-wall .ow-map {
     align-items: center;
     text-align: center;
     gap: 18px;
-}
-
-.home-kicker {
-    color: var(--accent);
 }
 
 .home-title {

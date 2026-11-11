@@ -89,7 +89,7 @@
             '. Your location is only used in your browser and is never sent anywhere.',
         'Сгради за настаняване': 'Shelter buildings', 'Йодни таблетки': 'Iodine tablets', 'Палатки': 'Tent camps',
         'Минерални извори': 'Mineral springs', 'Метро': 'Metro', 'Болници': 'Hospitals', 'Аптеки': 'Pharmacies',
-        'Маршрут': 'Directions', 'Най-близо до вас': 'Nearest to you', 'Търсене...': 'Locating...',
+        'Маршрут': 'Directions', 'Най-близо до вас': 'Nearest to you', 'Търсене...': 'Locating...', 'Търсене на адреса...': 'Searching...',
         'Вие сте тук': 'You are here',
         'Районът е сменен на {district} според местоположението ви.': 'Switched to {district}, where you are now.',
         'Покажи местоположението ми': 'Show my location',
@@ -239,7 +239,7 @@
         // Address search (homepage) and place page (okolo.html)
         'Sofia Prepping – обстановка и готовност при бедствия в София': 'Sofia Prepping – emergency status and readiness in Sofia',
         'Търсене по адрес': 'Search by address',
-        'Гражданска защита · София': 'Civil protection · Sofia',
+        'Данни от отворени източници': 'Data from open sources',
         'Какво има около вас?': 'What is around you?',
         'Най-близкото укритие, болница, питейна вода и пункт за йодни таблетки – и обстановката в района в момента.': 'The nearest shelter, hospital, drinking water and iodine tablet point – and the current situation in your district.',
         'Адрес, блок или място': 'Address, block or place',
@@ -532,7 +532,6 @@
         'P-04 / Сигнали': 'P-04 / Sirens', 'P-05 / Планове': 'P-05 / Plans', 'P-06 / Печат': 'P-06 / Print',
         'Документ за печат за всеки район': 'A printable document for every district',
         'Информационен поток': 'Information feed', 'Източници': 'Sources',
-        'При опасност за живота': 'If life is in danger',
         '⌘ + колелце за увеличаване': 'Use ⌘ + scroll to zoom the map',
         'Ctrl + колелце за увеличаване': 'Use Ctrl + scroll to zoom the map'
     };
