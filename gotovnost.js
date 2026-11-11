@@ -210,23 +210,56 @@
         buildLegend();
     }
 
-    // The resource points of the chosen pillar, shown over the population view
+    // Metres from a point to a district: 0 inside it, otherwise to the nearest edge
+    function metresTo(lat, lng, shape) {
+        const kx = 111320 * Math.cos(lat * Math.PI / 180), ky = 110574;
+        let inside = false, best = Infinity;
+        shape.polygons.forEach(poly => poly.forEach(ring => {
+            for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+                const [x1, y1] = [(ring[j][0] - lng) * kx, (ring[j][1] - lat) * ky];
+                const [x2, y2] = [(ring[i][0] - lng) * kx, (ring[i][1] - lat) * ky];
+                if ((y1 > 0) !== (y2 > 0) && 0 < x1 + (0 - y1) * (x2 - x1) / (y2 - y1)) inside = !inside;
+                const dx = x2 - x1, dy = y2 - y1;
+                const tt = Math.max(0, Math.min(1, -(x1 * dx + y1 * dy) / (dx * dx + dy * dy || 1)));
+                best = Math.min(best, Math.hypot(x1 + tt * dx, y1 + tt * dy));
+            }
+        }));
+        return inside ? 0 : best;
+    }
+
+    // The places of the chosen pillar that serve the selected district: inside it, or outside but
+    // within the distance the score counts (data/analizi.json pillars[].km). Without a district:
+    // none on the district map, all of them over the population view.
     async function showPoints() {
         if (pointLayer) { map.removeLayer(pointLayer); pointLayer = null; }
-        if (view !== 'people' || measure === 'index') return;
+        const d = SofiaDistrict.get();
+        if (measure === 'index' || (!d && view !== 'people')) return;
         if (!karta) {
             try { karta = await fetch('data/karta.json').then(r => r.json()); } catch { return; }
+            if (pointLayer) return;
+            return showPoints();
         }
-        if (view !== 'people' || measure === 'index' || pointLayer) return;
-        const group = L.layerGroup();
+        const radius = data.pillars.find(p => p.key === measure).km * 1000;
+        const serves = p => !d || metresTo(p[0], p[1], shapes[d.index]) <= radius;
+        const dots = L.layerGroup();
         MEASURES[measure].layers.forEach(key => {
             const layer = MapStyle.LAYERS.find(l => l.key === key);
+            // a plain dot in the kind's colour (the light one where the map symbol is dark-filled)
+            const colour = layer.colour === '#0D1014' ? layer.stroke : layer.colour;
             (karta.layers[key] || [])
-                .filter(p => key !== 'fountains' || !p[3].includes('Не работи'))
-                .forEach(p => MapStyle.marker(layer, p).bindPopup(() => MapStyle.popupFor(layer, p)).addTo(group));
+                .filter(p => (key !== 'fountains' || !p[3].includes('Не работи')) && serves(p))
+                .forEach(p => L.circleMarker([p[0], p[1]], {
+                    radius: 5, color: '#0A0C0F', weight: 1.5, fillColor: colour, fillOpacity: 1
+                }).bindPopup(() => MapStyle.popupFor(layer, p)).addTo(dots));
         });
-        pointLayer = group.addTo(map);
+        pointLayer = dots.addTo(map);
     }
+
+    const pointsNote = () => {
+        const d = SofiaDistrict.get();
+        if (!d) return el('span', 'ri-legend-note', view === 'people' ? t('Точките са обектите от този вид.') : t('Изберете район, за да видите обектите и обхвата им.'));
+        return el('span', 'ri-legend-note', t('Точките са обектите от този вид в района и до {km} от него.', { km: km(data.pillars.find(p => p.key === measure).km) }));
+    };
 
     function buildLegend() {
         const box = $('ri-legend');
@@ -242,6 +275,7 @@
                 scale.append(item);
             });
             box.append(scale);
+            if (measure !== 'index') box.append(pointsNote());
         } else {
             box.append(el('span', 'ri-legend-title', measure === 'index'
                 ? t('Жители извън обхват, средно за петте стълба')
@@ -261,7 +295,7 @@
                 scale.append(item);
             });
             box.append(scale);
-            if (measure !== 'index') box.append(el('span', 'ri-legend-note', t('Точките са обектите от този вид.')));
+            if (measure !== 'index') box.append(pointsNote());
         }
     }
 
@@ -294,6 +328,7 @@
             map.fitBounds(cityBounds, { padding: [8, 8] });
         }
         buildDossier(d ? data.districts[d.index] : null);
+        if (map) { showPoints(); buildLegend(); }
         document.querySelectorAll('#ri-table tbody tr').forEach(tr => tr.classList.toggle('on', !!d && tr.dataset.slug === d.slug));
     }
 
