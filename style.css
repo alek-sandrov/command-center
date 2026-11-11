@@ -271,9 +271,22 @@ input {
     font-weight: 600;
 }
 
+/* Small: a hint, not a headline */
 .install-bar {
+    gap: 10px;
+    padding: 5px 12px;
+    font-size: 12px;
     background: var(--surface);
-    color: var(--text);
+    color: var(--text-2);
+}
+
+.install-bar .site-bar-action {
+    padding: 4px 10px;
+    font-size: 11px;
+}
+
+.install-bar .site-bar-close {
+    font-size: 18px;
 }
 
 .site-bar-action {

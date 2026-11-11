@@ -70,13 +70,13 @@
 
     if (!standalone && !dismissed()) {
         if (iOS) {
-            installTip(t('За да работи без интернет: натиснете „Сподели“ и „Добави към началния екран“.'));
+            installTip(t('Без интернет: „Сподели“ → „Добави към началния екран“'));
         } else {
             // Chrome, Edge, Samsung Internet: the browser offers its own install dialog
             addEventListener('beforeinstallprompt', event => {
                 event.preventDefault();
                 const btn = Object.assign(document.createElement('button'), { type: 'button', className: 'site-bar-action', textContent: t('Инсталирай') });
-                const tip = installTip(t('Инсталирайте сайта като приложение, за да работи и без интернет.'), btn);
+                const tip = installTip(t('Инсталирайте сайта, за да работи и без интернет'), btn);
                 btn.addEventListener('click', async () => {
                     event.prompt();
                     await event.userChoice.catch(() => null);
