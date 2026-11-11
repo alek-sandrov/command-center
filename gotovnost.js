@@ -227,10 +227,9 @@
         return inside ? 0 : best;
     }
 
-    // The places of the chosen pillar that serve the selected district (inside it, or near enough
-    // that their circle reaches into it), each with a circle of the distance the score counts
-    // (data/analizi.json pillars[].km). Without a district: none on the district map, all of
-    // them over the population view.
+    // The places of the chosen pillar that serve the selected district: inside it, or outside but
+    // within the distance the score counts (data/analizi.json pillars[].km). Without a district:
+    // none on the district map, all of them over the population view.
     async function showPoints() {
         if (pointLayer) { map.removeLayer(pointLayer); pointLayer = null; }
         const d = SofiaDistrict.get();
@@ -242,28 +241,24 @@
         }
         const radius = data.pillars.find(p => p.key === measure).km * 1000;
         const serves = p => !d || metresTo(p[0], p[1], shapes[d.index]) <= radius;
-        const rings = L.layerGroup();
         const dots = L.layerGroup();
         MEASURES[measure].layers.forEach(key => {
             const layer = MapStyle.LAYERS.find(l => l.key === key);
+            // a plain dot in the kind's colour (the light one where the map symbol is dark-filled)
+            const colour = layer.colour === '#0D1014' ? layer.stroke : layer.colour;
             (karta.layers[key] || [])
                 .filter(p => (key !== 'fountains' || !p[3].includes('Не работи')) && serves(p))
-                .forEach(p => {
-                    if (d) L.circle([p[0], p[1]], {
-                        // outline only: filled circles stack up and wash out the district colours
-                        radius, interactive: false, weight: 1, color: '#E6E9ED', opacity: 0.4,
-                        dashArray: '3 4', fill: false
-                    }).addTo(rings);
-                    MapStyle.marker(layer, p).bindPopup(() => MapStyle.popupFor(layer, p)).addTo(dots);
-                });
+                .forEach(p => L.circleMarker([p[0], p[1]], {
+                    radius: 5, color: '#0A0C0F', weight: 1.5, fillColor: colour, fillOpacity: 1
+                }).bindPopup(() => MapStyle.popupFor(layer, p)).addTo(dots));
         });
-        pointLayer = L.layerGroup([rings, dots]).addTo(map);
+        pointLayer = dots.addTo(map);
     }
 
     const pointsNote = () => {
         const d = SofiaDistrict.get();
         if (!d) return el('span', 'ri-legend-note', view === 'people' ? t('Точките са обектите от този вид.') : t('Изберете район, за да видите обектите и обхвата им.'));
-        return el('span', 'ri-legend-note', t('Точките са обектите от този вид, които обслужват района, кръгът около всеки е {km}.', { km: km(data.pillars.find(p => p.key === measure).km) }));
+        return el('span', 'ri-legend-note', t('Точките са обектите от този вид в района и до {km} от него.', { km: km(data.pillars.find(p => p.key === measure).km) }));
     };
 
     function buildLegend() {
