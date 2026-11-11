@@ -163,7 +163,7 @@
         qr.append(code, el('span', '', t('Актуална версия онлайн')));
         top.append(titles, qr);
         body.append(top);
-        new QRCode(code, { text: `${SITE}/dosie.html?rayon=${ctx.d.slug}${I18N.lang === 'en' ? '&lang=en' : ''}`, width: 256, height: 256, correctLevel: QRCode.CorrectLevel.M });
+        new QRCode(code, { text: `${SITE}/dosie?rayon=${ctx.d.slug}${I18N.lang === 'en' ? '&lang=en' : ''}`, width: 256, height: 256, correctLevel: QRCode.CorrectLevel.M });
 
         const meta = el('dl', 'dp-meta');
         [[t('Документ №'), ctx.docId], [t('Изготвен'), ctx.today], [t('Данни към'), ctx.dataDate], [t('Класификация'), t('Публично')]]
