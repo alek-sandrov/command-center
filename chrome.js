@@ -47,7 +47,7 @@
             left.append(' · ', contact);
         }
         const right = document.createElement('span');
-        right.textContent = t('Данни от отворени източници · без гаранция за точност · спешни случаи 112');
+        right.textContent = t('Данни от отворени източници');
         const inner = document.createElement('div');
         inner.className = 'footer-inner';
         inner.append(left, right);
