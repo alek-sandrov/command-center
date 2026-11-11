@@ -213,6 +213,29 @@
         'средно за София': 'Sofia average', 'средно от {n} стълба': 'average of {n} pillars',
         '№ {r} от {n} района': 'No. {r} of {n} districts',
 
+        // Operations wall (obstanovka.html)
+        'Оперативна обстановка - Sofia Prepping': 'Live operations picture - Sofia Prepping',
+        'Оперативна обстановка': 'Live operations picture', 'На живо': 'Live',
+        'Оперативна обстановка · София': 'Live operations picture · Sofia',
+        'Всички източници на живо на един екран – за монитор или стена': 'Every live source on one screen – for a monitor or wall display',
+        'Ниво –': 'Level –', 'Ниво {level}': 'Level {level}', 'Обновяване': 'Refresh', 'Цял екран': 'Full screen', 'Изход': 'Exit',
+        'Показатели': 'Indicators', 'Гама-фон · станции в София': 'Gamma background · stations in Sofia',
+        'Карта на събитията': 'Event map', 'Слоеве': 'Layers', 'Дневник на събитията': 'Event log',
+        'Вода · топлофикация · PM2.5': 'Water · heating · PM2.5', 'Последни новини': 'Latest news',
+        'Данни от отворени източници: НИМХ/MeteoAlarm, EMSC, sensor.community, Агенция за ядрено регулиране, Софийска вода, Топлофикация София, Open-Meteo, БТА, ГДПБЗН, Столична община. Източниците се проверяват на всеки 10 минути. При спешен случай: 112.':
+            'Open data from: НИМХ/MeteoAlarm, EMSC, sensor.community, Nuclear Regulatory Agency, Sofiyska Voda, Toplofikatsia Sofia, Open-Meteo, BTA, ГДПБЗН, Sofia Municipality. Sources are checked every 10 minutes. In an emergency: 112.',
+        'PM2.5 {v} µg/m³ · {n} сензора': 'PM2.5 {v} µg/m³ · {n} sensors',
+        '{km} км от центъра · дълбочина {depth} км': '{km} km from the centre · depth {depth} km',
+        '{n} записа': '{n} entries', '{ok}/{n} в норма · {time}': '{ok}/{n} normal · {time}',
+        'Няма активни събития.': 'No active events.', 'авария/ремонт на топлофикация': 'heating fault/repair',
+        'бюлетин {time}': 'bulletin {time}', 'вода': 'water', 'топлофикация': 'heating', 'вятър {v} км/ч': 'wind {v} km/h',
+        'горна граница на естествения фон ({v} µSv/h)': 'upper limit of natural background ({v} µSv/h)',
+        'до {until}': 'until {until}', 'от {from}': 'from {from}', 'дълбочина {depth} км': 'depth {depth} km',
+        'земетресение': 'earthquake', 'няма достатъчно сензори': 'not enough sensors', 'район със спряна вода': 'district with water cut off',
+        'Въздух (PM2.5)': 'Air (PM2.5)', 'добро': 'good', 'умерено': 'moderate', 'лошо': 'poor', 'много лошо': 'very poor',
+        'в': 'w', 'т': 'h', 'Оперативен екран →': 'Operations screen →', 'МЕТЕО': 'METEO', 'ВиК': 'WATER', 'ТОПЛО': 'HEAT',
+        '{n} спиране на водата': '{n} water outage', '{n} спирания на водата': '{n} water outages',
+
         // Weather
         'София': 'Sofia', 'България': 'Bulgaria',
         'Влажност: {v}%': 'Humidity: {v}%', 'Усеща се: {v}°C': 'Feels like: {v}°C',

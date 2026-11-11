@@ -61,6 +61,8 @@ async function earthquakes() {
             region: p.flynn_region,
             time: Date.parse(p.time),
             km: Math.round(distanceKm(SOFIA.lat, SOFIA.lng, p.lat, p.lon)),
+            lat: Math.round(p.lat * 1e3) / 1e3,
+            lng: Math.round(p.lon * 1e3) / 1e3,
             depth: Math.round(p.depth),
             url: `https://www.seismicportal.eu/eventdetails.html?unid=${encodeURIComponent(p.unid)}`
         };
