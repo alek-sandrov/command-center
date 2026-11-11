@@ -47,13 +47,15 @@ export async function onRequestGet(context) {
 
     let found;
     try {
-        found = await photon(q);
-    } catch (first) {
-        try {
-            found = await nominatim(q);
-        } catch (second) {
-            return json({ ok: false, error: `${first.message || first}; ${second.message || second}` }, 502);
+        found = await lookup(q);
+        // Addresses copied from elsewhere often carry more than the geocoder can match. Try simpler
+        // forms of the same address until one finds something.
+        for (const simpler of variants(q)) {
+            if (found.some(inSofia)) break;
+            found = await lookup(simpler);
         }
+    } catch (err) {
+        return json({ ok: false, error: String(err.message || err) }, 502);
     }
 
     const [w, s, e, n] = BBOX;
@@ -69,6 +71,43 @@ export async function onRequestGet(context) {
     const res = json({ ok: true, results: results.slice(0, 6) }, 200, CACHE_SECONDS);
     if (cache) context.waitUntil?.(cache.put(key, res.clone()));
     return res;
+}
+
+const inSofia = ({ lat, lng }) => lat >= BBOX[1] && lat <= BBOX[3] && lng >= BBOX[0] && lng <= BBOX[2];
+
+// Photon first; Nominatim if Photon does not answer
+async function lookup(q) {
+    try {
+        return await photon(q);
+    } catch (first) {
+        try {
+            return await nominatim(q);
+        } catch (second) {
+            throw new Error(`${first.message || first}; ${second.message || second}`);
+        }
+    }
+}
+
+// "ж.к. Младост 1Младост, ул. „Никола Генадиев“ 50" -> "Никола Генадиев 50, Младост 1 Младост",
+// "Никола Генадиев 50": without quotes and words such as "ул." (the geocoder matches the bare
+// name better), then the part with the house number on its own. At most two extra lookups.
+const KINDS = /(^|[\s,])(ул\.?|улица|бул\.?|булевард|ж\.?к\.?|жк|кв\.?|пл\.?|площад|гр\.|с\.|str\.?|ul\.?|bul\.?|blvd\.?|zh\.?k\.?)(?=\s|$)/giu;
+function variants(q) {
+    const clean = q
+        .replace(/[„“”"«»']/g, ' ')
+        .replace(/(\d)(\p{L}{3,})/gu, '$1 $2')       // "1Младост" (two pieces glued by copying)
+        .replace(/(\p{Ll})(\p{Lu})/gu, '$1 $2')       // "МладостМладост"
+        .replace(KINDS, '$1')
+        .replace(/(?<![\p{L}\d])(София|Sofia|България|Bulgaria|\d{4})(?![\p{L}\d])/giu, '')
+        .replace(/\s+/g, ' ').replace(/\s*,[\s,]*/g, ', ').replace(/^[\s,]+|[\s,]+$/g, '');
+    const parts = clean.split(', ').filter(Boolean);
+    // the street and house number: a name, then a number at the end ("Никола Генадиев 50", not "бл. 15")
+    const numbered = parts.find(x => /\p{L}{3,}\s+\d+\s*\p{L}?$/u.test(x) && !/(бл|bl)\.?\s*\d+\s*\p{L}?$/iu.test(x));
+    const out = [];
+    if (numbered && parts.length > 1) out.push([numbered, ...parts.filter(x => x !== numbered)].join(', '));
+    else if (clean !== q) out.push(clean);
+    if (numbered && numbered !== out[0]) out.push(numbered);
+    return out.filter((x, i, a) => x.length >= 2 && x !== q && a.indexOf(x) === i).slice(0, 2);
 }
 
 async function getJson(url, ms) {
@@ -109,3 +148,5 @@ async function nominatim(q) {
         };
     });
 }
+
+export { variants };
