@@ -72,10 +72,46 @@
         drawn = L.layerGroup().addTo(map);
         if (picking) {
             map.setView(SOFIA, 12);
-            map.on('click', e => { if (!placed) moveTo(e.latlng.lat, e.latlng.lng, true); });
+            startPicking();
         } else {
             await render(true);
         }
+    }
+
+    // Picking: a tap puts the pin there (another tap or a drag moves it), and the place is only
+    // looked up when the visitor confirms, so they can see exactly which point they chose
+    function startPicking() {
+        let draft = null;
+        const bar = $('ok-confirm');
+        const put = ll => {
+            if (!draft) {
+                draft = L.marker(ll, {
+                    draggable: true, autoPan: true, zIndexOffset: 1000,
+                    icon: L.divIcon({ className: 'ok-pin', html: '<span></span>', iconSize: [26, 26], iconAnchor: [13, 13] })
+                }).bindTooltip(t('Тук'), { permanent: true, direction: 'top', offset: [0, -14], className: 'ri-leaflet-tip' }).addTo(map);
+            } else {
+                draft.setLatLng(ll);
+            }
+            if (map.getZoom() < 15) map.setView(ll, 15);
+            const first = bar.hidden;
+            bar.hidden = false;
+            // Phones: bring the map up so the pin is not under the bar at the bottom of the screen
+            if (first && window.innerWidth <= 760) {
+                const box = map.getContainer().getBoundingClientRect();
+                const nav = document.querySelector('.navbar')?.getBoundingClientRect().bottom || 0;
+                window.scrollBy({ top: box.top - nav - 8, behavior: 'smooth' });
+            }
+        };
+        const onClick = e => put(e.latlng);
+        map.on('click', onClick);
+        $('ok-confirm-go').addEventListener('click', () => {
+            if (!draft) return;
+            const ll = draft.getLatLng();
+            map.off('click', onClick);
+            map.removeLayer(draft);
+            bar.hidden = true;
+            moveTo(ll.lat, ll.lng, true);
+        });
     }
 
     // The visitor put the pin somewhere: work everything out again for that point
