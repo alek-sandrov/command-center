@@ -1,5 +1,5 @@
 // Renders video/shelters.html to MP4 with Playwright + ffmpeg.
-//   node video/render.mjs landscape|portrait [out.mp4] [--stills 2,8,14] [--audio track.mp3]
+//   node video/render.mjs landscape|portrait [out.mp4] [--topic shelters|water] [--stills 2,8,14] [--audio track.mp3]
 // Serves the repository root on a local port so the page can read data/ and fonts/.
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
@@ -14,9 +14,10 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
 const format = args[0] === 'portrait' ? 'portrait' : 'landscape';
 const opt = k => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : null; };
-const out = args[1] && !args[1].startsWith('--') ? args[1] : `video/shelters-${format}.mp4`;
+const out = args[1] && !args[1].startsWith('--') ? args[1] : `video/${topic}-${format}.mp4`;
 const stills = opt('--stills');
 const audio = opt('--audio');
+const topic = opt('--topic') || 'shelters';
 const FPS = 30;
 
 const TYPES = { '.html': 'text/html', '.json': 'application/json', '.woff2': 'font/woff2', '.js': 'text/javascript' };
@@ -35,7 +36,7 @@ const [w, h] = format === 'portrait' ? [1080, 1920] : [1920, 1080];
 const page = await browser.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: 1 });
 page.on('console', m => console.log('[page]', m.text()));
 page.on('pageerror', e => { console.error(e); process.exit(1); });
-await page.goto(`http://127.0.0.1:${port}/video/shelters.html?f=${format}`);
+await page.goto(`http://127.0.0.1:${port}/video/film.html?topic=${topic}&f=${format}`);
 await page.evaluate(() => window.ready);
 const duration = await page.evaluate(() => window.DURATION);
 const grab = () => page.evaluate(() => document.getElementById('c').toDataURL('image/png').split(',')[1]);
@@ -44,7 +45,7 @@ if (stills) {
     const { writeFile } = await import('node:fs/promises');
     for (const t of stills.split(',').map(Number)) {
         await page.evaluate(t => window.renderAt(t), t);
-        await writeFile(out.replace(/\.mp4$/, '') + `-${format}-${t}.png`, Buffer.from(await grab(), 'base64'));
+        await writeFile(out.replace(/\.mp4$/, '') + `-${topic}-${format}-${t}.png`, Buffer.from(await grab(), 'base64'));
     }
 } else {
     const ff = ['-y', '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'png', '-i', '-'];

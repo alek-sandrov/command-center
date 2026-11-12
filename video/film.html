@@ -19,16 +19,18 @@
 <body>
 <canvas id="c"></canvas>
 <script>
-// Motion video: shelter distribution in Sofia. Every number comes from data/analizi.json,
-// data/karta.json and data/rayoni.json. Rendered frame by frame by video/render.mjs:
-// open shelters.html?f=landscape|portrait, await window.ready, then call window.frame(t).
+// Motion videos about Sofia's readiness, one per topic (shelters, water). Every number comes from
+// data/analizi.json, data/karta.json and data/rayoni.json. Rendered frame by frame by video/render.mjs:
+// open film.html?topic=shelters|water&f=landscape|portrait, await window.ready, then call
+// window.renderAt(t) with t in seconds of the finished film.
 'use strict';
 const C = { bg: '#0A0C0F', surface: '#0F1216', line: '#1F252D', lineStrong: '#2A323C', text: '#E6E9ED',
     muted: '#8B95A1', dim: '#76818E', accent: '#F2A93B', ok: '#4CC38A', alert: '#FF5D5D', red: '#E66767' };
 const SANS = "'Plex Sans', sans-serif", MONO = "'Plex Mono', monospace";
 // Story time runs 0–50; STRETCH slows the whole film so the words can be read
 const STORY = 50, STRETCH = 1.45, DURATION = STORY * STRETCH;
-const FORMAT = new URLSearchParams(location.search).get('f') === 'portrait' ? 'portrait' : 'landscape';
+const QS = new URLSearchParams(location.search);
+const FORMAT = QS.get('f') === 'portrait' ? 'portrait' : 'landscape';
 const W = FORMAT === 'portrait' ? 1080 : 1920, H = FORMAT === 'portrait' ? 1920 : 1080;
 const cv = document.getElementById('c'); cv.width = W; cv.height = H;
 const g = cv.getContext('2d');
@@ -52,7 +54,51 @@ function mix(c1, c2, k) {
 // Opacity of an element shown from a to b, fading over f seconds each side
 const win = (t, a, b, f = 0.5) => Math.min(seg(t, a, a + f), 1 - seg(t, b - f, b));
 
-let A, K, R, proj0, cells, shelters, districts, cams;
+// ---------- topics ----------
+// Story timeline (0–50): 0–4 people · 4–10 points drop · 10–16 the centre · 16–24 1 km reach
+// 24–34 three gap districts · 34–44 ranking · 44–50 end card
+const TOPICS = {
+    shelters: {
+        measure: 'shelter', colour: '#F2A93B', glow: '242,169,59', dot: 6,
+        layers: ['shelters'], works: () => true,
+        centre: [['Средец', '13 укрития', [-10, 70]], ['Оборище', '7 укрития', [40, -60]]], centrePad: 1.9,
+        gaps: [['Младост', '0 укрития', 1.3, 12], ['Студентски', '0 укрития', 1.3, 12], ['Кремиковци', '0 укрития', 1.6, 4]],
+        source: 'Данни: 46 регистрирани укрития към 09.11.2026 · население: преброяване 2021, модел Kontur 2023',
+        blocks: t => [
+            [0.3, 4.2, [['СОФИЯ · АНАЛИЗ НА УКРИТИЯТА', 'kicker'], [count(t, 0.4, 2.6, 1274290), 'huge'], ['души', 'mid'], ['', 'gap'], [`${count(t, 2.0, 3.4, 46)} бомбоубежища`, 'accentHuge2']]],
+            [4.4, 10.2, [['ПРОТИВОРАДИАЦИОННИ УКРИТИЯ И СКРИВАЛИЩА', 'kicker'], ['Къде са те?', 'big'], ['', 'gap'], [`${NF(Math.floor(46 * seg(t, 4.4, 9.55)))} / 46`, 'accentHuge']]],
+            [10.6, 16.3, [['ЦЕНТЪРЪТ', 'kicker'], ['20 от 46', 'accentHuge'], ['са само в два района', 'big'], ['', 'gap'], ['Средец (13) и Оборище (7) — и двата с покритие 100%', 'body']]],
+            [16.6, 24.3, [['РАДИУС 1 КМ', 'kicker'], ['Само', 'mid'], [`${count(t, 17.4, 20.0, 34.8, 1)}%`, 'accentHuge'], ['от хората живеят на до 1 км от укритие', 'body'], ['', 'gap'], [count(t, 20.4, 22.8, 831400), 'redHuge'], ['души — не', 'mid']]],
+            [24.5, 27.9, [['ПРАЗНИТЕ ЗОНИ', 'kicker'], ['Младост', 'big'], [count(t, 24.8, 26.2, 104047), 'huge'], ['жители', 'body'], ['', 'gap'], ['0 укрития', 'redBig']]],
+            [27.9, 31.0, [['ПРАЗНИТЕ ЗОНИ', 'kicker'], ['Студентски', 'big'], [count(t, 28.2, 29.6, 74163), 'huge'], ['жители', 'body'], ['', 'gap'], ['0 укрития', 'redBig']]],
+            [31.0, 34.3, [['ПРАЗНИТЕ ЗОНИ', 'kicker'], ['Кремиковци', 'big'], [`${count(t, 31.3, 32.7, 12)} км`, 'redHuge'], ['половината жители са на над 12 км от най-близкото укритие', 'body']]],
+            [34.6, 44.0, [['ПОКРИТИЕ ПО РАЙОНИ', 'kicker'], ['От 0% до 100%.', 'big'], ['', 'gap'], ['Един град —', 'mid'], ['две реалности.', 'mid']]]
+        ]
+    },
+    water: {
+        measure: 'water', colour: '#7FB2FF', glow: '127,178,255', dot: 4.2,
+        // Same rule as scripts/build_analizi.py: a source counts unless it is marked as not working
+        layers: ['fountains', 'springs'], works: p => !String(p[3]).includes('Не работи'),
+        centre: [['Средец', '36 водоизточника', [10, 80]], ['Възраждане', '13 водоизточника', [-110, -40]], ['Оборище', '10 водоизточника', [110, -70]]], centrePad: 1.15,
+        gaps: [['Люлин', '1 чешма · не работи', 1.3, 9], ['Красна поляна', '0 чешми', 1.3, 9], ['Кремиковци', 'покритие 5,8%', 1.6, 4]],
+        source: 'Данни: 302 чешми и минерални извора към 09.11.2026, от тях 26 не работят · население: преброяване 2021, модел Kontur 2023',
+        blocks: t => [
+            [0.3, 4.2, [['СОФИЯ · ДОСТЪП ДО ВОДА', 'kicker'], [count(t, 0.4, 2.6, 1274290), 'huge'], ['души', 'mid'], ['', 'gap'], [`${count(t, 2.0, 3.4, 276)} работещи чешми и извора`, 'accentHuge2']]],
+            [4.4, 10.2, [['ОБЩЕСТВЕНИ ЧЕШМИ И МИНЕРАЛНИ ИЗВОРИ', 'kicker'], ['Къде има вода?', 'big'], ['', 'gap'], [`${NF(Math.floor(276 * seg(t, 4.4, 8.75)))} / 276`, 'accentHuge'], ['+ 26 чешми, които не работят', 'body', 8.7]]],
+            [10.6, 16.3, [['ЦЕНТЪРЪТ', 'kicker'], ['59 от 276', 'accentHuge'], ['са в три централни района', 'big'], ['', 'gap'], ['Средец (36), Възраждане (13) и Оборище (10) — покритие 100%', 'body']]],
+            [16.6, 24.3, [['РАДИУС 1 КМ', 'kicker'], ['Само', 'mid'], [`${count(t, 17.4, 20.0, 62.1, 1)}%`, 'accentHuge'], ['от хората живеят на до 1 км от работеща чешма или извор', 'body'], ['', 'gap'], [count(t, 20.4, 22.8, 482600), 'redHuge'], ['души — не', 'mid']]],
+            [24.5, 27.9, [['БЕЗ ВОДА НАБЛИЗО', 'kicker'], ['Люлин', 'big'], [count(t, 24.8, 26.2, 106112), 'huge'], ['жители', 'body'], ['', 'gap'], ['1 чешма', 'redBig'], ['— и тя не работи', 'body', 25.6]]],
+            [27.9, 31.0, [['БЕЗ ВОДА НАБЛИЗО', 'kicker'], ['Красна поляна', 'big'], [count(t, 28.2, 29.6, 53274), 'huge'], ['жители', 'body'], ['', 'gap'], ['0 чешми', 'redBig']]],
+            [31.0, 34.3, [['БЕЗ ВОДА НАБЛИЗО', 'kicker'], ['Кремиковци', 'big'], [`${count(t, 31.3, 32.7, 5.8, 1)}%`, 'redHuge'], ['от жителите имат вода на до 1 км', 'body']]],
+            [34.6, 44.0, [['ПОКРИТИЕ ПО РАЙОНИ', 'kicker'], ['От 5,8% до 100%.', 'big'], ['', 'gap'], ['Един град —', 'mid'], ['две реалности.', 'mid']]]
+        ]
+    }
+};
+const TOPIC = TOPICS[QS.get('topic')] || TOPICS.shelters;
+const GAP_WIN = [[24.6, 27.8], [27.8, 30.9], [30.9, 34.2]];
+const TAG_WIN = [[25.1, 27.8], [28.3, 30.9], [31.5, 34.2]];
+
+let A, K, R, proj0, cells, points, broken, districts, cams;
 
 // Equirectangular projection in km around Sofia's centre
 const LAT0 = 42.69, LNG0 = 23.33, KX = 111.32 * Math.cos(LAT0 * Math.PI / 180), KY = 110.574;
@@ -77,15 +123,17 @@ function camLerp(a, b, k) {
 async function load() {
     [A, K, R] = await Promise.all(['analizi', 'karta', 'rayoni'].map(n => fetch(`../data/${n}.json`).then(r => r.json())));
     const order = [...A.pillars, ...A.extra].map(p => p.key);
-    const si = order.indexOf('shelter');
+    const si = order.indexOf(TOPIC.measure);
     cells = A.grid.map(([lat, lng, pop, d, share]) => {
         const ch = share[si];
         const corners = A.hexagon.map(([n, e]) => toKm(lng + e / 1000 / KX, lat + n / 1000 / KY));
         return { p: toKm(lng, lat), pop, d, s: ch === 'A' ? 1 : Number(ch) / 10, corners };
     });
-    shelters = K.layers.shelters.map(([lat, lng]) => ({ p: toKm(lng, lat) }));
+    const all = TOPIC.layers.flatMap(l => K.layers[l]);
+    const pt = p => ({ p: toKm(p[1], p[0]) });
     // Drop order: sweep from the west to the east
-    shelters.sort((a, b) => a.p[0] - b.p[0]);
+    points = all.filter(TOPIC.works).map(pt).sort((a, b) => a.p[0] - b.p[0]);
+    broken = all.filter(p => !TOPIC.works(p)).map(pt).sort((a, b) => a.p[0] - b.p[0]);
     districts = R.map((r, i) => {
         const a = A.districts[i];
         const rings = r.polygons.flatMap(poly => poly.map(ring => ring.map(([lng, lat]) => toKm(lng, lat))));
@@ -98,17 +146,15 @@ async function load() {
     // Sanity checks: the video must say exactly what the analysis says
     const total = cells.reduce((s, c) => s + c.pop, 0);
     const covered = cells.reduce((s, c) => s + c.pop * c.s, 0) / total;
-    console.log('grid pop', total, 'shelter cover', (covered * 100).toFixed(1), 'shelters', shelters.length);
+    console.log('grid pop', total, TOPIC.measure, 'cover', (covered * 100).toFixed(1), 'points', points.length, 'not working', broken.length);
 
     const by = n => districts.find(d => d.name === n);
     const city = bboxOf(cells.filter(c => c.pop >= 300).map(c => c.p));
     const union = (...ds) => bboxOf(ds.flatMap(d => [[d.lived.x0, d.lived.y0], [d.lived.x1, d.lived.y1]]));
     cams = {
         city: camFor(city, FORMAT === 'portrait' ? 0.8 : 1.04),
-        centre: camFor(union(by('Средец'), by('Оборище')), 1.9),
-        mladost: camFor(by('Младост').lived, 1.3, 12),
-        studentski: camFor(by('Студентски').lived, 1.3, 12),
-        kremikovtsi: camFor(by('Кремиковци').lived, 1.6, 4)
+        centre: camFor(union(...TOPIC.centre.map(([n]) => by(n))), TOPIC.centrePad),
+        gaps: TOPIC.gaps.map(([n, , pad, min]) => camFor(by(n).lived, pad, min))
     };
     await document.fonts.load(`700 40px ${SANS}`); await document.fonts.load(`600 40px ${SANS}`);
     await document.fonts.load(`400 40px ${SANS}`); await document.fonts.load(`500 20px ${MONO}`);
@@ -120,10 +166,10 @@ async function load() {
 // 0–4 city + people · 4–10 shelters drop · 10–16 centre · 16–24 1 km reach · 24–34 gaps
 // 34–44 ranking · 44–50 end card
 function cameraAt(t) {
-    const { city, centre, mladost, studentski, kremikovtsi } = cams;
+    const { city, centre } = cams, [g0, g1, g2] = cams.gaps;
     const steps = [
         [0, camLerp(city, city, 0)], [10.3, city], [11.8, centre], [15.2, centre], [16.6, city], [24, city],
-        [25.2, mladost], [27.2, mladost], [28.4, studentski], [30.4, studentski], [31.6, kremikovtsi], [33.4, kremikovtsi], [34.6, city]
+        [25.2, g0], [27.2, g0], [28.4, g1], [30.4, g1], [31.6, g2], [33.4, g2], [34.6, city]
     ];
     for (let i = 0; i < steps.length - 1; i++) {
         const [t0, c0] = steps[i], [t1, c1] = steps[i + 1];
@@ -152,7 +198,7 @@ function frame(t) {
         drawCells(t, P, z);
         drawDistricts(t, P);
         drawReach(t, P, z);
-        drawShelters(t, P, z);
+        drawPoints(t, P, z);
         drawCallouts(t, P);
         g.restore();
     }
@@ -201,12 +247,13 @@ function districtPath(d, P) {
 function drawDistricts(t, P) {
     const draw = ease(seg(t, 0.2, 3.0));
     const centreOn = win(t, 11.2, 16.4, 0.6);
-    const gaps = { 'Младост': [24.6, 27.8], 'Студентски': [27.8, 30.9], 'Кремиковци': [30.9, 34.2] };
+    const gaps = Object.fromEntries(TOPIC.gaps.map(([n], i) => [n, GAP_WIN[i]]));
+    const centreNames = TOPIC.centre.map(([n]) => n);
     districts.forEach((d, i) => {
-        const special = (d.name === 'Средец' || d.name === 'Оборище') ? centreOn : 0;
+        const special = centreNames.includes(d.name) ? centreOn : 0;
         const gap = gaps[d.name] ? win(t, gaps[d.name][0], gaps[d.name][1], 0.5) : 0;
         if (special > 0) {
-            districtPath(d, P); g.save(); g.globalAlpha *= 0.22 * special; g.fillStyle = C.accent; g.fill('evenodd'); g.restore();
+            districtPath(d, P); g.save(); g.globalAlpha *= 0.22 * special; g.fillStyle = TOPIC.colour; g.fill('evenodd'); g.restore();
         }
         if (gap > 0) {
             const pulse = 0.5 + 0.5 * Math.sin(t * 5);
@@ -218,7 +265,7 @@ function drawDistricts(t, P) {
         g.save();
         districtPath(d, P);
         const hi = Math.max(special, gap);
-        g.strokeStyle = hi > 0 ? (gap > 0 ? C.alert : C.accent) : C.lineStrong;
+        g.strokeStyle = hi > 0 ? (gap > 0 ? C.alert : TOPIC.colour) : C.lineStrong;
         g.lineWidth = hi > 0 ? lerp(1.2, 3, hi) : 1.2;
         g.globalAlpha *= hi > 0 ? 1 : 0.9 * k;
         if (k < 1) { g.setLineDash([4000 * k, 100000]); }
@@ -227,46 +274,57 @@ function drawDistricts(t, P) {
     });
 }
 
-// 1 km reach around each shelter
+// 1 km reach around each working point
 function drawReach(t, P, z) {
     const k = ease(seg(t, 16.6, 19.0));
     const out = 1 - ease(seg(t, 23.6, 24.6));
     if (k <= 0 || out <= 0) return;
     g.save();
-    for (const s of shelters) {
+    for (const s of points) {
         const [x, y] = P(s.p);
         g.beginPath(); g.arc(x, y, z * 1.0 * k, 0, Math.PI * 2);
-        g.fillStyle = 'rgba(242,169,59,0.07)'; g.globalAlpha *= out; g.fill();
+        g.fillStyle = `rgba(${TOPIC.glow},${points.length > 100 ? 0.04 : 0.07})`; g.globalAlpha *= out; g.fill();
         g.globalAlpha /= out;
     }
-    for (const s of shelters) {
+    for (const s of points) {
         const [x, y] = P(s.p);
         g.beginPath(); g.arc(x, y, z * 1.0 * k, 0, Math.PI * 2);
-        g.strokeStyle = 'rgba(242,169,59,0.55)'; g.lineWidth = 1.4; g.globalAlpha *= out; g.stroke(); g.globalAlpha /= out;
+        g.strokeStyle = `rgba(${TOPIC.glow},${points.length > 100 ? 0.35 : 0.55})`; g.lineWidth = 1.4; g.globalAlpha *= out; g.stroke(); g.globalAlpha /= out;
     }
     g.restore();
 }
 
-function drawShelters(t, P, z) {
-    const n = shelters.length;
-    shelters.forEach((s, i) => {
-        const t0 = 4.4 + (i / n) * 4.6;
+function drawPoints(t, P, z) {
+    // Points that don't work land last, grey and hollow
+    const r0 = TOPIC.dot * L.u * Math.min(1.6, Math.max(0.8, z / 70));
+    broken.forEach((s, i) => {
+        const k = seg(t, 8.7 + (i / broken.length) * 0.9, 8.7 + (i / broken.length) * 0.9 + 0.4);
+        if (k <= 0) return;
+        const [x, y] = P(s.p);
+        g.save(); g.globalAlpha *= Math.min(1, k * 2);
+        g.beginPath(); g.arc(x, y - (1 - easeOut(k)) * 20, r0, 0, Math.PI * 2);
+        g.fillStyle = C.bg; g.fill(); g.lineWidth = 2; g.strokeStyle = C.dim; g.stroke();
+        g.restore();
+    });
+    const n = points.length;
+    points.forEach((s, i) => {
+        const t0 = 4.4 + (i / n) * (n > 100 ? 4.0 : 4.6);
         const k = seg(t, t0, t0 + 0.55);
         if (k <= 0) return;
         const [x, y] = P(s.p);
         const e = easeOut(k);
-        const r = 6 * L.u * Math.min(1.6, Math.max(0.8, z / 70));
+        const r = r0;
         // Landing ring
         if (k < 1) {
             g.save(); g.globalAlpha *= (1 - k) * 0.9;
-            g.beginPath(); g.arc(x, y, r + 40 * e, 0, Math.PI * 2);
-            g.strokeStyle = C.accent; g.lineWidth = 2; g.stroke(); g.restore();
+            g.beginPath(); g.arc(x, y, r + (n > 100 ? 18 : 40) * e, 0, Math.PI * 2);
+            g.strokeStyle = TOPIC.colour; g.lineWidth = 2; g.stroke(); g.restore();
         }
         g.save();
         g.globalAlpha *= Math.min(1, k * 2);
-        g.shadowColor = 'rgba(242,169,59,0.8)'; g.shadowBlur = 14;
+        g.shadowColor = `rgba(${TOPIC.glow},0.8)`; g.shadowBlur = 14;
         g.beginPath(); g.arc(x, y - (1 - e) * 30, r, 0, Math.PI * 2);
-        g.fillStyle = C.accent; g.fill();
+        g.fillStyle = TOPIC.colour; g.fill();
         g.shadowBlur = 0;
         g.lineWidth = 2; g.strokeStyle = C.bg; g.stroke();
         g.restore();
@@ -276,19 +334,15 @@ function drawShelters(t, P, z) {
 // Labels on the map for the districts the story is about
 function drawCallouts(t, P) {
     const tags = [
-        ['Средец', 11.8, 16.2, '13 укрития', C.accent],
-        ['Оборище', 12.2, 16.2, '7 укрития', C.accent],
-        ['Младост', 25.1, 27.8, '0 укрития', C.alert],
-        ['Студентски', 28.3, 30.9, '0 укрития', C.alert],
-        ['Кремиковци', 31.5, 34.2, '0 укрития', C.alert]
+        ...TOPIC.centre.map(([n, sub, off], i) => [n, 11.8 + 0.4 * i, 16.2, sub, TOPIC.colour, off]),
+        ...TOPIC.gaps.map(([n, sub], i) => [n, ...TAG_WIN[i], sub, C.alert, [0, 0]])
     ];
-    for (const [name, a, b, sub, col] of tags) {
+    for (const [name, a, b, sub, col, off] of tags) {
         const k = win(t, a, b, 0.4);
         if (k <= 0) continue;
         const d = districts.find(x => x.name === name);
         let [x, y] = P(d.centre);
-        if (name === 'Средец') { x -= 10; y += 70; }
-        if (name === 'Оборище') { x += 40; y -= 60; }
+        x += off[0]; y += off[1];
         g.save(); g.globalAlpha *= k;
         g.font = `600 ${30 * L.u}px ${SANS}`;
         const w1 = g.measureText(name.toUpperCase()).width;
@@ -340,7 +394,7 @@ const ST = {
     big: () => [`700 ${64 * L.u}px ${SANS}`, C.text, 1.12],
     mid: () => [`600 ${44 * L.u}px ${SANS}`, C.text, 1.2],
     body: () => [`400 ${32 * L.u}px ${SANS}`, C.muted, 1.35],
-    accentHuge: () => [`700 ${(FORMAT === 'portrait' ? 112 : 104) * L.u}px ${SANS}`, C.accent, 1.02],
+    accentHuge: () => [`700 ${(FORMAT === 'portrait' ? 112 : 104) * L.u}px ${SANS}`, TOPIC.colour, 1.02],
     redHuge: () => [`700 ${(FORMAT === 'portrait' ? 112 : 104) * L.u}px ${SANS}`, C.alert, 1.02],
     redBig: () => [`700 ${64 * L.u}px ${SANS}`, C.alert, 1.12]
 };
@@ -348,18 +402,7 @@ function count(t, a, b, to, dec = 0) {
     const v = to * easeOut(seg(t, a, b));
     return dec ? v.toFixed(dec).replace('.', ',') : NF(v);
 }
-function blocks(t) {
-    return [
-        [0.3, 4.2, [['СОФИЯ · АНАЛИЗ НА УКРИТИЯТА', 'kicker'], [count(t, 0.4, 2.6, 1274290), 'huge'], ['души', 'mid'], ['', 'gap'], [`${count(t, 2.0, 3.4, 46)} бомбоубежища`, 'accentHuge2']]],
-        [4.4, 10.2, [['ПРОТИВОРАДИАЦИОННИ УКРИТИЯ И СКРИВАЛИЩА', 'kicker'], ['Къде са те?', 'big'], ['', 'gap'], [`${NF(Math.min(46, Math.floor(46 * seg(t, 4.4, 9.55)) + (t >= 9.5 ? 0 : 0)))} / 46`, 'accentHuge']]],
-        [10.6, 16.3, [['ЦЕНТЪРЪТ', 'kicker'], ['20 от 46', 'accentHuge'], ['са само в два района', 'big'], ['', 'gap'], ['Средец (13) и Оборище (7) — и двата с покритие 100%', 'body']]],
-        [16.6, 24.3, [['РАДИУС 1 КМ', 'kicker'], ['Само', 'mid'], [`${count(t, 17.4, 20.0, 34.8, 1)}%`, 'accentHuge'], ['от хората живеят на до 1 км от укритие', 'body'], ['', 'gap'], [count(t, 20.4, 22.8, 831400), 'redHuge'], ['души — не', 'mid']]],
-        [24.5, 27.9, [['ПРАЗНИТЕ ЗОНИ', 'kicker'], ['Младост', 'big'], [count(t, 24.8, 26.2, 104047), 'huge'], ['жители', 'body'], ['', 'gap'], ['0 укрития', 'redBig']]],
-        [27.9, 31.0, [['ПРАЗНИТЕ ЗОНИ', 'kicker'], ['Студентски', 'big'], [count(t, 28.2, 29.6, 74163), 'huge'], ['жители', 'body'], ['', 'gap'], ['0 укрития', 'redBig']]],
-        [31.0, 34.3, [['ПРАЗНИТЕ ЗОНИ', 'kicker'], ['Кремиковци', 'big'], [`${count(t, 31.3, 32.7, 12)} км`, 'redHuge'], ['половината жители са на над 12 км от най-близкото укритие', 'body']]],
-        [34.6, 44.0, [['ПОКРИТИЕ ПО РАЙОНИ', 'kicker'], ['От 0% до 100%.', 'big'], ['', 'gap'], ['Един град —', 'mid'], ['две реалности.', 'mid']]]
-    ];
-}
+const blocks = t => TOPIC.blocks(t);
 function drawText(t) {
     for (const [a, b, lines] of blocks(t)) {
         const k = win(t, a, b, 0.45);
@@ -368,13 +411,14 @@ function drawText(t) {
         if (FORMAT === 'portrait') y = 210;
         // The ranking text sits above the chart in portrait and at the left in landscape
         g.save();
-        lines.forEach(([txt, style], i) => {
+        lines.forEach(([txt, style, at], i) => {
             if (style === 'gap') { y += 28 * L.u; return; }
             const key = style === 'accentHuge2' ? 'accentHuge' : style;
             let [font, col, lh] = ST[key]();
             if (style === 'accentHuge2') font = font.replace(/\d+(\.\d+)?px/, m => (parseFloat(m) * 0.62) + 'px');
             const size = parseFloat(font.match(/(\d+(\.\d+)?)px/)[1]);
-            const li = seg(t, a + i * 0.08, a + i * 0.08 + 0.5);
+            const from = at ?? a + i * 0.08;
+            const li = seg(t, from, from + 0.5);
             const out = 1 - seg(t, b - 0.45, b);
             g.globalAlpha = Math.min(easeOut(li), out);
             const dy = (1 - easeOut(li)) * 24;
@@ -396,7 +440,7 @@ function drawChart(t) {
     const k = seg(t, 35.0, 37.6);
     const out = 1 - ease(seg(t, 43.4, 44.4));
     if (k <= 0 || out <= 0) return;
-    const rows = [...A.districts].sort((a, b) => a.cover.shelter - b.cover.shelter);
+    const rows = [...A.districts].sort((a, b) => a.cover[TOPIC.measure] - b.cover[TOPIC.measure]);
     let { x, y, w, h } = L.chart;
     if (FORMAT === 'portrait') { y = 700; h = 1000; }
     const rh = h / rows.length;
@@ -407,7 +451,7 @@ function drawChart(t) {
     rows.forEach((d, i) => {
         const ki = easeOut(seg(t, 35.2 + i * 0.07, 35.2 + i * 0.07 + 1.4));
         if (ki <= 0) return;
-        const v = d.cover.shelter;
+        const v = d.cover[TOPIC.measure];
         const yy = y + i * rh;
         const col = v >= 99.9 ? C.ok : v < 5 ? C.alert : mix(C.alert, C.ok, v / 100);
         g.globalAlpha = out * Math.min(1, ki * 2);
@@ -442,7 +486,7 @@ function drawChrome(t) {
     g.fillText('SOFIA PREPPING', pad + 62, top + 16);
     // Source line
     g.font = `500 ${FORMAT === 'portrait' ? 19 : 18}px ${MONO}`; g.fillStyle = C.dim; g.textBaseline = 'alphabetic';
-    const src = 'Данни: 46 регистрирани укрития към 09.11.2026 · население: преброяване 2021, модел Kontur 2023';
+    const src = TOPIC.source;
     if (FORMAT === 'portrait') {
         const lines = wrap(src, g.font, W - 2 * pad);
         lines.forEach((ln, i) => g.fillText(ln, pad, H - 80 - (lines.length - 1 - i) * 28));
