@@ -43,7 +43,7 @@ const grab = () => page.evaluate(() => document.getElementById('c').toDataURL('i
 if (stills) {
     const { writeFile } = await import('node:fs/promises');
     for (const t of stills.split(',').map(Number)) {
-        await page.evaluate(t => window.frame(t), t);
+        await page.evaluate(t => window.renderAt(t), t);
         await writeFile(out.replace(/\.mp4$/, '') + `-${format}-${t}.png`, Buffer.from(await grab(), 'base64'));
     }
 } else {
@@ -55,7 +55,7 @@ if (stills) {
     const proc = spawn('ffmpeg', ff, { stdio: ['pipe', 'ignore', 'inherit'] });
     const frames = Math.round(duration * FPS);
     for (let i = 0; i < frames; i++) {
-        await page.evaluate(t => window.frame(t), i / FPS);
+        await page.evaluate(t => window.renderAt(t), i / FPS);
         const buf = Buffer.from(await grab(), 'base64');
         if (!proc.stdin.write(buf)) await new Promise(r => proc.stdin.once('drain', r));
         if (i % 150 === 0) console.log(`${format}: frame ${i}/${frames}`);

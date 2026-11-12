@@ -26,7 +26,8 @@
 const C = { bg: '#0A0C0F', surface: '#0F1216', line: '#1F252D', lineStrong: '#2A323C', text: '#E6E9ED',
     muted: '#8B95A1', dim: '#76818E', accent: '#F2A93B', ok: '#4CC38A', alert: '#FF5D5D', red: '#E66767' };
 const SANS = "'Plex Sans', sans-serif", MONO = "'Plex Mono', monospace";
-const DURATION = 50;
+// Story time runs 0–50; STRETCH slows the whole film so the words can be read
+const STORY = 50, STRETCH = 1.45, DURATION = STORY * STRETCH;
 const FORMAT = new URLSearchParams(location.search).get('f') === 'portrait' ? 'portrait' : 'landscape';
 const W = FORMAT === 'portrait' ? 1080 : 1920, H = FORMAT === 'portrait' ? 1920 : 1080;
 const cv = document.getElementById('c'); cv.width = W; cv.height = H;
@@ -485,7 +486,8 @@ function drawEnd(t) {
 
 window.DURATION = DURATION;
 window.ready = load().then(() => { frame(0); return true; });
-window.frame = frame;
+window.STRETCH = STRETCH;
+window.renderAt = rt => frame(rt / STRETCH);
 </script>
 </body>
 </html>
