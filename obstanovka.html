@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оперативна обстановка - Sofia Prepping</title>
+    <meta name="description" content="Обстановката в София на живо на един екран: предупреждения, земетресения, въздух, радиация, аварии с водата и топлофикацията, официални съобщения.">
+    <meta name="theme-color" content="#0A0C0F">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="apple-touch-icon" href="img/app/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-title" content="Sofia Prepping">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="sofia-prepping.com">
+    <meta property="og:title" content="Оперативна обстановка - Sofia Prepping">
+    <meta property="og:description" content="Обстановката в София на живо на един екран: предупреждения, земетресения, въздух, радиация, аварии с водата и топлофикацията, официални съобщения.">
+    <meta name="twitter:card" content="summary">
+    <link rel="canonical" href="https://sofia-prepping.com/obstanovka">
+    <meta property="og:url" content="https://sofia-prepping.com/obstanovka">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha512-h9FcoyWjHcOcmEVkxOfTLnmZFWIH0iZhZT1H2TbOq55xssQGEJHEaIm+PgoUaZbRvQTNTluNOEfb1ZRy6D3BOw==" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="style.css?v=20261111t">
+</head>
+<body class="ow-page">
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-brand" aria-label="sofia-prepping.com">
+                <svg class="brand-mark" width="26" height="26" viewBox="0 0 28 28" fill="none" aria-hidden="true"><rect x="2" y="2" width="24" height="24"/><circle cx="14" cy="14" r="6"/><path d="M14 2v6M14 20v6M2 14h6M20 14h6"/></svg>
+                <span class="brand-text">SOFIA<span class="brand-slash">/</span>PREPPING</span>
+            </a>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">Начало</a>
+                <a href="karti.html" class="nav-link">Карти</a>
+                <a href="dokumenti.html" class="nav-link">Документи</a>
+                <a href="analizi.html" class="nav-link active">Анализи</a>
+                <a href="kontakt.html" class="nav-link">Контакти</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container ow" id="ow">
+        <div class="breadcrumb ow-crumb"><a href="analizi.html">← Анализи</a><span>›</span>Оперативна обстановка</div>
+
+        <!-- Command bar -->
+        <header class="ow-bar">
+            <div class="ow-title">
+                <span class="ow-live"><i></i>На живо</span>
+                <h1>Оперативна обстановка · София</h1>
+            </div>
+            <div class="ow-level" id="ow-level" aria-live="polite">
+                <span class="ow-level-code">Ниво –</span>
+                <span class="ow-level-word">Зареждане...</span>
+                <span class="readiness" id="ow-readiness" role="img" aria-label=""><span></span><span></span><span></span><span></span></span>
+            </div>
+            <div class="ow-clocks">
+                <div class="ow-clock"><span class="ow-clock-time" id="ow-time">--:--:--</span><span class="ow-clock-label" id="ow-date"></span></div>
+                <div class="ow-clock"><span class="ow-clock-time small" id="ow-utc">--:--</span><span class="ow-clock-label">UTC</span></div>
+                <div class="ow-clock"><span class="ow-clock-time small" id="ow-next">--:--</span><span class="ow-clock-label">Обновяване</span></div>
+            </div>
+            <button type="button" class="ow-full" id="ow-full" aria-pressed="false">
+                <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M1 5V1h4M11 1h4v4M15 11v4h-4M5 15H1v-4"/></svg>
+                <span>Цял екран</span>
+            </button>
+        </header>
+
+        <div class="ow-grid">
+            <!-- Indicators -->
+            <section class="panel ow-ind" aria-label="Показатели">
+                <div class="panel-head"><h2>Показатели</h2><span class="kicker" id="ow-ind-count"></span></div>
+                <div class="ow-tiles" id="ow-tiles"><div class="loading">Зареждане...</div></div>
+                <div class="ow-sub">
+                    <h3>Гама-фон · станции в София</h3>
+                    <div id="ow-rad" class="ow-rad"></div>
+                </div>
+            </section>
+
+            <!-- Map -->
+            <section class="panel ow-mapbox">
+                <div class="panel-head">
+                    <h2>Карта на събитията</h2>
+                    <div class="ow-layers" id="ow-layers" role="group" aria-label="Слоеве"></div>
+                </div>
+                <div class="ow-map" id="ow-map"></div>
+                <div class="ow-legend" id="ow-legend"></div>
+            </section>
+
+            <!-- Event log -->
+            <section class="panel ow-log">
+                <div class="panel-head"><h2>Дневник на събитията</h2><span class="kicker" id="ow-log-count"></span></div>
+                <ol class="ow-events" id="ow-events"><li class="loading">Зареждане...</li></ol>
+            </section>
+
+            <!-- District matrix -->
+            <section class="panel ow-matrix">
+                <div class="panel-head">
+                    <h2>Райони</h2>
+                    <span class="kicker">Вода · топлофикация · PM2.5</span>
+                </div>
+                <div class="ow-cells" id="ow-cells"></div>
+            </section>
+
+            <!-- Official announcements -->
+            <section class="panel ow-official">
+                <div class="panel-head"><h2>Официални съобщения</h2></div>
+                <ol class="ow-news" id="ow-official"><li class="loading">Зареждане...</li></ol>
+            </section>
+        </div>
+
+        <!-- News ticker -->
+        <div class="ow-ticker" aria-label="Последни новини">
+            <span class="ticker-stamp">БТА</span>
+            <div class="ow-ticker-track"><div class="ow-ticker-run" id="ow-ticker"></div></div>
+        </div>
+
+        <p class="ow-foot">Данни от отворени източници: НИМХ/MeteoAlarm, EMSC, sensor.community, Агенция за ядрено регулиране, Софийска вода, Топлофикация София, Open-Meteo, БТА, ГДПБЗН, Столична община. Източниците се проверяват на всеки 10 минути. При спешен случай: 112.</p>
+
+        <footer>
+            <p>sofia-prepping.com - София</p>
+        </footer>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" integrity="sha512-puJW3E/qXDqYp9IfhAI54BJEaWIfloJ7JWs7OeD5i6ruC9JZL1gERT1wjtwXFlh7CjE7ZJ+/vcRZRkIYIb6p4g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="vendor/protomaps-leaflet/protomaps-leaflet.js?v=5.1.0"></script>
+    <script src="i18n.js?v=20261111t"></script>
+    <script src="district.js?v=20261109a"></script>
+    <script src="chrome.js?v=20261111h"></script>
+    <script src="pwa.js?v=20261111n"></script>
+    <script src="map-style.js?v=20261109a"></script>
+    <script src="status-rules.js?v=20261111b"></script>
+    <script src="obstanovka.js?v=20261111b"></script>
+</body>
+</html>

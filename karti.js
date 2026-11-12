@@ -2,13 +2,14 @@
 let currentFileId = '';
 
 // Open modal with image
-function openModal(fileId, caption) {
+function openModal(fileId, caption, src) {
     const modal = document.getElementById('imageModal');
     const modalImg = document.getElementById('modalImage');
     const modalCaption = document.getElementById('modalCaption');
 
     currentFileId = fileId;
-    modalCaption.textContent = caption;
+    modalCaption.textContent = I18N.text(caption);
+    modalImg.alt = I18N.text(caption);
 
     // Hide image initially to prevent broken icon
     modalImg.style.display = 'none';
@@ -19,7 +20,8 @@ function openModal(fileId, caption) {
     };
 
     // Set the image source (this starts loading)
-    modalImg.src = `https://drive.google.com/uc?export=view&id=${fileId}`;
+    // Google no longer lets other sites show Drive images, so the page passes a copy hosted with the site
+    modalImg.src = src || `https://drive.google.com/uc?export=view&id=${fileId}`;
 
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden'; // Prevent scrolling
@@ -50,6 +52,15 @@ function downloadImage() {
         window.open(downloadUrl, '_blank');
     }
 }
+
+// Wire up the thumbnails and modal buttons here rather than with inline onclick
+// attributes, so the Content-Security-Policy can forbid inline scripts
+document.querySelectorAll('.map-item[data-file]').forEach(item => {
+    item.addEventListener('click', () => openModal(item.dataset.file, item.dataset.caption, item.dataset.src));
+});
+document.getElementById('imageModal')?.addEventListener('click', closeModal);
+document.getElementById('modal-drive')?.addEventListener('click', event => { event.stopPropagation(); viewInDrive(); });
+document.getElementById('modal-download')?.addEventListener('click', event => { event.stopPropagation(); downloadImage(); });
 
 // Close modal on Escape key
 document.addEventListener('keydown', function(event) {

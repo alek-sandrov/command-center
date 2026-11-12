@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Бомбоубежища - Sofia Prepping</title>
+    <meta name="description" content="Карта на бомбоубежищата и противорадиационните укрития в София.">
+    <meta name="theme-color" content="#0A0C0F">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="apple-touch-icon" href="img/app/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-title" content="Sofia Prepping">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="sofia-prepping.com">
+    <meta property="og:title" content="Бомбоубежища - Sofia Prepping">
+    <meta property="og:description" content="Карта на бомбоубежищата и противорадиационните укрития в София.">
+    <meta name="twitter:card" content="summary">
+    <link rel="canonical" href="https://sofia-prepping.com/ubezhishta">
+    <meta property="og:url" content="https://sofia-prepping.com/ubezhishta">
+    <link rel="stylesheet" href="style.css?v=20261111t">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-brand" aria-label="sofia-prepping.com">
+                <svg class="brand-mark" width="26" height="26" viewBox="0 0 28 28" fill="none" aria-hidden="true"><rect x="2" y="2" width="24" height="24"/><circle cx="14" cy="14" r="6"/><path d="M14 2v6M14 20v6M2 14h6M20 14h6"/></svg>
+                <span class="brand-text">SOFIA<span class="brand-slash">/</span>PREPPING</span>
+            </a>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">Начало</a>
+                <a href="karti.html" class="nav-link active">Карти</a>
+                <a href="dokumenti.html" class="nav-link">Документи</a>
+                <a href="analizi.html" class="nav-link">Анализи</a>
+                <a href="kontakt.html" class="nav-link">Контакти</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="breadcrumb"><a href="karti.html">← Карти</a><span>›</span>Бомбоубежища</div>
+
+        <header>
+            <h1>Бомбоубежища</h1>
+        </header>
+
+        <div class="grid">
+            <section class="card full-width">
+                <div class="map-controls">
+                    <a class="modal-nav-btn link-btn" href="https://www.google.com/maps/d/u/0/viewer?mid=1HWcRRnvgI71wfiiQ5P4QNZ45XdR4tx8T&ll=42.69332190856884%2C23.34340366979092&z=13" target="_blank" rel="noopener">Отвори в Google Maps</a>
+                </div>
+                <p id="district-note" class="district-note"></p>
+                <iframe class="embed-map" src="https://www.google.com/maps/d/embed?mid=1HWcRRnvgI71wfiiQ5P4QNZ45XdR4tx8T&ll=42.69332190856884%2C23.34340366979092&z=13" title="Бомбоубежища в София" loading="lazy" allowfullscreen></iframe>
+            </section>
+        </div>
+
+        <footer>
+            <p>sofia-prepping.com - София</p>
+        </footer>
+    </div>
+    <script src="i18n.js?v=20261111t"></script>
+    <script src="district.js?v=20261109a"></script>
+    <script src="chrome.js?v=20261111h"></script>
+    <script src="pwa.js?v=20261111n"></script>
+    <script src="embed.js?v=20261109a"></script>
+</body>
+</html>
