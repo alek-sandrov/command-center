@@ -478,6 +478,12 @@ function drawEnd(t) {
     g.fillText('sofia-prepping.com', cx, cy + 100 + (1 - k3) * 20);
     g.font = `500 ${24}px ${MONO}`; g.fillStyle = C.muted;
     g.fillText('УКРИТИЯ · ЕВАКУАЦИЯ · ВОДА · ЙОД · БОЛНИЦИ', cx, cy + 200);
+    // Music credit, worded as the licence asks
+    g.globalAlpha = easeOut(seg(t, 46.0, 47.0));
+    g.font = `500 ${FORMAT === 'portrait' ? 22 : 20}px ${MONO}`; g.fillStyle = C.dim;
+    const cy2 = FORMAT === 'portrait' ? H - 230 : H - 120;
+    g.fillText('Music: Tensions Run High by Soundridemusic', cx, cy2);
+    g.fillText('https://youtu.be/Ly9H63SLJJo', cx, cy2 + 32);
     // Fade to black at the very end
     g.globalAlpha = seg(t, 49.2, 50);
     g.fillStyle = C.bg; g.fillRect(0, 0, W, H);

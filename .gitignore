@@ -33,3 +33,5 @@ yarn-error.log*
 
 # Python
 __pycache__/
+video/*.mp3
+video/*.mp4
