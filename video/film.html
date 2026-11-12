@@ -28,7 +28,7 @@ const C = { bg: '#0A0C0F', surface: '#0F1216', line: '#1F252D', lineStrong: '#2A
     muted: '#8B95A1', dim: '#76818E', accent: '#F2A93B', ok: '#4CC38A', alert: '#FF5D5D', red: '#E66767' };
 const SANS = "'Plex Sans', sans-serif", MONO = "'Plex Mono', monospace";
 // Story time runs 0–50; STRETCH slows the whole film so the words can be read
-const STORY = 50, STRETCH = 1.45, DURATION = STORY * STRETCH;
+const STRETCH = 1.45;
 const QS = new URLSearchParams(location.search);
 const FORMAT = QS.get('f') === 'portrait' ? 'portrait' : 'landscape';
 const W = FORMAT === 'portrait' ? 1080 : 1920, H = FORMAT === 'portrait' ? 1920 : 1080;
@@ -59,7 +59,7 @@ const win = (t, a, b, f = 0.5) => Math.min(seg(t, a, a + f), 1 - seg(t, b - f, b
 // 24–34 three gap districts · 34–44 ranking · 44–50 end card
 const TOPICS = {
     shelters: {
-        measure: 'shelter', colour: '#F2A93B', glow: '242,169,59', dot: 6,
+        measure: 'shelter', colour: '#F2A93B', glow: '242,169,59', dot: 6, metro: true, end: 52.0, story: 55.5,
         layers: ['shelters'], works: () => true,
         centre: [['Средец', '13 укрития', [-10, 70]], ['Оборище', '7 укрития', [40, -60]]], centrePad: 1.9,
         gaps: [['Младост', '0 укрития', 1.3, 12], ['Студентски', '0 укрития', 1.3, 12], ['Кремиковци', '0 укрития', 1.6, 4]],
@@ -72,11 +72,16 @@ const TOPICS = {
             [24.5, 27.9, [['ПРАЗНИТЕ ЗОНИ', 'kicker'], ['Младост', 'big'], [count(t, 24.8, 26.2, 104047), 'huge'], ['жители', 'body'], ['', 'gap'], ['0 укрития', 'redBig']]],
             [27.9, 31.0, [['ПРАЗНИТЕ ЗОНИ', 'kicker'], ['Студентски', 'big'], [count(t, 28.2, 29.6, 74163), 'huge'], ['жители', 'body'], ['', 'gap'], ['0 укрития', 'redBig']]],
             [31.0, 34.3, [['ПРАЗНИТЕ ЗОНИ', 'kicker'], ['Кремиковци', 'big'], [`${count(t, 31.3, 32.7, 12)} км`, 'redHuge'], ['половината жители са на над 12 км от най-близкото укритие', 'body']]],
-            [34.6, 44.0, [['ПОКРИТИЕ ПО РАЙОНИ', 'kicker'], ['От 0% до 100%.', 'big'], ['', 'gap'], ['Един град —', 'mid'], ['две реалности.', 'mid']]]
+            [34.6, 44.0, [['ПОКРИТИЕ ПО РАЙОНИ', 'kicker'], ['От 0% до 100%.', 'big'], ['', 'gap'], ['Един град —', 'mid'], ['две реалности.', 'mid']]],
+            // Scenario: metro stations as shelters (numbers from video/metro.json, built by video/build_metro.py)
+            [44.3, 48.3, [['СЦЕНАРИЙ: МЕТРОТО КАТО УКРИТИЕ', 'kicker'], [`${count(t, 44.8, 46.3, M.city.stations)} метростанции`, 'metroHuge2'], ['', 'gap'],
+                [`${pct(M.city.cover)} → ${pct(lerp(M.city.cover, M.city.cover_metro, easeOut(seg(t, 46.4, 48.0))).toFixed(1))}`, 'big'], ['от хората — на до 1 км от укритие', 'body']]],
+            [48.4, 52.0, [['С МЕТРОТО', 'kicker'], [count(t, 48.6, 50.0, M.city.uncovered_metro), 'redHuge'], ['души пак остават без укритие наблизо', 'mid'], ['', 'gap'],
+                [`Младост: от ${pct(mByName('Младост').cover)} на ${pct(mByName('Младост').cover_metro)}`, 'body', 49.6]]]
         ]
     },
     water: {
-        measure: 'water', colour: '#7FB2FF', glow: '127,178,255', dot: 4.2,
+        measure: 'water', colour: '#7FB2FF', glow: '127,178,255', dot: 4.2, end: 44.4, story: 50,
         // Same rule as scripts/build_analizi.py: a source counts unless it is marked as not working
         layers: ['fountains', 'springs'], works: p => !String(p[3]).includes('Не работи'),
         centre: [['Средец', '36 водоизточника', [10, 80]], ['Възраждане', '13 водоизточника', [-110, -40]], ['Оборище', '10 водоизточника', [110, -70]]], centrePad: 1.15,
@@ -95,10 +100,15 @@ const TOPICS = {
     }
 };
 const TOPIC = TOPICS[QS.get('topic')] || TOPICS.shelters;
+// End card start and film length, in story seconds
+const END = TOPIC.end, STORY = TOPIC.story, DURATION = STORY * STRETCH;
+const METRO = { colour: '#C58CFF', glow: '197,140,255' };
+const pct = v => `${String(v).replace('.', ',')}%`;
+const mByName = n => M.districts.find(d => d.name === n);
 const GAP_WIN = [[24.6, 27.8], [27.8, 30.9], [30.9, 34.2]];
 const TAG_WIN = [[25.1, 27.8], [28.3, 30.9], [31.5, 34.2]];
 
-let A, K, R, proj0, cells, points, broken, districts, cams;
+let A, K, R, M, proj0, cells, points, broken, stations = [], districts, cams;
 
 // Equirectangular projection in km around Sofia's centre
 const LAT0 = 42.69, LNG0 = 23.33, KX = 111.32 * Math.cos(LAT0 * Math.PI / 180), KY = 110.574;
@@ -122,18 +132,21 @@ function camLerp(a, b, k) {
 
 async function load() {
     [A, K, R] = await Promise.all(['analizi', 'karta', 'rayoni'].map(n => fetch(`../data/${n}.json`).then(r => r.json())));
+    if (TOPIC.metro) M = await fetch('metro.json').then(r => r.json());
     const order = [...A.pillars, ...A.extra].map(p => p.key);
     const si = order.indexOf(TOPIC.measure);
-    cells = A.grid.map(([lat, lng, pop, d, share]) => {
+    cells = A.grid.map(([lat, lng, pop, d, share], gi) => {
         const ch = share[si];
         const corners = A.hexagon.map(([n, e]) => toKm(lng + e / 1000 / KX, lat + n / 1000 / KY));
-        return { p: toKm(lng, lat), pop, d, s: ch === 'A' ? 1 : Number(ch) / 10, corners };
+        const mc = M ? M.grid[gi] : ch;
+        return { p: toKm(lng, lat), pop, d, s: ch === 'A' ? 1 : Number(ch) / 10, sm: mc === 'A' ? 1 : Number(mc) / 10, corners };
     });
     const all = TOPIC.layers.flatMap(l => K.layers[l]);
     const pt = p => ({ p: toKm(p[1], p[0]) });
     // Drop order: sweep from the west to the east
     points = all.filter(TOPIC.works).map(pt).sort((a, b) => a.p[0] - b.p[0]);
     broken = all.filter(p => !TOPIC.works(p)).map(pt).sort((a, b) => a.p[0] - b.p[0]);
+    if (M) stations = M.stations.map(pt).sort((a, b) => a.p[0] - b.p[0]);
     districts = R.map((r, i) => {
         const a = A.districts[i];
         const rings = r.polygons.flatMap(poly => poly.map(ring => ring.map(([lng, lat]) => toKm(lng, lat))));
@@ -191,7 +204,10 @@ function frame(t) {
     g.globalAlpha = 1;
     g.fillStyle = C.bg; g.fillRect(0, 0, W, H);
 
-    const mapAlpha = (1 - 0.82 * ease(seg(t, 34, 35.5))) * (1 - ease(seg(t, 43.5, 44.6)));
+    let mapAlpha = 1 - 0.82 * ease(seg(t, 34, 35.5));
+    // The metro scenario brings the map back after the ranking
+    if (TOPIC.metro) mapAlpha = Math.max(mapAlpha, ease(seg(t, 43.6, 44.6)));
+    mapAlpha *= 1 - ease(seg(t, END - 0.9, END + 0.2));
     if (mapAlpha > 0.01) {
         g.save();
         g.globalAlpha = mapAlpha;
@@ -199,6 +215,7 @@ function frame(t) {
         drawDistricts(t, P);
         drawReach(t, P, z);
         drawPoints(t, P, z);
+        drawStations(t, P, z);
         drawCallouts(t, P);
         g.restore();
     }
@@ -213,6 +230,7 @@ function frame(t) {
 function drawCells(t, P, z) {
     const appear = ease(seg(t, 0.4, 3.2));
     const judge = ease(seg(t, 17.5, 20.5));
+    const withMetro = TOPIC.metro ? ease(seg(t, 46.4, 48.0)) : 0;
     const reveal = appear;
     if (reveal <= 0) return;
     for (const c of cells) {
@@ -223,7 +241,8 @@ function drawCells(t, P, z) {
         const k = clamp(reveal * 1.6 - r / 22);
         if (k <= 0) continue;
         const base = mix('#141920', '#3A4250', dens);
-        const judged = c.s >= 0.999 ? mix('#13261D', C.ok, 0.35 + 0.65 * dens) : c.s <= 0.001 ? mix('#2A1414', C.red, 0.3 + 0.7 * dens) : mix(mix('#2A1414', C.red, 0.3 + 0.7 * dens), mix('#13261D', C.ok, 0.35 + 0.65 * dens), c.s);
+        const sv = lerp(c.s, c.sm, withMetro);
+        const judged = sv >= 0.999 ? mix('#13261D', C.ok, 0.35 + 0.65 * dens) : sv <= 0.001 ? mix('#2A1414', C.red, 0.3 + 0.7 * dens) : mix(mix('#2A1414', C.red, 0.3 + 0.7 * dens), mix('#13261D', C.ok, 0.35 + 0.65 * dens), sv);
         g.fillStyle = judge > 0 ? mixRgb(base, judged, judge) : base;
         g.globalAlpha = g.globalAlpha; // keep parent alpha
         g.beginPath();
@@ -276,20 +295,26 @@ function drawDistricts(t, P) {
 
 // 1 km reach around each working point
 function drawReach(t, P, z) {
-    const k = ease(seg(t, 16.6, 19.0));
-    const out = 1 - ease(seg(t, 23.6, 24.6));
+    rings(points, TOPIC.glow, ease(seg(t, 16.6, 19.0)), 1 - ease(seg(t, 23.6, 24.6)), P, z);
+    if (TOPIC.metro) {
+        const out = 1 - ease(seg(t, 50.6, 51.6));
+        rings(points, TOPIC.glow, ease(seg(t, 46.0, 47.6)), out, P, z);
+        rings(stations, METRO.glow, ease(seg(t, 46.0, 47.6)), out, P, z);
+    }
+}
+function rings(points, glow, k, out, P, z) {
     if (k <= 0 || out <= 0) return;
     g.save();
     for (const s of points) {
         const [x, y] = P(s.p);
         g.beginPath(); g.arc(x, y, z * 1.0 * k, 0, Math.PI * 2);
-        g.fillStyle = `rgba(${TOPIC.glow},${points.length > 100 ? 0.04 : 0.07})`; g.globalAlpha *= out; g.fill();
+        g.fillStyle = `rgba(${glow},${points.length > 100 ? 0.04 : 0.07})`; g.globalAlpha *= out; g.fill();
         g.globalAlpha /= out;
     }
     for (const s of points) {
         const [x, y] = P(s.p);
         g.beginPath(); g.arc(x, y, z * 1.0 * k, 0, Math.PI * 2);
-        g.strokeStyle = `rgba(${TOPIC.glow},${points.length > 100 ? 0.35 : 0.55})`; g.lineWidth = 1.4; g.globalAlpha *= out; g.stroke(); g.globalAlpha /= out;
+        g.strokeStyle = `rgba(${glow},${points.length > 100 ? 0.35 : 0.55})`; g.lineWidth = 1.4; g.globalAlpha *= out; g.stroke(); g.globalAlpha /= out;
     }
     g.restore();
 }
@@ -327,6 +352,30 @@ function drawPoints(t, P, z) {
         g.fillStyle = TOPIC.colour; g.fill();
         g.shadowBlur = 0;
         g.lineWidth = 2; g.strokeStyle = C.bg; g.stroke();
+        g.restore();
+    });
+}
+
+// Metro stations land as diamonds in their own colour
+function drawStations(t, P, z) {
+    const n = stations.length;
+    const r = 7 * L.u * Math.min(1.6, Math.max(0.8, z / 70));
+    stations.forEach((s, i) => {
+        const t0 = 44.8 + (i / n) * 1.5;
+        const k = seg(t, t0, t0 + 0.5);
+        if (k <= 0) return;
+        const [x, y0] = P(s.p);
+        const e = easeOut(k), y = y0 - (1 - e) * 26;
+        if (k < 1) {
+            g.save(); g.globalAlpha *= (1 - k) * 0.9;
+            g.beginPath(); g.arc(x, y0, r + 34 * e, 0, Math.PI * 2);
+            g.strokeStyle = METRO.colour; g.lineWidth = 2; g.stroke(); g.restore();
+        }
+        g.save(); g.globalAlpha *= Math.min(1, k * 2);
+        g.shadowColor = `rgba(${METRO.glow},0.8)`; g.shadowBlur = 14;
+        g.beginPath(); g.moveTo(x, y - r); g.lineTo(x + r, y); g.lineTo(x, y + r); g.lineTo(x - r, y); g.closePath();
+        g.fillStyle = METRO.colour; g.fill();
+        g.shadowBlur = 0; g.lineWidth = 2; g.strokeStyle = C.bg; g.stroke();
         g.restore();
     });
 }
@@ -396,6 +445,7 @@ const ST = {
     body: () => [`400 ${32 * L.u}px ${SANS}`, C.muted, 1.35],
     accentHuge: () => [`700 ${(FORMAT === 'portrait' ? 112 : 104) * L.u}px ${SANS}`, TOPIC.colour, 1.02],
     redHuge: () => [`700 ${(FORMAT === 'portrait' ? 112 : 104) * L.u}px ${SANS}`, C.alert, 1.02],
+    metroHuge: () => [`700 ${(FORMAT === 'portrait' ? 112 : 104) * L.u}px ${SANS}`, METRO.colour, 1.02],
     redBig: () => [`700 ${64 * L.u}px ${SANS}`, C.alert, 1.12]
 };
 function count(t, a, b, to, dec = 0) {
@@ -413,9 +463,9 @@ function drawText(t) {
         g.save();
         lines.forEach(([txt, style, at], i) => {
             if (style === 'gap') { y += 28 * L.u; return; }
-            const key = style === 'accentHuge2' ? 'accentHuge' : style;
+            const key = style.endsWith('Huge2') ? style.slice(0, -1) : style;
             let [font, col, lh] = ST[key]();
-            if (style === 'accentHuge2') font = font.replace(/\d+(\.\d+)?px/, m => (parseFloat(m) * 0.62) + 'px');
+            if (style.endsWith('Huge2')) font = font.replace(/\d+(\.\d+)?px/, m => (parseFloat(m) * 0.62) + 'px');
             const size = parseFloat(font.match(/(\d+(\.\d+)?)px/)[1]);
             const from = at ?? a + i * 0.08;
             const li = seg(t, from, from + 0.5);
@@ -477,7 +527,7 @@ function logo(x, y, s, alpha = 1) {
     g.restore();
 }
 function drawChrome(t) {
-    const k = seg(t, 0, 0.6) * (1 - seg(t, 43.6, 44.4));
+    const k = seg(t, 0, 0.6) * (1 - seg(t, END - 0.8, END));
     if (k <= 0) return;
     g.save(); g.globalAlpha = k;
     const pad = FORMAT === 'portrait' ? 80 : 110, top = FORMAT === 'portrait' ? 96 : 70;
@@ -493,11 +543,11 @@ function drawChrome(t) {
     } else g.fillText(src, pad, H - 48);
     // Progress line
     g.fillStyle = C.line; g.fillRect(0, H - 4, W, 4);
-    g.fillStyle = C.accent; g.fillRect(0, H - 4, W * clamp(t / 44), 4);
+    g.fillStyle = C.accent; g.fillRect(0, H - 4, W * clamp(t / END), 4);
     g.restore();
 }
 function drawEnd(t) {
-    const k = seg(t, 44.4, 45.4);
+    const k = seg(t, END, END + 1);
     if (k <= 0) return;
     const e = easeOut(k);
     const cx = W / 2, cy = H / 2 - (FORMAT === 'portrait' ? 120 : 60);
@@ -512,24 +562,24 @@ function drawEnd(t) {
     g.textAlign = 'center'; g.textBaseline = 'top';
     g.fillStyle = C.text; g.font = `500 30px ${MONO}`;
     g.fillText('SOFIA PREPPING', cx, cy - 90);
-    const k2 = easeOut(seg(t, 45.0, 46.0));
+    const k2 = easeOut(seg(t, END + 0.6, END + 1.6));
     g.globalAlpha = k2;
     g.font = `700 ${FORMAT === 'portrait' ? 84 : 88}px ${SANS}`; g.fillStyle = C.text;
     g.fillText('Провери своя адрес', cx, cy - 20 + (1 - k2) * 20);
-    const k3 = easeOut(seg(t, 45.6, 46.6));
+    const k3 = easeOut(seg(t, END + 1.2, END + 2.2));
     g.globalAlpha = k3;
     g.font = `600 ${56}px ${SANS}`; g.fillStyle = C.accent;
     g.fillText('sofia-prepping.com', cx, cy + 100 + (1 - k3) * 20);
     g.font = `500 ${24}px ${MONO}`; g.fillStyle = C.muted;
     g.fillText('УКРИТИЯ · ЕВАКУАЦИЯ · ВОДА · ЙОД · БОЛНИЦИ', cx, cy + 200);
     // Music credit, worded as the licence asks
-    g.globalAlpha = easeOut(seg(t, 46.0, 47.0));
+    g.globalAlpha = easeOut(seg(t, END + 1.6, END + 2.6));
     g.font = `500 ${FORMAT === 'portrait' ? 22 : 20}px ${MONO}`; g.fillStyle = C.dim;
     const cy2 = FORMAT === 'portrait' ? H - 230 : H - 120;
     g.fillText('Music: Tensions Run High by Soundridemusic', cx, cy2);
     g.fillText('https://youtu.be/Ly9H63SLJJo', cx, cy2 + 32);
     // Fade to black at the very end
-    g.globalAlpha = seg(t, 49.2, 50);
+    g.globalAlpha = seg(t, STORY - 0.8, STORY);
     g.fillStyle = C.bg; g.fillRect(0, 0, W, H);
     g.restore();
 }
