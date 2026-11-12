@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<title>Укрития – видео</title>
+<style>
+  @font-face { font-family: 'Plex Sans'; font-weight: 400; src: url(../fonts/ibm-plex-sans-cyrillic-400-normal.woff2) format('woff2'); unicode-range: U+0400-04FF; }
+  @font-face { font-family: 'Plex Sans'; font-weight: 400; src: url(../fonts/ibm-plex-sans-latin-400-normal.woff2) format('woff2'); unicode-range: U+0000-03FF, U+2000-206F; }
+  @font-face { font-family: 'Plex Sans'; font-weight: 600; src: url(../fonts/ibm-plex-sans-cyrillic-600-normal.woff2) format('woff2'); unicode-range: U+0400-04FF; }
+  @font-face { font-family: 'Plex Sans'; font-weight: 600; src: url(../fonts/ibm-plex-sans-latin-600-normal.woff2) format('woff2'); unicode-range: U+0000-03FF, U+2000-206F; }
+  @font-face { font-family: 'Plex Sans'; font-weight: 700; src: url(../fonts/ibm-plex-sans-cyrillic-700-normal.woff2) format('woff2'); unicode-range: U+0400-04FF; }
+  @font-face { font-family: 'Plex Sans'; font-weight: 700; src: url(../fonts/ibm-plex-sans-latin-700-normal.woff2) format('woff2'); unicode-range: U+0000-03FF, U+2000-206F; }
+  @font-face { font-family: 'Plex Mono'; font-weight: 500; src: url(../fonts/ibm-plex-mono-cyrillic-500-normal.woff2) format('woff2'); unicode-range: U+0400-04FF; }
+  @font-face { font-family: 'Plex Mono'; font-weight: 500; src: url(../fonts/ibm-plex-mono-latin-500-normal.woff2) format('woff2'); unicode-range: U+0000-03FF, U+2000-206F; }
+  html, body { margin: 0; background: #0A0C0F; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+// Motion video: shelter distribution in Sofia. Every number comes from data/analizi.json,
+// data/karta.json and data/rayoni.json. Rendered frame by frame by video/render.mjs:
+// open shelters.html?f=landscape|portrait, await window.ready, then call window.frame(t).
+'use strict';
+const C = { bg: '#0A0C0F', surface: '#0F1216', line: '#1F252D', lineStrong: '#2A323C', text: '#E6E9ED',
+    muted: '#8B95A1', dim: '#76818E', accent: '#F2A93B', ok: '#4CC38A', alert: '#FF5D5D', red: '#E66767' };
+const SANS = "'Plex Sans', sans-serif", MONO = "'Plex Mono', monospace";
+const DURATION = 50;
+const FORMAT = new URLSearchParams(location.search).get('f') === 'portrait' ? 'portrait' : 'landscape';
+const W = FORMAT === 'portrait' ? 1080 : 1920, H = FORMAT === 'portrait' ? 1920 : 1080;
+const cv = document.getElementById('c'); cv.width = W; cv.height = H;
+const g = cv.getContext('2d');
+
+// Layout: where the map sits and where the words go
+const L = FORMAT === 'landscape'
+    ? { map: { x: 700, y: 60, w: 1180, h: 960 }, text: { x: 110, y: 330, w: 600 }, u: 1, chart: { x: 820, y: 110, w: 980, h: 880 } }
+    : { map: { x: 40, y: 640, w: 1000, h: 1040 }, text: { x: 80, y: 250, w: 920 }, u: 1.05, chart: { x: 80, y: 660, w: 920, h: 1080 } };
+
+const NF = n => Math.round(n).toLocaleString('bg-BG').replace(/ /g, ' ');
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const seg = (t, a, b) => clamp((t - a) / (b - a));
+const ease = x => x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const easeOut = x => 1 - Math.pow(1 - x, 3);
+const lerp = (a, b, k) => a + (b - a) * k;
+function mix(c1, c2, k) {
+    const p = c => [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16));
+    const a = p(c1), b = p(c2);
+    return `rgb(${a.map((v, i) => Math.round(lerp(v, b[i], k))).join(',')})`;
+}
+// Opacity of an element shown from a to b, fading over f seconds each side
+const win = (t, a, b, f = 0.5) => Math.min(seg(t, a, a + f), 1 - seg(t, b - f, b));
+
+let A, K, R, proj0, cells, shelters, districts, cams;
+
+// Equirectangular projection in km around Sofia's centre
+const LAT0 = 42.69, LNG0 = 23.33, KX = 111.32 * Math.cos(LAT0 * Math.PI / 180), KY = 110.574;
+const toKm = (lng, lat) => [(lng - LNG0) * KX, -(lat - LAT0) * KY];
+
+function bboxOf(points) {
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (const [x, y] of points) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
+    return { x0, y0, x1, y1 };
+}
+// Camera that fits a km box into the map area
+function camFor(b, pad = 1.08, minKm = 0) {
+    const w = Math.max(b.x1 - b.x0, minKm) * pad, h = Math.max(b.y1 - b.y0, minKm) * pad;
+    return { cx: (b.x0 + b.x1) / 2, cy: (b.y0 + b.y1) / 2, z: Math.min(L.map.w / w, L.map.h / h) };
+}
+function camLerp(a, b, k) {
+    // Interpolate zoom in log space so zooming feels even
+    const z = Math.exp(lerp(Math.log(a.z), Math.log(b.z), k));
+    return { cx: lerp(a.cx, b.cx, k), cy: lerp(a.cy, b.cy, k), z };
+}
+
+async function load() {
+    [A, K, R] = await Promise.all(['analizi', 'karta', 'rayoni'].map(n => fetch(`../data/${n}.json`).then(r => r.json())));
+    const order = [...A.pillars, ...A.extra].map(p => p.key);
+    const si = order.indexOf('shelter');
+    cells = A.grid.map(([lat, lng, pop, d, share]) => {
+        const ch = share[si];
+        const corners = A.hexagon.map(([n, e]) => toKm(lng + e / 1000 / KX, lat + n / 1000 / KY));
+        return { p: toKm(lng, lat), pop, d, s: ch === 'A' ? 1 : Number(ch) / 10, corners };
+    });
+    shelters = K.layers.shelters.map(([lat, lng]) => ({ p: toKm(lng, lat) }));
+    // Drop order: sweep from the west to the east
+    shelters.sort((a, b) => a.p[0] - b.p[0]);
+    districts = R.map((r, i) => {
+        const a = A.districts[i];
+        const rings = r.polygons.flatMap(poly => poly.map(ring => ring.map(([lng, lat]) => toKm(lng, lat))));
+        const mine = cells.filter(c => c.d === i);
+        const pop = mine.reduce((s, c) => s + c.pop, 0) || 1;
+        const centre = [mine.reduce((s, c) => s + c.p[0] * c.pop, 0) / pop, mine.reduce((s, c) => s + c.p[1] * c.pop, 0) / pop];
+        const lived = mine.filter(c => c.pop >= 150).map(c => c.p);
+        return { name: a.name, a, rings, centre, lived: lived.length ? bboxOf(lived) : bboxOf(rings.flat()) };
+    });
+    // Sanity checks: the video must say exactly what the analysis says
+    const total = cells.reduce((s, c) => s + c.pop, 0);
+    const covered = cells.reduce((s, c) => s + c.pop * c.s, 0) / total;
+    console.log('grid pop', total, 'shelter cover', (covered * 100).toFixed(1), 'shelters', shelters.length);
+
+    const by = n => districts.find(d => d.name === n);
+    const city = bboxOf(cells.filter(c => c.pop >= 300).map(c => c.p));
+    const union = (...ds) => bboxOf(ds.flatMap(d => [[d.lived.x0, d.lived.y0], [d.lived.x1, d.lived.y1]]));
+    cams = {
+        city: camFor(city, FORMAT === 'portrait' ? 0.8 : 1.04),
+        centre: camFor(union(by('Средец'), by('Оборище')), 1.9),
+        mladost: camFor(by('Младост').lived, 1.3, 12),
+        studentski: camFor(by('Студентски').lived, 1.3, 12),
+        kremikovtsi: camFor(by('Кремиковци').lived, 1.6, 4)
+    };
+    await document.fonts.load(`700 40px ${SANS}`); await document.fonts.load(`600 40px ${SANS}`);
+    await document.fonts.load(`400 40px ${SANS}`); await document.fonts.load(`500 20px ${MONO}`);
+    await document.fonts.load(`700 40px ${SANS}`, 'Бомбоубежища'); await document.fonts.load(`500 20px ${MONO}`, 'УКРИТИЯ');
+    await document.fonts.ready;
+}
+
+// ---------- the timeline ----------
+// 0–4 city + people · 4–10 shelters drop · 10–16 centre · 16–24 1 km reach · 24–34 gaps
+// 34–44 ranking · 44–50 end card
+function cameraAt(t) {
+    const { city, centre, mladost, studentski, kremikovtsi } = cams;
+    const steps = [
+        [0, camLerp(city, city, 0)], [10.3, city], [11.8, centre], [15.2, centre], [16.6, city], [24, city],
+        [25.2, mladost], [27.2, mladost], [28.4, studentski], [30.4, studentski], [31.6, kremikovtsi], [33.4, kremikovtsi], [34.6, city]
+    ];
+    for (let i = 0; i < steps.length - 1; i++) {
+        const [t0, c0] = steps[i], [t1, c1] = steps[i + 1];
+        if (t <= t1) return camLerp(c0, c1, ease(seg(t, t0, t1)));
+    }
+    const c = steps[steps.length - 1][1];
+    // A slow drift keeps still moments alive
+    return c;
+}
+
+function frame(t) {
+    const cam = cameraAt(t);
+    const drift = 1 + 0.015 * Math.sin(t * 0.25);
+    const z = cam.z * drift;
+    const ox = L.map.x + L.map.w / 2, oy = L.map.y + L.map.h / 2;
+    const P = ([x, y]) => [ox + (x - cam.cx) * z, oy + (y - cam.cy) * z];
+
+    g.globalCompositeOperation = 'source-over';
+    g.globalAlpha = 1;
+    g.fillStyle = C.bg; g.fillRect(0, 0, W, H);
+
+    const mapAlpha = (1 - 0.82 * ease(seg(t, 34, 35.5))) * (1 - ease(seg(t, 43.5, 44.6)));
+    if (mapAlpha > 0.01) {
+        g.save();
+        g.globalAlpha = mapAlpha;
+        drawCells(t, P, z);
+        drawDistricts(t, P);
+        drawReach(t, P, z);
+        drawShelters(t, P, z);
+        drawCallouts(t, P);
+        g.restore();
+    }
+    drawVignette();
+    drawChart(t);
+    drawText(t);
+    drawEnd(t);
+    drawChrome(t);
+}
+
+// Population hexagons: grey density first, then green (within 1 km) / red (beyond)
+function drawCells(t, P, z) {
+    const appear = ease(seg(t, 0.4, 3.2));
+    const judge = ease(seg(t, 17.5, 20.5));
+    const reveal = appear;
+    if (reveal <= 0) return;
+    for (const c of cells) {
+        if (c.pop < 20) continue;
+        const dens = clamp(Math.log10(c.pop) / Math.log10(17000));
+        // Cells appear from the centre outwards
+        const r = Math.hypot(c.p[0], c.p[1]);
+        const k = clamp(reveal * 1.6 - r / 22);
+        if (k <= 0) continue;
+        const base = mix('#141920', '#3A4250', dens);
+        const judged = c.s >= 0.999 ? mix('#13261D', C.ok, 0.35 + 0.65 * dens) : c.s <= 0.001 ? mix('#2A1414', C.red, 0.3 + 0.7 * dens) : mix(mix('#2A1414', C.red, 0.3 + 0.7 * dens), mix('#13261D', C.ok, 0.35 + 0.65 * dens), c.s);
+        g.fillStyle = judge > 0 ? mixRgb(base, judged, judge) : base;
+        g.globalAlpha = g.globalAlpha; // keep parent alpha
+        g.beginPath();
+        c.corners.forEach((q, i) => { const [x, y] = P(q); i ? g.lineTo(x, y) : g.moveTo(x, y); });
+        g.closePath();
+        const a = g.globalAlpha; g.globalAlpha = a * k * (0.55 + 0.45 * dens);
+        g.fill();
+        g.globalAlpha = a;
+    }
+}
+function mixRgb(a, b, k) {
+    const p = s => s.match(/\d+/g).map(Number);
+    const x = p(a), y = p(b);
+    return `rgb(${x.map((v, i) => Math.round(lerp(v, y[i], k))).join(',')})`;
+}
+
+function districtPath(d, P) {
+    g.beginPath();
+    for (const ring of d.rings) ring.forEach((q, i) => { const [x, y] = P(q); i ? g.lineTo(x, y) : g.moveTo(x, y); });
+}
+function drawDistricts(t, P) {
+    const draw = ease(seg(t, 0.2, 3.0));
+    const centreOn = win(t, 11.2, 16.4, 0.6);
+    const gaps = { 'Младост': [24.6, 27.8], 'Студентски': [27.8, 30.9], 'Кремиковци': [30.9, 34.2] };
+    districts.forEach((d, i) => {
+        const special = (d.name === 'Средец' || d.name === 'Оборище') ? centreOn : 0;
+        const gap = gaps[d.name] ? win(t, gaps[d.name][0], gaps[d.name][1], 0.5) : 0;
+        if (special > 0) {
+            districtPath(d, P); g.save(); g.globalAlpha *= 0.22 * special; g.fillStyle = C.accent; g.fill('evenodd'); g.restore();
+        }
+        if (gap > 0) {
+            const pulse = 0.5 + 0.5 * Math.sin(t * 5);
+            districtPath(d, P); g.save(); g.globalAlpha *= (0.12 + 0.1 * pulse) * gap; g.fillStyle = C.alert; g.fill('evenodd'); g.restore();
+        }
+        // Outlines draw themselves in, one district after another
+        const k = clamp(draw * 1.5 - i / 24 * 0.5);
+        if (k <= 0) return;
+        g.save();
+        districtPath(d, P);
+        const hi = Math.max(special, gap);
+        g.strokeStyle = hi > 0 ? (gap > 0 ? C.alert : C.accent) : C.lineStrong;
+        g.lineWidth = hi > 0 ? lerp(1.2, 3, hi) : 1.2;
+        g.globalAlpha *= hi > 0 ? 1 : 0.9 * k;
+        if (k < 1) { g.setLineDash([4000 * k, 100000]); }
+        g.stroke();
+        g.restore();
+    });
+}
+
+// 1 km reach around each shelter
+function drawReach(t, P, z) {
+    const k = ease(seg(t, 16.6, 19.0));
+    const out = 1 - ease(seg(t, 23.6, 24.6));
+    if (k <= 0 || out <= 0) return;
+    g.save();
+    for (const s of shelters) {
+        const [x, y] = P(s.p);
+        g.beginPath(); g.arc(x, y, z * 1.0 * k, 0, Math.PI * 2);
+        g.fillStyle = 'rgba(242,169,59,0.07)'; g.globalAlpha *= out; g.fill();
+        g.globalAlpha /= out;
+    }
+    for (const s of shelters) {
+        const [x, y] = P(s.p);
+        g.beginPath(); g.arc(x, y, z * 1.0 * k, 0, Math.PI * 2);
+        g.strokeStyle = 'rgba(242,169,59,0.55)'; g.lineWidth = 1.4; g.globalAlpha *= out; g.stroke(); g.globalAlpha /= out;
+    }
+    g.restore();
+}
+
+function drawShelters(t, P, z) {
+    const n = shelters.length;
+    shelters.forEach((s, i) => {
+        const t0 = 4.4 + (i / n) * 4.6;
+        const k = seg(t, t0, t0 + 0.55);
+        if (k <= 0) return;
+        const [x, y] = P(s.p);
+        const e = easeOut(k);
+        const r = 6 * L.u * Math.min(1.6, Math.max(0.8, z / 70));
+        // Landing ring
+        if (k < 1) {
+            g.save(); g.globalAlpha *= (1 - k) * 0.9;
+            g.beginPath(); g.arc(x, y, r + 40 * e, 0, Math.PI * 2);
+            g.strokeStyle = C.accent; g.lineWidth = 2; g.stroke(); g.restore();
+        }
+        g.save();
+        g.globalAlpha *= Math.min(1, k * 2);
+        g.shadowColor = 'rgba(242,169,59,0.8)'; g.shadowBlur = 14;
+        g.beginPath(); g.arc(x, y - (1 - e) * 30, r, 0, Math.PI * 2);
+        g.fillStyle = C.accent; g.fill();
+        g.shadowBlur = 0;
+        g.lineWidth = 2; g.strokeStyle = C.bg; g.stroke();
+        g.restore();
+    });
+}
+
+// Labels on the map for the districts the story is about
+function drawCallouts(t, P) {
+    const tags = [
+        ['Средец', 11.8, 16.2, '13 укрития', C.accent],
+        ['Оборище', 12.2, 16.2, '7 укрития', C.accent],
+        ['Младост', 25.1, 27.8, '0 укрития', C.alert],
+        ['Студентски', 28.3, 30.9, '0 укрития', C.alert],
+        ['Кремиковци', 31.5, 34.2, '0 укрития', C.alert]
+    ];
+    for (const [name, a, b, sub, col] of tags) {
+        const k = win(t, a, b, 0.4);
+        if (k <= 0) continue;
+        const d = districts.find(x => x.name === name);
+        let [x, y] = P(d.centre);
+        if (name === 'Средец') { x -= 10; y += 70; }
+        if (name === 'Оборище') { x += 40; y -= 60; }
+        g.save(); g.globalAlpha *= k;
+        g.font = `600 ${30 * L.u}px ${SANS}`;
+        const w1 = g.measureText(name.toUpperCase()).width;
+        g.font = `500 ${22 * L.u}px ${MONO}`;
+        const w2 = g.measureText(sub).width;
+        const w = Math.max(w1, w2) + 36, h = 92 * L.u;
+        const bx = x - w / 2, by = y - h / 2 - (1 - easeOut(k)) * 16;
+        g.fillStyle = 'rgba(10,12,15,0.86)'; g.fillRect(bx, by, w, h);
+        g.fillStyle = col; g.fillRect(bx, by, 4, h);
+        g.fillStyle = C.text; g.font = `600 ${30 * L.u}px ${SANS}`; g.textBaseline = 'top';
+        g.fillText(name, bx + 20, by + 12 * L.u);
+        g.fillStyle = col; g.font = `500 ${22 * L.u}px ${MONO}`;
+        g.fillText(sub, bx + 20, by + 54 * L.u);
+        g.restore();
+    }
+}
+
+function drawVignette() {
+    if (FORMAT === 'landscape') {
+        const gr = g.createLinearGradient(0, 0, 900, 0);
+        gr.addColorStop(0, 'rgba(10,12,15,1)'); gr.addColorStop(0.62, 'rgba(10,12,15,0.92)'); gr.addColorStop(1, 'rgba(10,12,15,0)');
+        g.fillStyle = gr; g.fillRect(0, 0, 900, H);
+    } else {
+        const gr = g.createLinearGradient(0, 0, 0, 760);
+        gr.addColorStop(0, 'rgba(10,12,15,1)'); gr.addColorStop(0.75, 'rgba(10,12,15,0.94)'); gr.addColorStop(1, 'rgba(10,12,15,0)');
+        g.fillStyle = gr; g.fillRect(0, 0, W, 760);
+        const gb = g.createLinearGradient(0, H - 260, 0, H);
+        gb.addColorStop(0, 'rgba(10,12,15,0)'); gb.addColorStop(1, 'rgba(10,12,15,1)');
+        g.fillStyle = gb; g.fillRect(0, H - 260, W, 260);
+    }
+}
+
+// ---------- words ----------
+// Blocks: [from, to, lines]; a line is [text, style] and may carry a counter
+function wrap(text, font, maxW) {
+    g.font = font;
+    const words = text.split(' '), lines = [];
+    let cur = '';
+    for (const w of words) {
+        const tryL = cur ? cur + ' ' + w : w;
+        if (g.measureText(tryL).width > maxW && cur) { lines.push(cur); cur = w; } else cur = tryL;
+    }
+    if (cur) lines.push(cur);
+    return lines;
+}
+const ST = {
+    kicker: () => [`500 ${24 * L.u}px ${MONO}`, C.accent, 1.4],
+    huge: () => [`700 ${(FORMAT === 'portrait' ? 112 : 104) * L.u}px ${SANS}`, C.text, 1.02],
+    big: () => [`700 ${64 * L.u}px ${SANS}`, C.text, 1.12],
+    mid: () => [`600 ${44 * L.u}px ${SANS}`, C.text, 1.2],
+    body: () => [`400 ${32 * L.u}px ${SANS}`, C.muted, 1.35],
+    accentHuge: () => [`700 ${(FORMAT === 'portrait' ? 112 : 104) * L.u}px ${SANS}`, C.accent, 1.02],
+    redHuge: () => [`700 ${(FORMAT === 'portrait' ? 112 : 104) * L.u}px ${SANS}`, C.alert, 1.02],
+    redBig: () => [`700 ${64 * L.u}px ${SANS}`, C.alert, 1.12]
+};
+function count(t, a, b, to, dec = 0) {
+    const v = to * easeOut(seg(t, a, b));
+    return dec ? v.toFixed(dec).replace('.', ',') : NF(v);
+}
+function blocks(t) {
+    return [
+        [0.3, 4.2, [['СОФИЯ · АНАЛИЗ НА УКРИТИЯТА', 'kicker'], [count(t, 0.4, 2.6, 1274290), 'huge'], ['души', 'mid'], ['', 'gap'], [`${count(t, 2.0, 3.4, 46)} бомбоубежища`, 'accentHuge2']]],
+        [4.4, 10.2, [['ПРОТИВОРАДИАЦИОННИ УКРИТИЯ И СКРИВАЛИЩА', 'kicker'], ['Къде са те?', 'big'], ['', 'gap'], [`${NF(Math.min(46, Math.floor(46 * seg(t, 4.4, 9.55)) + (t >= 9.5 ? 0 : 0)))} / 46`, 'accentHuge']]],
+        [10.6, 16.3, [['ЦЕНТЪРЪТ', 'kicker'], ['20 от 46', 'accentHuge'], ['са само в два района', 'big'], ['', 'gap'], ['Средец (13) и Оборище (7) — и двата с покритие 100%', 'body']]],
+        [16.6, 24.3, [['РАДИУС 1 КМ', 'kicker'], ['Само', 'mid'], [`${count(t, 17.4, 20.0, 34.8, 1)}%`, 'accentHuge'], ['от хората живеят на до 1 км от укритие', 'body'], ['', 'gap'], [count(t, 20.4, 22.8, 831400), 'redHuge'], ['души — не', 'mid']]],
+        [24.5, 27.9, [['ПРАЗНИТЕ ЗОНИ', 'kicker'], ['Младост', 'big'], [count(t, 24.8, 26.2, 104047), 'huge'], ['жители', 'body'], ['', 'gap'], ['0 укрития', 'redBig']]],
+        [27.9, 31.0, [['ПРАЗНИТЕ ЗОНИ', 'kicker'], ['Студентски', 'big'], [count(t, 28.2, 29.6, 74163), 'huge'], ['жители', 'body'], ['', 'gap'], ['0 укрития', 'redBig']]],
+        [31.0, 34.3, [['ПРАЗНИТЕ ЗОНИ', 'kicker'], ['Кремиковци', 'big'], [`${count(t, 31.3, 32.7, 12)} км`, 'redHuge'], ['половината жители са на над 12 км от най-близкото укритие', 'body']]],
+        [34.6, 44.0, [['ПОКРИТИЕ ПО РАЙОНИ', 'kicker'], ['От 0% до 100%.', 'big'], ['', 'gap'], ['Един град —', 'mid'], ['две реалности.', 'mid']]]
+    ];
+}
+function drawText(t) {
+    for (const [a, b, lines] of blocks(t)) {
+        const k = win(t, a, b, 0.45);
+        if (k <= 0) continue;
+        let y = L.text.y;
+        if (FORMAT === 'portrait') y = 210;
+        // The ranking text sits above the chart in portrait and at the left in landscape
+        g.save();
+        lines.forEach(([txt, style], i) => {
+            if (style === 'gap') { y += 28 * L.u; return; }
+            const key = style === 'accentHuge2' ? 'accentHuge' : style;
+            let [font, col, lh] = ST[key]();
+            if (style === 'accentHuge2') font = font.replace(/\d+(\.\d+)?px/, m => (parseFloat(m) * 0.62) + 'px');
+            const size = parseFloat(font.match(/(\d+(\.\d+)?)px/)[1]);
+            const li = seg(t, a + i * 0.08, a + i * 0.08 + 0.5);
+            const out = 1 - seg(t, b - 0.45, b);
+            g.globalAlpha = Math.min(easeOut(li), out);
+            const dy = (1 - easeOut(li)) * 24;
+            g.font = font; g.fillStyle = col; g.textBaseline = 'top';
+            for (const ln of wrap(txt, font, L.text.w)) {
+                g.fillText(ln, L.text.x, y + dy);
+                y += size * lh;
+            }
+            if (style === 'kicker') {
+                g.fillRect(L.text.x, y + 2, 56, 3); y += 26 * L.u;
+            }
+        });
+        g.restore();
+    }
+}
+
+// ---------- ranking ----------
+function drawChart(t) {
+    const k = seg(t, 35.0, 37.6);
+    const out = 1 - ease(seg(t, 43.4, 44.4));
+    if (k <= 0 || out <= 0) return;
+    const rows = [...A.districts].sort((a, b) => a.cover.shelter - b.cover.shelter);
+    let { x, y, w, h } = L.chart;
+    if (FORMAT === 'portrait') { y = 700; h = 1000; }
+    const rh = h / rows.length;
+    const P2 = FORMAT === 'portrait';
+    const nameW = (P2 ? 270 : 230) * L.u, valW = (P2 ? 130 : 110) * L.u;
+    const barW = w - nameW - valW;
+    g.save(); g.globalAlpha = out;
+    rows.forEach((d, i) => {
+        const ki = easeOut(seg(t, 35.2 + i * 0.07, 35.2 + i * 0.07 + 1.4));
+        if (ki <= 0) return;
+        const v = d.cover.shelter;
+        const yy = y + i * rh;
+        const col = v >= 99.9 ? C.ok : v < 5 ? C.alert : mix(C.alert, C.ok, v / 100);
+        g.globalAlpha = out * Math.min(1, ki * 2);
+        g.font = `500 ${Math.min(P2 ? 31 : 26, rh * 0.62) * L.u}px ${SANS}`; g.fillStyle = v < 5 ? C.text : C.muted; g.textBaseline = 'middle';
+        g.textAlign = 'right'; g.fillText(d.name, x + nameW - 18, yy + rh / 2);
+        g.textAlign = 'left';
+        g.fillStyle = '#161B21'; g.fillRect(x + nameW, yy + rh * 0.2, barW, rh * 0.6);
+        g.fillStyle = col; g.fillRect(x + nameW, yy + rh * 0.2, Math.max(3, barW * v / 100 * ki), rh * 0.6);
+        g.font = `500 ${Math.min(P2 ? 28 : 24, rh * 0.56) * L.u}px ${MONO}`; g.fillStyle = col;
+        g.fillText(`${(v * ki).toFixed(v < 10 ? 1 : 0).replace('.', ',')}%`, x + nameW + barW + 14, yy + rh / 2);
+    });
+    g.restore();
+}
+
+// ---------- branding ----------
+function logo(x, y, s, alpha = 1) {
+    g.save(); g.globalAlpha *= alpha;
+    g.translate(x, y); g.scale(s / 32, s / 32);
+    g.strokeStyle = C.accent; g.lineWidth = 2;
+    g.strokeRect(4, 4, 24, 24);
+    g.beginPath(); g.arc(16, 16, 6, 0, Math.PI * 2); g.stroke();
+    g.beginPath(); g.moveTo(16, 4); g.lineTo(16, 10); g.moveTo(16, 22); g.lineTo(16, 28); g.moveTo(4, 16); g.lineTo(10, 16); g.moveTo(22, 16); g.lineTo(28, 16); g.stroke();
+    g.restore();
+}
+function drawChrome(t) {
+    const k = seg(t, 0, 0.6) * (1 - seg(t, 43.6, 44.4));
+    if (k <= 0) return;
+    g.save(); g.globalAlpha = k;
+    const pad = FORMAT === 'portrait' ? 80 : 110, top = FORMAT === 'portrait' ? 96 : 70;
+    logo(pad, top - 6, 44);
+    g.font = `500 ${24}px ${MONO}`; g.fillStyle = C.text; g.textBaseline = 'middle';
+    g.fillText('SOFIA PREPPING', pad + 62, top + 16);
+    // Source line
+    g.font = `500 ${FORMAT === 'portrait' ? 19 : 18}px ${MONO}`; g.fillStyle = C.dim; g.textBaseline = 'alphabetic';
+    const src = 'Данни: 46 регистрирани укрития към 09.11.2026 · население: преброяване 2021, модел Kontur 2023';
+    if (FORMAT === 'portrait') {
+        const lines = wrap(src, g.font, W - 2 * pad);
+        lines.forEach((ln, i) => g.fillText(ln, pad, H - 80 - (lines.length - 1 - i) * 28));
+    } else g.fillText(src, pad, H - 48);
+    // Progress line
+    g.fillStyle = C.line; g.fillRect(0, H - 4, W, 4);
+    g.fillStyle = C.accent; g.fillRect(0, H - 4, W * clamp(t / 44), 4);
+    g.restore();
+}
+function drawEnd(t) {
+    const k = seg(t, 44.4, 45.4);
+    if (k <= 0) return;
+    const e = easeOut(k);
+    const cx = W / 2, cy = H / 2 - (FORMAT === 'portrait' ? 120 : 60);
+    g.save();
+    g.globalAlpha = e;
+    // Soft accent glow
+    const gl = g.createRadialGradient(cx, cy, 10, cx, cy, 520);
+    gl.addColorStop(0, 'rgba(242,169,59,0.10)'); gl.addColorStop(1, 'rgba(242,169,59,0)');
+    g.fillStyle = gl; g.fillRect(0, 0, W, H);
+    const s = lerp(90, 120, e);
+    logo(cx - s / 2, cy - 230 - s / 2 + 40, s);
+    g.textAlign = 'center'; g.textBaseline = 'top';
+    g.fillStyle = C.text; g.font = `500 30px ${MONO}`;
+    g.fillText('SOFIA PREPPING', cx, cy - 90);
+    const k2 = easeOut(seg(t, 45.0, 46.0));
+    g.globalAlpha = k2;
+    g.font = `700 ${FORMAT === 'portrait' ? 84 : 88}px ${SANS}`; g.fillStyle = C.text;
+    g.fillText('Провери своя адрес', cx, cy - 20 + (1 - k2) * 20);
+    const k3 = easeOut(seg(t, 45.6, 46.6));
+    g.globalAlpha = k3;
+    g.font = `600 ${56}px ${SANS}`; g.fillStyle = C.accent;
+    g.fillText('sofia-prepping.com', cx, cy + 100 + (1 - k3) * 20);
+    g.font = `500 ${24}px ${MONO}`; g.fillStyle = C.muted;
+    g.fillText('УКРИТИЯ · ЕВАКУАЦИЯ · ВОДА · ЙОД · БОЛНИЦИ', cx, cy + 200);
+    // Fade to black at the very end
+    g.globalAlpha = seg(t, 49.2, 50);
+    g.fillStyle = C.bg; g.fillRect(0, 0, W, H);
+    g.restore();
+}
+
+window.DURATION = DURATION;
+window.ready = load().then(() => { frame(0); return true; });
+window.frame = frame;
+</script>
+</body>
+</html>
