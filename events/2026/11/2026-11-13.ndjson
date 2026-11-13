@@ -30,3 +30,14 @@
 {"t":1794581551775,"src":"warnings","op":"open","key":"60dc08be247d","data":{"level":3,"event":"Силен вятър!","onset":1794520801000,"expires":1794607200000,"description":"Фьон с пориви до 32 m/s."}}
 {"t":1794581551775,"src":"warnings","op":"open","key":"32ac75c65e7c","data":{"level":2,"event":"Силен вятър!","onset":1794520801000,"expires":1794607200000,"description":"---"}}
 {"t":1794581551775,"src":"official","op":"open","key":"e6e52c67df71","data":{"source":"Столична община","title":"Столичната община обработва над 300 сигнала след силния вятър, няма пострадали хора","url":"https://www.sofia.bg/bg/web/guest/w/8147923","date":1794528000000}}
+{"t":1794605016884,"src":"water","op":"close","key":"fc5c78bf6950","first":1794581551775,"last":1794581551775}
+{"t":1794605016884,"src":"heating","op":"open","key":"b4b96b59e03c","data":{"district":20,"region":"Яворов","name":"Част от Яворов","addresses":"Бл. 43, 46, 47 и  49А.","from":1794594600000,"until":1794767400000,"lat":42.68281,"lng":23.35054}}
+{"t":1794605016884,"src":"heating","op":"open","key":"5c6af88cc0e1","data":{"district":4,"region":"Изток","name":"Част от Изток","addresses":"Ул. \"Еужен Потие\" № 3 и ул. \"Чехов\" № 46.","from":1794592800000,"until":1794765600000,"lat":42.66942,"lng":23.3593}}
+{"t":1794605016884,"src":"heating","op":"open","key":"263b3359ba28","data":{"district":4,"region":"Дианабад","name":"Част от Дианабад","addresses":"Бл. 43 и 44.","from":1794590400000,"until":1794763200000,"lat":42.66413,"lng":23.35098}}
+{"t":1794605016884,"src":"heating","op":"open","key":"5f61df0c6038","data":{"district":12,"region":"Младост 1","name":"Част от Младост 1","addresses":"бл.1,2А,7,8,9,11;\r\nбул.\"Йерусалим\" №8, №12.","from":1794392700000,"until":1795377600000,"lat":42.65836,"lng":23.37946}}
+{"t":1794605016884,"src":"heating","op":"close","key":"d38851fdd9b8","first":1794431922865,"last":1794581551775}
+{"t":1794605016884,"src":"heating","op":"close","key":"a7b2504af594","first":1794431922865,"last":1794581551775}
+{"t":1794605016884,"src":"heating","op":"close","key":"cbc355dcb6e3","first":1794431922865,"last":1794581551775}
+{"t":1794605016884,"src":"heating","op":"close","key":"e80c5351997e","first":1794431922865,"last":1794581551775}
+{"t":1794605016884,"src":"heating","op":"close","key":"d164d7e7ae8a","first":1794508454115,"last":1794581551775}
+{"t":1794605016884,"src":"heating","op":"close","key":"8edbea18af10","first":1794527501948,"last":1794581551775}
