@@ -30,13 +30,18 @@ const SANS = "'Plex Sans', sans-serif", MONO = "'Plex Mono', monospace";
 // Story time runs 0–50; STRETCH slows the whole film so the words can be read
 const STRETCH = 1.45;
 const QS = new URLSearchParams(location.search);
-const FORMAT = QS.get('f') === 'portrait' ? 'portrait' : 'landscape';
+// TT: portrait for TikTok, everything inside the area its search bar (top), buttons (right)
+// and caption (bottom) leave free: x 60–920, y 260–1340
+const TT = QS.get('f') === 'tiktok';
+const FORMAT = QS.get('f') === 'portrait' || TT ? 'portrait' : 'landscape';
 const W = FORMAT === 'portrait' ? 1080 : 1920, H = FORMAT === 'portrait' ? 1920 : 1080;
 const cv = document.getElementById('c'); cv.width = W; cv.height = H;
 const g = cv.getContext('2d');
 
 // Layout: where the map sits and where the words go
-const L = FORMAT === 'landscape'
+const L = TT
+    ? { map: { x: 40, y: 560, w: 880, h: 820 }, text: { x: 70, y: 290, w: 830 }, u: 0.95, chart: { x: 50, y: 590, w: 870, h: 740 } }
+    : FORMAT === 'landscape'
     ? { map: { x: 700, y: 60, w: 1180, h: 960 }, text: { x: 110, y: 330, w: 600 }, u: 1, chart: { x: 820, y: 110, w: 980, h: 880 } }
     : { map: { x: 40, y: 640, w: 1000, h: 1040 }, text: { x: 80, y: 250, w: 920 }, u: 1.05, chart: { x: 80, y: 660, w: 920, h: 1080 } };
 
@@ -165,7 +170,7 @@ async function load() {
     const city = bboxOf(cells.filter(c => c.pop >= 300).map(c => c.p));
     const union = (...ds) => bboxOf(ds.flatMap(d => [[d.lived.x0, d.lived.y0], [d.lived.x1, d.lived.y1]]));
     cams = {
-        city: camFor(city, FORMAT === 'portrait' ? 0.8 : 1.04),
+        city: camFor(city, TT ? 0.92 : FORMAT === 'portrait' ? 0.8 : 1.04),
         centre: camFor(union(...TOPIC.centre.map(([n]) => by(n))), TOPIC.centrePad),
         gaps: TOPIC.gaps.map(([n, , pad, min]) => camFor(by(n).lived, pad, min))
     };
@@ -415,12 +420,13 @@ function drawVignette() {
         gr.addColorStop(0, 'rgba(10,12,15,1)'); gr.addColorStop(0.62, 'rgba(10,12,15,0.92)'); gr.addColorStop(1, 'rgba(10,12,15,0)');
         g.fillStyle = gr; g.fillRect(0, 0, 900, H);
     } else {
-        const gr = g.createLinearGradient(0, 0, 0, 760);
+        const top = TT ? 800 : 760, bot = TT ? 600 : 260;
+        const gr = g.createLinearGradient(0, 0, 0, top);
         gr.addColorStop(0, 'rgba(10,12,15,1)'); gr.addColorStop(0.75, 'rgba(10,12,15,0.94)'); gr.addColorStop(1, 'rgba(10,12,15,0)');
-        g.fillStyle = gr; g.fillRect(0, 0, W, 760);
-        const gb = g.createLinearGradient(0, H - 260, 0, H);
-        gb.addColorStop(0, 'rgba(10,12,15,0)'); gb.addColorStop(1, 'rgba(10,12,15,1)');
-        g.fillStyle = gb; g.fillRect(0, H - 260, W, 260);
+        g.fillStyle = gr; g.fillRect(0, 0, W, top);
+        const gb = g.createLinearGradient(0, H - bot, 0, H);
+        gb.addColorStop(0, 'rgba(10,12,15,0)'); gb.addColorStop(TT ? 0.35 : 1, 'rgba(10,12,15,1)'); gb.addColorStop(1, 'rgba(10,12,15,1)');
+        g.fillStyle = gb; g.fillRect(0, H - bot, W, bot);
     }
 }
 
@@ -458,7 +464,7 @@ function drawText(t) {
         const k = win(t, a, b, 0.45);
         if (k <= 0) continue;
         let y = L.text.y;
-        if (FORMAT === 'portrait') y = 210;
+        if (FORMAT === 'portrait') y = TT ? L.text.y : 210;
         // The ranking text sits above the chart in portrait and at the left in landscape
         g.save();
         lines.forEach(([txt, style, at], i) => {
@@ -492,7 +498,7 @@ function drawChart(t) {
     if (k <= 0 || out <= 0) return;
     const rows = [...A.districts].sort((a, b) => a.cover[TOPIC.measure] - b.cover[TOPIC.measure]);
     let { x, y, w, h } = L.chart;
-    if (FORMAT === 'portrait') { y = 700; h = 1000; }
+    if (FORMAT === 'portrait' && !TT) { y = 700; h = 1000; }
     const rh = h / rows.length;
     const P2 = FORMAT === 'portrait';
     const nameW = (P2 ? 270 : 230) * L.u, valW = (P2 ? 130 : 110) * L.u;
@@ -530,27 +536,32 @@ function drawChrome(t) {
     const k = seg(t, 0, 0.6) * (1 - seg(t, END - 0.8, END));
     if (k <= 0) return;
     g.save(); g.globalAlpha = k;
-    const pad = FORMAT === 'portrait' ? 80 : 110, top = FORMAT === 'portrait' ? 96 : 70;
-    logo(pad, top - 6, 44);
-    g.font = `500 ${24}px ${MONO}`; g.fillStyle = C.text; g.textBaseline = 'middle';
-    g.fillText('SOFIA PREPPING', pad + 62, top + 16);
+    const pad = TT ? 70 : FORMAT === 'portrait' ? 80 : 110, top = FORMAT === 'portrait' ? 96 : 70;
+    // On TikTok the top strip sits under its search bar; the profile picture carries the brand
+    if (!TT) {
+        logo(pad, top - 6, 44);
+        g.font = `500 ${24}px ${MONO}`; g.fillStyle = C.text; g.textBaseline = 'middle';
+        g.fillText('SOFIA PREPPING', pad + 62, top + 16);
+    }
     // Source line
     g.font = `500 ${FORMAT === 'portrait' ? 19 : 18}px ${MONO}`; g.fillStyle = C.dim; g.textBaseline = 'alphabetic';
     const src = TOPIC.source;
     if (FORMAT === 'portrait') {
-        const lines = wrap(src, g.font, W - 2 * pad);
-        lines.forEach((ln, i) => g.fillText(ln, pad, H - 80 - (lines.length - 1 - i) * 28));
+        const lines = wrap(src, g.font, TT ? 850 : W - 2 * pad), base = TT ? 1330 : H - 80;
+        lines.forEach((ln, i) => g.fillText(ln, pad, base - (lines.length - 1 - i) * 28));
     } else g.fillText(src, pad, H - 48);
-    // Progress line
-    g.fillStyle = C.line; g.fillRect(0, H - 4, W, 4);
-    g.fillStyle = C.accent; g.fillRect(0, H - 4, W * clamp(t / END), 4);
+    // Progress line (TikTok draws its own)
+    if (!TT) {
+        g.fillStyle = C.line; g.fillRect(0, H - 4, W, 4);
+        g.fillStyle = C.accent; g.fillRect(0, H - 4, W * clamp(t / END), 4);
+    }
     g.restore();
 }
 function drawEnd(t) {
     const k = seg(t, END, END + 1);
     if (k <= 0) return;
     const e = easeOut(k);
-    const cx = W / 2, cy = H / 2 - (FORMAT === 'portrait' ? 120 : 60);
+    const cx = TT ? 490 : W / 2, cy = H / 2 - (FORMAT === 'portrait' ? 120 : 60);
     g.save();
     g.globalAlpha = e;
     // Soft accent glow
@@ -564,7 +575,7 @@ function drawEnd(t) {
     g.fillText('SOFIA PREPPING', cx, cy - 90);
     const k2 = easeOut(seg(t, END + 0.6, END + 1.6));
     g.globalAlpha = k2;
-    g.font = `700 ${FORMAT === 'portrait' ? 84 : 88}px ${SANS}`; g.fillStyle = C.text;
+    g.font = `700 ${TT ? 76 : FORMAT === 'portrait' ? 84 : 88}px ${SANS}`; g.fillStyle = C.text;
     g.fillText('Провери своя адрес', cx, cy - 20 + (1 - k2) * 20);
     const k3 = easeOut(seg(t, END + 1.2, END + 2.2));
     g.globalAlpha = k3;
@@ -575,7 +586,7 @@ function drawEnd(t) {
     // Music credit, worded as the licence asks
     g.globalAlpha = easeOut(seg(t, END + 1.6, END + 2.6));
     g.font = `500 ${FORMAT === 'portrait' ? 22 : 20}px ${MONO}`; g.fillStyle = C.dim;
-    const cy2 = FORMAT === 'portrait' ? H - 230 : H - 120;
+    const cy2 = TT ? 1230 : FORMAT === 'portrait' ? H - 230 : H - 120;
     g.fillText('Music: Tensions Run High by Soundridemusic', cx, cy2);
     g.fillText('https://youtu.be/Ly9H63SLJJo', cx, cy2 + 32);
     // Fade to black at the very end

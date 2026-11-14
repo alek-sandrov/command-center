@@ -1,5 +1,5 @@
 // Renders video/shelters.html to MP4 with Playwright + ffmpeg.
-//   node video/render.mjs landscape|portrait [out.mp4] [--topic shelters|water] [--stills 2,8,14] [--audio track.mp3]
+//   node video/render.mjs landscape|portrait|tiktok [out.mp4] [--topic shelters|water] [--stills 2,8,14] [--audio track.mp3]
 // Serves the repository root on a local port so the page can read data/ and fonts/.
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
@@ -12,7 +12,8 @@ const { chromium } = require('playwright');
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
-const format = args[0] === 'portrait' ? 'portrait' : 'landscape';
+// tiktok = portrait with everything kept clear of TikTok's own buttons and caption
+const format = ['portrait', 'tiktok'].includes(args[0]) ? args[0] : 'landscape';
 const opt = k => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : null; };
 const out = args[1] && !args[1].startsWith('--') ? args[1] : `video/${topic}-${format}.mp4`;
 const stills = opt('--stills');
@@ -32,7 +33,7 @@ const server = createServer(async (req, res) => {
 const port = server.address().port;
 
 const browser = await chromium.launch();
-const [w, h] = format === 'portrait' ? [1080, 1920] : [1920, 1080];
+const [w, h] = format === 'landscape' ? [1920, 1080] : [1080, 1920];
 const page = await browser.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: 1 });
 page.on('console', m => console.log('[page]', m.text()));
 page.on('pageerror', e => { console.error(e); process.exit(1); });
